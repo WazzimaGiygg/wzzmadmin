@@ -3,86 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Administração GitHub</title>
+    <title>Login - Painel de Administração GitHub</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@tailwindcss/browser@latest"></script>
     <style>
-        /* Estilos adicionais para o editor de texto */
-        #editor {
-            height: 500px;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.375rem;
-            margin-bottom: 1rem;
+        /* Estilos adicionais para centralizar o formulário de login */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f3f4f6; /* bg-gray-100 */
         }
     </style>
 </head>
-<body class="bg-gray-100 font-inter">
-    <div class="container mx-auto p-6">
-        <h1 class="text-3xl font-semibold text-gray-800 mb-6">Painel de Administração GitHub</h1>
-
-        <div id="alert-container" class="mb-4">
-            </div>
-
-        <div class="bg-white shadow-md rounded-lg p-6 mb-6">
-            <h2 class="text-xl font-semibold text-gray-700 mb-4">Configurações do Repositório</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<body class="font-inter">
+    <div class="login-container">
+        <div class="bg-white shadow-md rounded-lg p-8 w-full max-w-md">
+            <h1 class="text-2xl font-semibold text-gray-800 mb-6 text-center">Login</h1>
+            <div id="alert-container" class="mb-4">
+                </div>
+            <form id="login-form" class="space-y-4">
                 <div>
-                    <label for="repo-name" class="block text-gray-700 text-sm font-bold mb-2">Nome do Repositório:</label>
-                    <input type="text" id="repo-name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="seu-usuario/seu-repositorio">
+                    <label for="username" class="block text-gray-700 text-sm font-bold mb-2">Nome de Usuário:</label>
+                    <input type="text" id="username" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="seu-nome-de-usuario">
                 </div>
                 <div>
-                    <label for="access-token" class="block text-gray-700 text-sm font-bold mb-2">Token de Acesso:</label>
-                    <input type="password" id="access-token" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="seu-token-de-acesso">
+                    <label for="password" class="block text-gray-700 text-sm font-bold mb-2">Senha:</label>
+                    <input type="password" id="password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="sua-senha">
                 </div>
-                <div>
-                    <label for="directory-path" class="block text-gray-700 text-sm font-bold mb-2">Caminho do Diretório:</label>
-                    <input type="text" id="directory-path" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="caminho/para/o/diretorio">
-                </div>
-                 <div>
-                    <label for="github-username" class="block text-gray-700 text-sm font-bold mb-2">Nome de Usuário do GitHub:</label>
-                    <input type="text" id="github-username" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="seu-nome-de-usuario">
-                </div>
-            </div>
-            <button id="load-files" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-4">Carregar Arquivos</button>
-        </div>
-
-        <div class="bg-white shadow-md rounded-lg p-6 mb-6">
-            <h2 class="text-xl font-semibold text-gray-700 mb-4">Lista de Arquivos</h2>
-            <ul id="file-list" class="border rounded-md p-4">
-                </ul>
-        </div>
-
-        <div class="bg-white shadow-md rounded-lg p-6">
-            <h2 class="text-xl font-semibold text-gray-700 mb-4">Editor de Arquivos</h2>
-            <div id="editor"></div>
-            <button id="save-button" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-4">Salvar Arquivo</button>
+                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full">Entrar</button>
+            </form>
+            <p class="text-gray-600 text-sm mt-4 text-center">
+                Ainda não tem uma conta? <a href="#" id="register-link" class="text-blue-500 hover:text-blue-700 font-semibold">Cadastre-se</a>
+            </p>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.18.0/src-noconflict/ace.js"></script>
     <script>
-        // Obtém referências aos elementos HTML
-        const repoNameInput = document.getElementById('repo-name');
-        const accessTokenInput = document.getElementById('access-token');
-        const directoryPathInput = document.getElementById('directory-path');
-        const fileList = document.getElementById('file-list');
-        const editorElement = document.getElementById('editor');
-        const saveButton = document.getElementById('save-button');
+        const loginForm = document.getElementById('login-form');
         const alertContainer = document.getElementById('alert-container');
-        const githubUsernameInput = document.getElementById('github-username');
-
-        // Inicializa o editor de texto Ace
-        const editor = ace.edit(editorElement);
-        editor.setTheme('ace/theme/twilight');
-        editor.session.setMode('ace/mode/text');
-        editor.setOptions({
-            fontSize: 14,
-            showPrintMargin: false,
-            wrap: true
-        });
-
-        let selectedFilePath = ''; // Armazena o caminho do arquivo selecionado
+        const registerLink = document.getElementById('register-link');
 
         // Função para exibir alertas
         function showAlert(message, type = 'success') {
@@ -111,165 +72,30 @@
             }, 5000);
         }
 
-        // Função para listar os arquivos do diretório no GitHub
-        async function listFiles() {
-            const repoName = repoNameInput.value;
-            const accessToken = accessTokenInput.value;
-            const directoryPath = directoryPathInput.value;
+        // Função para lidar com o envio do formulário de login
+        loginForm.addEventListener('submit', (event) => {
+            event.preventDefault(); // Impede o envio padrão do formulário
 
-            if (!repoName || !accessToken) {
-                showAlert('Por favor, preencha o nome do repositório e o token de acesso.', 'error');
-                return;
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            // Simulação de autenticação (substitua por sua lógica de autenticação real)
+            if (username === 'admin' && password === 'password') {
+                showAlert('Login realizado com sucesso!', 'success');
+                // Redirecionar para a página principal após o login (substitua pelo seu URL)
+                window.location.href = 'index.html'; // Altere para o nome do seu arquivo principal
+            } else {
+                showAlert('Credenciais inválidas. Por favor, tente novamente.', 'error');
             }
+        });
 
-            const apiUrl = `https://api.github.com/repos/${repoName}/contents/${directoryPath}`;
-
-            try {
-                const response = await axios.get(apiUrl, {
-                    headers: {
-                        Authorization: `token ${accessToken}`,
-                    },
-                });
-
-                fileList.innerHTML = ''; // Limpa a lista de arquivos
-                const files = response.data;
-
-                if (files && files.length > 0) {
-                    files.forEach(file => {
-                        if (file.type === 'file') {
-                            const listItem = document.createElement('li');
-                            listItem.className = "py-2 border-b border-gray-200 hover:bg-gray-50 cursor-pointer";
-                            listItem.textContent = file.name;
-                            listItem.dataset.path = file.path; // Armazena o caminho completo do arquivo
-                            listItem.addEventListener('click', () => {
-                                selectedFilePath = file.path;
-                                loadFileContent(file.path);
-                            });
-                            fileList.appendChild(listItem);
-                        }
-                    });
-                } else {
-                    fileList.innerHTML = '<li class="text-gray-500">Nenhum arquivo encontrado neste diretório.</li>';
-                }
-            } catch (error) {
-                console.error('Erro ao listar arquivos:', error);
-                showAlert(`Erro ao listar arquivos: ${error.message}`, 'error');
-            }
-        }
-
-        // Função para carregar o conteúdo de um arquivo do GitHub e exibir no editor
-        async function loadFileContent(filePath) {
-            const repoName = repoNameInput.value;
-            const accessToken = accessTokenInput.value;
-
-            if (!repoName || !accessToken) {
-                showAlert('Por favor, preencha o nome do repositório e o token de acesso.', 'error');
-                return;
-            }
-
-            const apiUrl = `https://api.github.com/repos/${repoName}/contents/${filePath}`;
-
-            try {
-                const response = await axios.get(apiUrl, {
-                    headers: {
-                        Authorization: `token ${accessToken}`,
-                    },
-                });
-
-                const fileContent = atob(response.data.content); // Decodifica o conteúdo de base64
-                editor.setValue(fileContent);
-                editor.session.setMode(getAceModeForFile(filePath)); // Define o modo de edição com base na extensão
-            } catch (error) {
-                console.error('Erro ao carregar conteúdo do arquivo:', error);
-                showAlert(`Erro ao carregar conteúdo do arquivo: ${error.message}`, 'error');
-            }
-        }
-
-        // Função para salvar o conteúdo do arquivo no GitHub
-        async function saveFileContent() {
-            const repoName = repoNameInput.value;
-            const accessToken = accessTokenInput.value;
-            const filePath = selectedFilePath;
-            const fileContent = editor.getValue();
-            const githubUsername = githubUsernameInput.value;
-
-
-            if (!repoName || !accessToken || !filePath) {
-                showAlert('Por favor, preencha o nome do repositório, o token de acesso e selecione um arquivo.', 'error');
-                return;
-            }
-             if (!githubUsername) {
-                showAlert('Por favor, preencha o seu nome de usuário do GitHub.', 'error');
-                return;
-            }
-
-            const apiUrl = `https://api.github.com/repos/${repoName}/contents/${filePath}`;
-
-            // Primeiro, precisamos obter o sha do arquivo para poder atualizá-lo
-            let sha = '';
-            try {
-                const getFileResponse = await axios.get(apiUrl, {
-                    headers: {
-                        Authorization: `token ${accessToken}`,
-                    },
-                });
-                sha = getFileResponse.data.sha;
-            } catch (error) {
-                 showAlert(`Erro ao obter SHA do arquivo: ${error.message}`, 'error');
-                 return;
-            }
-
-
-            const encodedContent = btoa(fileContent); // Codifica o conteúdo para base64
-
-            const data = {
-                message: `Atualizado arquivo ${filePath} via painel de administração`,
-                content: encodedContent,
-                sha: sha,
-                committer: {
-                    name: githubUsername, // Use o nome de usuário do GitHub
-                    email: `${githubUsername}@users.noreply.github.com` // Formato de email do GitHub
-                }
-            };
-
-            try {
-                const response = await axios.put(apiUrl, data, {
-                    headers: {
-                        Authorization: `token ${accessToken}`,
-                    },
-                });
-
-                showAlert('Arquivo salvo com sucesso!', 'success');
-            } catch (error) {
-                console.error('Erro ao salvar arquivo:', error);
-                showAlert(`Erro ao salvar arquivo: ${error.message}`, 'error');
-            }
-        }
-
-        // Função para determinar o modo de edição do Ace com base na extensão do arquivo
-        function getAceModeForFile(filePath) {
-            const extension = filePath.split('.').pop();
-            switch (extension) {
-                case 'js':
-                    return 'ace/mode/javascript';
-                case 'html':
-                    return 'ace/mode/html';
-                case 'css':
-                    return 'ace/mode/css';
-                case 'md':
-                    return 'ace/mode/markdown';
-                case 'json':
-                    return 'ace/mode/json';
-                case 'py':
-                    return 'ace/mode/python';
-                default:
-                    return 'ace/mode/text';
-            }
-        }
-
-        // Event listeners
-        document.getElementById('load-files').addEventListener('click', listFiles);
-        saveButton.addEventListener('click', saveFileContent);
+        // Função para lidar com o clique no link de registro (simulação)
+        registerLink.addEventListener('click', (event) => {
+            event.preventDefault(); // Impede o comportamento padrão do link
+            showAlert('Redirecionando para a página de registro (simulação)...', 'success');
+            // Redirecionar para a página de registro (substitua pelo seu URL de registro)
+            // window.location.href = 'register.html'; // Altere para o nome do seu arquivo de registro
+        });
     </script>
 </body>
 </html>
