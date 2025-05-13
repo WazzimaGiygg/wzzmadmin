@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Administração GitHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@tailwindcss/browser@latest"></script>
+    <style>
+        /* Estilos adicionais para o editor de texto */
+        #editor {
+            height: 500px;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.375rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-inter">
+    <div class="container mx-auto p-6">
+        <h1 class="text-3xl font-semibold text-gray-800 mb-6">Painel de Administração GitHub</h1>
+
+        <div id="alert-container" class="mb-4">
+            </div>
+
+        <div class="bg-white shadow-md rounded-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">Configurações do Repositório</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="repo-name" class="block text-gray-700 text-sm font-bold mb-2">Nome do Repositório:</label>
+                    <input type="text" id="repo-name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="seu-usuario/seu-repositorio">
+                </div>
+                <div>
+                    <label for="access-token" class="block text-gray-700 text-sm font-bold mb-2">Token de Acesso:</label>
+                    <input type="password" id="access-token" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="seu-token-de-acesso">
+                </div>
+                <div>
+                    <label for="directory-path" class="block text-gray-700 text-sm font-bold mb-2">Caminho do Diretório:</label>
+                    <input type="text" id="directory-path" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="caminho/para/o/diretorio">
+                </div>
+                 <div>
+                    <label for="github-username" class="block text-gray-700 text-sm font-bold mb-2">Nome de Usuário do GitHub:</label>
+                    <input type="text" id="github-username" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="seu-nome-de-usuario">
+                </div>
+            </div>
+            <button id="load-files" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-4">Carregar Arquivos</button>
+        </div>
+
+        <div class="bg-white shadow-md rounded-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">Lista de Arquivos</h2>
+            <ul id="file-list" class="border rounded-md p-4">
+                </ul>
+        </div>
+
+        <div class="bg-white shadow-md rounded-lg p-6">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">Editor de Arquivos</h2>
+            <div id="editor"></div>
+            <button id="save-button" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-4">Salvar Arquivo</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.18.0/src-noconflict/ace.js"></script>
+    <script>
+        // Obtém referências aos elementos HTML
+        const repoNameInput = document.getElementById('repo-name');
+        const accessTokenInput = document.getElementById('access-token');
+        const directoryPathInput = document.getElementById('directory-path');
+        const fileList = document.getElementById('file-list');
+        const editorElement = document.getElementById('editor');
+        const saveButton = document.getElementById('save-button');
+        const alertContainer = document.getElementById('alert-container');
+        const githubUsernameInput = document.getElementById('github-username');
+
+        // Inicializa o editor de texto Ace
+        const editor = ace.edit(editorElement);
+        editor.setTheme('ace/theme/twilight');
+        editor.session.setMode('ace/mode/text');
+        editor.setOptions({
+            fontSize: 14,
+            showPrintMargin: false,
+            wrap: true
+        });
+
+        let selectedFilePath = ''; // Armazena o caminho do arquivo selecionado
+
+        // Função para exibir alertas
+        function showAlert(message, type = 'success') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `bg-${type === 'success' ? 'green' : 'red'}-100 border border-${type === 'success' ? 'green' : 'red'}-400 text-${type === 'success' ? 'green' : 'red'}-700 px-4 py-3 rounded relative mb-4`;
+            alertDiv.setAttribute('role', 'alert');
+            alertDiv.innerHTML = `
+                <strong class="font-bold">${type === 'success' ? 'Sucesso!' : 'Erro!'}</strong>
+                <span class="block sm:inline">${message}</span>
+                <span class="absolute top-0 bottom-0 right-0 px-4 py-3">
+                    <svg class="fill-current h-6 w-6 text-${type === 'success' ? 'green' : 'red'}-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/></svg>
+                </span>
+            `;
+            alertContainer.appendChild(alertDiv);
+
+            const closeBtn = alertDiv.querySelector('svg');
+            closeBtn.addEventListener('click', () => {
+                alertDiv.remove();
+            });
+
+            // Remove o alerta após 5 segundos
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+
+        // Função para listar os arquivos do diretório no GitHub
+        async function listFiles() {
+            const repoName = repoNameInput.value;
+            const accessToken = accessTokenInput.value;
+            const directoryPath = directoryPathInput.value;
+
+            if (!repoName || !accessToken) {
+                showAlert('Por favor, preencha o nome do repositório e o token de acesso.', 'error');
+                return;
+            }
+
+            const apiUrl = `https://api.github.com/repos/${repoName}/contents/${directoryPath}`;
+
+            try {
+                const response = await axios.get(apiUrl, {
+                    headers: {
+                        Authorization: `token ${accessToken}`,
+                    },
+                });
+
+                fileList.innerHTML = ''; // Limpa a lista de arquivos
+                const files = response.data;
+
+                if (files && files.length > 0) {
+                    files.forEach(file => {
+                        if (file.type === 'file') {
+                            const listItem = document.createElement('li');
+                            listItem.className = "py-2 border-b border-gray-200 hover:bg-gray-50 cursor-pointer";
+                            listItem.textContent = file.name;
+                            listItem.dataset.path = file.path; // Armazena o caminho completo do arquivo
+                            listItem.addEventListener('click', () => {
+                                selectedFilePath = file.path;
+                                loadFileContent(file.path);
+                            });
+                            fileList.appendChild(listItem);
+                        }
+                    });
+                } else {
+                    fileList.innerHTML = '<li class="text-gray-500">Nenhum arquivo encontrado neste diretório.</li>';
+                }
+            } catch (error) {
+                console.error('Erro ao listar arquivos:', error);
+                showAlert(`Erro ao listar arquivos: ${error.message}`, 'error');
+            }
+        }
+
+        // Função para carregar o conteúdo de um arquivo do GitHub e exibir no editor
+        async function loadFileContent(filePath) {
+            const repoName = repoNameInput.value;
+            const accessToken = accessTokenInput.value;
+
+            if (!repoName || !accessToken) {
+                showAlert('Por favor, preencha o nome do repositório e o token de acesso.', 'error');
+                return;
+            }
+
+            const apiUrl = `https://api.github.com/repos/${repoName}/contents/${filePath}`;
+
+            try {
+                const response = await axios.get(apiUrl, {
+                    headers: {
+                        Authorization: `token ${accessToken}`,
+                    },
+                });
+
+                const fileContent = atob(response.data.content); // Decodifica o conteúdo de base64
+                editor.setValue(fileContent);
+                editor.session.setMode(getAceModeForFile(filePath)); // Define o modo de edição com base na extensão
+            } catch (error) {
+                console.error('Erro ao carregar conteúdo do arquivo:', error);
+                showAlert(`Erro ao carregar conteúdo do arquivo: ${error.message}`, 'error');
+            }
+        }
+
+        // Função para salvar o conteúdo do arquivo no GitHub
+        async function saveFileContent() {
+            const repoName = repoNameInput.value;
+            const accessToken = accessTokenInput.value;
+            const filePath = selectedFilePath;
+            const fileContent = editor.getValue();
+            const githubUsername = githubUsernameInput.value;
+
+
+            if (!repoName || !accessToken || !filePath) {
+                showAlert('Por favor, preencha o nome do repositório, o token de acesso e selecione um arquivo.', 'error');
+                return;
+            }
+             if (!githubUsername) {
+                showAlert('Por favor, preencha o seu nome de usuário do GitHub.', 'error');
+                return;
+            }
+
+            const apiUrl = `https://api.github.com/repos/${repoName}/contents/${filePath}`;
+
+            // Primeiro, precisamos obter o sha do arquivo para poder atualizá-lo
+            let sha = '';
+            try {
+                const getFileResponse = await axios.get(apiUrl, {
+                    headers: {
+                        Authorization: `token ${accessToken}`,
+                    },
+                });
+                sha = getFileResponse.data.sha;
+            } catch (error) {
+                 showAlert(`Erro ao obter SHA do arquivo: ${error.message}`, 'error');
+                 return;
+            }
+
+
+            const encodedContent = btoa(fileContent); // Codifica o conteúdo para base64
+
+            const data = {
+                message: `Atualizado arquivo ${filePath} via painel de administração`,
+                content: encodedContent,
+                sha: sha,
+                committer: {
+                    name: githubUsername, // Use o nome de usuário do GitHub
+                    email: `${githubUsername}@users.noreply.github.com` // Formato de email do GitHub
+                }
+            };
+
+            try {
+                const response = await axios.put(apiUrl, data, {
+                    headers: {
+                        Authorization: `token ${accessToken}`,
+                    },
+                });
+
+                showAlert('Arquivo salvo com sucesso!', 'success');
+            } catch (error) {
+                console.error('Erro ao salvar arquivo:', error);
+                showAlert(`Erro ao salvar arquivo: ${error.message}`, 'error');
+            }
+        }
+
+        // Função para determinar o modo de edição do Ace com base na extensão do arquivo
+        function getAceModeForFile(filePath) {
+            const extension = filePath.split('.').pop();
+            switch (extension) {
+                case 'js':
+                    return 'ace/mode/javascript';
+                case 'html':
+                    return 'ace/mode/html';
+                case 'css':
+                    return 'ace/mode/css';
+                case 'md':
+                    return 'ace/mode/markdown';
+                case 'json':
+                    return 'ace/mode/json';
+                case 'py':
+                    return 'ace/mode/python';
+                default:
+                    return 'ace/mode/text';
+            }
+        }
+
+        // Event listeners
+        document.getElementById('load-files').addEventListener('click', listFiles);
+        saveButton.addEventListener('click', saveFileContent);
+    </script>
+</body>
+</html>
