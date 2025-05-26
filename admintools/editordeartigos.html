@@ -20,52 +20,25 @@
   <div class="max-w-6xl mx-auto px-4">
     <h1 class="text-2xl font-semibold text-center text-gray-800 mb-8">Matérias de Graduação: Pesquisa e Análise de Dados</h1>
 
-    <div id="auth-section" class="max-w-md mx-auto bg-white rounded-lg shadow p-6 mb-8">
-      <h2 class="text-xl font-semibold text-gray-700 mb-4" id="auth-title">Faça Login ou Registre-se</h2>
-      <form id="auth-form">
-        <div class="mb-4">
-          <label for="email" class="block text-gray-700 text-sm font-bold mb-2">Email:</label>
-          <input
-            type="email"
-            id="email"
-            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            required
-          />
-        </div>
-        <div class="mb-6">
-          <label for="password" class="block text-gray-700 text-sm font-bold mb-2">Senha:</label>
-          <input
-            type="password"
-            id="password"
-            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            required
-          />
-        </div>
-        <div class="flex items-center justify-between">
-          <button
-            type="submit"
-            id="login-btn"
-            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-          >
-            Login
-          </button>
-          <button
-            type="button"
-            id="register-btn"
-            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-          >
-            Registrar
-          </button>
-          <button
-            type="button"
-            id="logout-btn"
-            class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline hidden"
-          >
-            Sair
-          </button>
-        </div>
-        <p id="auth-message" class="mt-4 text-sm"></p>
-      </form>
+    <div id="auth-section" class="max-w-md mx-auto bg-white rounded-lg shadow p-6 mb-8 text-center">
+      <h2 class="text-xl font-semibold text-gray-700 mb-4" id="auth-title"></h2>
+      <div id="auth-buttons" class="flex flex-col items-center gap-4">
+        <button
+          type="button"
+          id="google-login-btn"
+          class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full max-w-xs"
+        >
+          Entrar com Google
+        </button>
+        <button
+          type="button"
+          id="logout-btn"
+          class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline hidden w-full max-w-xs"
+        >
+          Sair
+        </button>
+      </div>
+      <p id="auth-message" class="mt-4 text-sm"></p>
       <div id="user-status" class="mt-4 text-gray-700 text-sm"></div>
     </div>
 
@@ -134,9 +107,10 @@
 
   </div>
 
-  <script src="https://www.gstatic.com/firebasejs/10.x.x/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.x.x/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.x.x/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-analytics-compat.js"></script>
   <script>
     // 1. Sua configuração do Firebase (copie do seu console Firebase)
     const firebaseConfig = {
@@ -146,25 +120,20 @@
       storageBucket: "wzzm-ce3fc.firebasestorage.app",
       messagingSenderId: "249427877153",
       appId: "1:249427877153:web:0e4297294794a5aadeb260",
-      measurementId: "G-PLKNZNFCQ8" // Você pode manter ou remover measurementId se não usar Analytics
+      measurementId: "G-PLKNZNFCQ8" // Opcional: só se você estiver usando Firebase Analytics
     };
 
     // Inicialize o Firebase
-    firebase.initializeApp(firebaseConfig);
-
-    // Obtenha referências para os serviços do Firebase
+    const app = firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
+    const analytics = firebase.analytics(); // Inicializa o Analytics se measurementId estiver na config
 
     // Referências aos elementos HTML
-    const authForm = document.getElementById('auth-form');
-    const emailInput = document.getElementById('email');
-    const passwordInput = document.getElementById('password');
-    const loginBtn = document.getElementById('login-btn');
-    const registerBtn = document.getElementById('register-btn');
+    const authTitle = document.getElementById('auth-title');
+    const googleLoginBtn = document.getElementById('google-login-btn');
     const logoutBtn = document.getElementById('logout-btn');
     const authMessage = document.getElementById('auth-message');
-    const authTitle = document.getElementById('auth-title');
     const userStatusDiv = document.getElementById('user-status');
     const addArticleSection = document.getElementById('add-article-section');
     const addArticleForm = document.getElementById('add-article-form');
@@ -194,12 +163,9 @@
     auth.onAuthStateChanged(async (user) => {
       if (user) {
         // Usuário logado
-        authTitle.textContent = `Bem-vindo(a), ${user.email}!`;
-        emailInput.classList.add('hidden');
-        passwordInput.classList.add('hidden');
-        loginBtn.classList.add('hidden');
-        registerBtn.classList.add('hidden');
-        logoutBtn.classList.remove('hidden');
+        authTitle.textContent = `Bem-vindo(a), ${user.displayName || user.email}!`;
+        googleLoginBtn.classList.add('hidden'); // Esconde botão de login
+        logoutBtn.classList.remove('hidden'); // Mostra botão de logout
         authMessage.textContent = '';
         userStatusDiv.textContent = `Logado como: ${user.email} (UID: ${user.uid})`;
 
@@ -219,11 +185,8 @@
       } else {
         // Usuário deslogado
         authTitle.textContent = 'Faça Login ou Registre-se';
-        emailInput.classList.remove('hidden');
-        passwordInput.classList.remove('hidden');
-        loginBtn.classList.remove('hidden');
-        registerBtn.classList.remove('hidden');
-        logoutBtn.classList.add('hidden');
+        googleLoginBtn.classList.remove('hidden'); // Mostra botão de login
+        logoutBtn.classList.add('hidden'); // Esconde botão de logout
         authMessage.textContent = '';
         userStatusDiv.textContent = 'Nenhum usuário logado.';
         addArticleSection.classList.add('hidden'); // Esconder formulário de adição
@@ -233,45 +196,23 @@
       }
     });
 
-    // 4. Lógica de Login/Registro
-    authForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = emailInput.value;
-      const password = passwordInput.value;
+    // 4. Lógica de Login com Google
+    googleLoginBtn.addEventListener('click', async () => {
+      const provider = new firebase.auth.GoogleAuthProvider();
       authMessage.textContent = ''; // Limpa mensagens anteriores
 
-      if (e.submitter.id === 'login-btn') {
-        // Tentar login
-        try {
-          await auth.signInWithEmailAndPassword(email, password);
-          authMessage.textContent = 'Login bem-sucedido!';
-          authMessage.className = 'mt-4 text-sm text-green-600';
-        } catch (error) {
-          console.error("Erro no login:", error);
-          authMessage.textContent = `Erro no login: ${error.message}`;
-          authMessage.className = 'mt-4 text-sm text-red-600';
-        }
-      }
-    });
-
-    registerBtn.addEventListener('click', async () => {
-      const email = emailInput.value;
-      const password = passwordInput.value;
-      authMessage.textContent = ''; // Limpa mensagens anteriores
-
-      // Tentar registrar
       try {
-        await auth.createUserWithEmailAndPassword(email, password);
-        authMessage.textContent = 'Registro bem-sucedido! Você está logado.';
+        await auth.signInWithPopup(provider);
+        authMessage.textContent = 'Login com Google bem-sucedido!';
         authMessage.className = 'mt-4 text-sm text-green-600';
-        // Não adicione o novo usuário automaticamente como admin aqui, faça isso manualmente no console!
       } catch (error) {
-        console.error("Erro no registro:", error);
-        authMessage.textContent = `Erro no registro: ${error.message}`;
+        console.error("Erro no login com Google:", error);
+        authMessage.textContent = `Erro ao fazer login com Google: ${error.message}`;
         authMessage.className = 'mt-4 text-sm text-red-600';
       }
     });
 
+    // 5. Lógica de Logout
     logoutBtn.addEventListener('click', async () => {
       try {
         await auth.signOut();
@@ -286,7 +227,7 @@
     });
 
 
-    // 5. Lógica de Adição de Artigos (APENAS PARA ADMINS)
+    // 6. Lógica de Adição de Artigos (APENAS PARA ADMINS)
     if (addArticleForm) {
       addArticleForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -329,7 +270,7 @@
       });
     }
 
-    // 6. Lógica de Carregamento de Conteúdo (Filtrado por Acesso)
+    // 7. Lógica de Carregamento de Conteúdo (Filtrado por Acesso)
     async function loadContent() {
       contentSectionsDiv.innerHTML = '<p>Carregando conteúdo...</p>';
 
@@ -339,6 +280,8 @@
         // Se o usuário não for admin, ou não estiver logado,
         // apenas carrega artigos com 'acesso: publico'.
         // Se for admin, carrega todos.
+        // A regra do Firestore também fará essa validação no backend,
+        // mas é bom ter o filtro aqui para otimizar o frontend.
         if (!isAdminUser) {
             articlesQuery = articlesQuery.where('acesso', '==', 'publico');
         }
@@ -356,7 +299,7 @@
         });
 
         const categorias = {};
-        materias.forEach(materia => { // Não precisamos de 'filteredMaterias' aqui, pois a query já filtra
+        materias.forEach(materia => {
           if (!categorias[materia.categoria]) {
             categorias[materia.categoria] = [];
           }
