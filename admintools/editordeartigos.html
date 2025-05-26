@@ -5,6 +5,7 @@
   <title>WZZM WIKI ZONE ZERO MOD - Artigos e Matérias</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN: OK for development, but use as a PostCSS plugin for production -->
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body {
@@ -20,6 +21,7 @@
   <div class="max-w-6xl mx-auto px-4">
     <h1 class="text-2xl font-semibold text-center text-gray-800 mb-8">Matérias de Graduação: Pesquisa e Análise de Dados</h1>
 
+    <!-- Seção de Autenticação -->
     <div id="auth-section" class="max-w-md mx-auto bg-white rounded-lg shadow p-6 mb-8 text-center">
       <h2 class="text-xl font-semibold text-gray-700 mb-4" id="auth-title"></h2>
       <div id="auth-buttons" class="flex flex-col items-center gap-4">
@@ -42,6 +44,8 @@
       <div id="user-status" class="mt-4 text-gray-700 text-sm"></div>
     </div>
 
+    <!-- Seção para Adicionar Artigo (Visível apenas para Admins no frontend) -->
+    <!-- A visibilidade é controlada pelo JS, mas as regras do Firestore dão a garantia final -->
     <div id="add-article-section" class="max-w-md mx-auto bg-white rounded-lg shadow p-6 mt-8 hidden">
       <h2 class="text-xl font-semibold text-gray-700 mb-4">Adicionar Novo Artigo</h2>
       <form id="add-article-form">
@@ -101,33 +105,43 @@
       <p id="form-message" class="mt-4 text-sm"></p>
     </div>
 
+    <!-- Seção para Exibir Artigos -->
     <div id="content-sections" class="mt-8">
       <p>Carregando conteúdo...</p>
     </div>
 
   </div>
 
+  <!-- SDKs do Firebase (versão compat) -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-analytics-compat.js"></script>
+
   <script>
-    // 1. Sua configuração do Firebase (copie do seu console Firebase)
+    // 1. Sua configuração do Firebase (copiada do seu console)
+    // VERIFIQUE SE ESTA CONFIGURAÇÃO CORRESPONDE EXATAMENTE AO SEU PROJETO WZZM
     const firebaseConfig = {
-      apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0",
-      authDomain: "wzzm-ce3fc.firebaseapp.com",
-      projectId: "wzzm-ce3fc",
-      storageBucket: "wzzm-ce3fc.firebasestorage.app",
-      messagingSenderId: "249427877153",
-      appId: "1:249427877153:web:0e4297294794a5aadeb260",
-      measurementId: "G-PLKNZNFCQ8" // Opcional: só se você estiver usando Firebase Analytics
+      apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0", // Seu API Key
+      authDomain: "wzzm-ce3fc.firebaseapp.com",      // Seu Auth Domain
+      projectId: "wzzm-ce3fc",                       // Seu Project ID
+      storageBucket: "wzzm-ce3fc.firebasestorage.app", // Seu Storage Bucket
+      messagingSenderId: "249427877153",           // Seu Sender ID
+      appId: "1:249427877153:web:0e4297294794a5aadeb260", // Seu App ID
+      measurementId: "G-PLKNZNFCQ8"                  // Seu Measurement ID (Analytics)
     };
 
-    // Inicialize o Firebase
+    // Inicialize o Firebase com a configuração do seu projeto
     const app = firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
-    const analytics = firebase.analytics(); // Inicializa o Analytics se measurementId estiver na config
+    // Inicializa o Analytics se o Measurement ID estiver na config
+    // Este bloco `if` é opcional, mas evita erro se Measurement ID não estiver definido
+    let analytics = null;
+    if (firebaseConfig.measurementId) {
+      analytics = firebase.analytics();
+    }
+
 
     // Referências aos elementos HTML
     const authTitle = document.getElementById('auth-title');
@@ -140,206 +154,16 @@
     const formMessage = document.getElementById('form-message');
     const contentSectionsDiv = document.getElementById('content-sections');
 
-    let isAdminUser = false; // Flag para verificar se o usuário é admin
+    // Flag para verificar se o usuário é admin (estado local no frontend)
+    let isAdminUser = false;
 
-    // 2. Função para verificar se um usuário é administrador
+    // 2. Função para verificar se um usuário é administrador CONSULTANDO O FIRESTORE
+    // Esta função espelha a lógica da função isAdmin() nas suas regras de segurança
     async function checkAdminStatus(uid) {
       if (!uid) {
         isAdminUser = false;
         return false;
       }
       try {
-        const adminDoc = await db.collection('admins').doc(uid).get();
-        isAdminUser = adminDoc.exists; // Se o documento existir, é admin
-        return isAdminUser;
-      } catch (error) {
-        console.error("Erro ao verificar status de administrador:", error);
-        isAdminUser = false;
-        return false;
-      }
-    }
-
-    // 3. Listener para mudanças no estado de autenticação
-    auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        // Usuário logado
-        authTitle.textContent = `Bem-vindo(a), ${user.displayName || user.email}!`;
-        googleLoginBtn.classList.add('hidden'); // Esconde botão de login
-        logoutBtn.classList.remove('hidden'); // Mostra botão de logout
-        authMessage.textContent = '';
-        userStatusDiv.textContent = `Logado como: ${user.email} (UID: ${user.uid})`;
-
-        // Verificar se é admin
-        const isAdmin = await checkAdminStatus(user.uid);
-        if (isAdmin) {
-          userStatusDiv.textContent += ' (Administrador)';
-          addArticleSection.classList.remove('hidden'); // Mostrar formulário de adição
-        } else {
-          userStatusDiv.textContent += ' (Não Administrador)';
-          addArticleSection.classList.add('hidden'); // Esconder formulário de adição
-        }
-
-        // Carregar conteúdo após o login
-        loadContent();
-
-      } else {
-        // Usuário deslogado
-        authTitle.textContent = 'Faça Login ou Registre-se';
-        googleLoginBtn.classList.remove('hidden'); // Mostra botão de login
-        logoutBtn.classList.add('hidden'); // Esconde botão de logout
-        authMessage.textContent = '';
-        userStatusDiv.textContent = 'Nenhum usuário logado.';
-        addArticleSection.classList.add('hidden'); // Esconder formulário de adição
-
-        // Recarregar conteúdo se houver mudança de acesso (ex: de admin para deslogado)
-        loadContent();
-      }
-    });
-
-    // 4. Lógica de Login com Google
-    googleLoginBtn.addEventListener('click', async () => {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      authMessage.textContent = ''; // Limpa mensagens anteriores
-
-      try {
-        await auth.signInWithPopup(provider);
-        authMessage.textContent = 'Login com Google bem-sucedido!';
-        authMessage.className = 'mt-4 text-sm text-green-600';
-      } catch (error) {
-        console.error("Erro no login com Google:", error);
-        authMessage.textContent = `Erro ao fazer login com Google: ${error.message}`;
-        authMessage.className = 'mt-4 text-sm text-red-600';
-      }
-    });
-
-    // 5. Lógica de Logout
-    logoutBtn.addEventListener('click', async () => {
-      try {
-        await auth.signOut();
-        authMessage.textContent = 'Você foi desconectado.';
-        authMessage.className = 'mt-4 text-sm text-green-600';
-        // onAuthStateChanged cuidará da atualização da UI
-      } catch (error) {
-        console.error("Erro ao sair:", error);
-        authMessage.textContent = `Erro ao sair: ${error.message}`;
-        authMessage.className = 'mt-4 text-sm text-red-600';
-      }
-    });
-
-
-    // 6. Lógica de Adição de Artigos (APENAS PARA ADMINS)
-    if (addArticleForm) {
-      addArticleForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        // Verificar se o usuário atual é um administrador
-        if (!isAdminUser || !auth.currentUser) {
-          formMessage.textContent = 'Apenas administradores podem adicionar artigos.';
-          formMessage.className = 'mt-4 text-sm text-red-600';
-          return;
-        }
-
-        const titulo = document.getElementById('newTitulo').value;
-        const descricao = document.getElementById('newDescricao').value;
-        const link = document.getElementById('newLink').value;
-        const categoria = document.getElementById('newCategoria').value;
-        const acesso = document.getElementById('newAcesso').value; // 'publico' ou 'admin'
-
-        const newArticle = {
-          titulo: titulo,
-          descricao: descricao,
-          link: link,
-          categoria: categoria,
-          acesso: acesso,
-          authorUid: auth.currentUser.uid, // O UID do usuário admin logado
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        };
-
-        try {
-          await db.collection('articles').add(newArticle);
-
-          formMessage.textContent = 'Artigo adicionado com sucesso!';
-          formMessage.className = 'mt-4 text-sm text-green-600';
-          addArticleForm.reset();
-          loadContent(); // Recarregar a lista de artigos
-        } catch (error) {
-          console.error('Erro ao adicionar artigo:', error);
-          formMessage.textContent = `Erro ao adicionar artigo: ${error.message}`;
-          formMessage.className = 'mt-4 text-sm text-red-600';
-        }
-      });
-    }
-
-    // 7. Lógica de Carregamento de Conteúdo (Filtrado por Acesso)
-    async function loadContent() {
-      contentSectionsDiv.innerHTML = '<p>Carregando conteúdo...</p>';
-
-      try {
-        let articlesQuery = db.collection('articles');
-
-        // Se o usuário não for admin, ou não estiver logado,
-        // apenas carrega artigos com 'acesso: publico'.
-        // Se for admin, carrega todos.
-        // A regra do Firestore também fará essa validação no backend,
-        // mas é bom ter o filtro aqui para otimizar o frontend.
-        if (!isAdminUser) {
-            articlesQuery = articlesQuery.where('acesso', '==', 'publico');
-        }
-
-        const snapshot = await articlesQuery.get();
-
-        if (snapshot.empty) {
-          contentSectionsDiv.innerHTML = '<p>Nenhum artigo encontrado.</p>';
-          return;
-        }
-
-        const materias = [];
-        snapshot.forEach(doc => {
-          materias.push({ id: doc.id, ...doc.data() });
-        });
-
-        const categorias = {};
-        materias.forEach(materia => {
-          if (!categorias[materia.categoria]) {
-            categorias[materia.categoria] = [];
-          }
-          categorias[materia.categoria].push(materia);
-        });
-
-        contentSectionsDiv.innerHTML = '';
-
-        for (const categoria in categorias) {
-          const section = document.createElement('section');
-          section.className = 'mb-10';
-          section.innerHTML = `
-              <h2 class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">${categoria}</h2>
-              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="${categoria.replace(/\s+/g, '-').toLowerCase()}-container">
-              </div>
-            `;
-          contentSectionsDiv.appendChild(section);
-
-          const container = section.querySelector(`#${categoria.replace(/\s+/g, '-').toLowerCase()}-container`);
-
-          categorias[categoria].forEach(materia => {
-            const div = document.createElement('div');
-            div.className = 'bg-white rounded-lg shadow p-4';
-            div.innerHTML = `
-                <h3 class="font-semibold text-gray-800">${materia.titulo}</h3>
-                <p class="text-sm text-gray-600 mt-1">${materia.descricao}</p>
-                <a href="${materia.link}" class="text-blue-600 text-sm font-semibold hover:underline mt-2 inline-block">Ver mais</a>
-              `;
-            container.appendChild(div);
-          });
-        }
-
-      } catch (error) {
-        console.error("Erro ao carregar conteúdo do Firestore:", error);
-        contentSectionsDiv.innerHTML = `<p class="text-red-500">Erro ao carregar o conteúdo: ${error.message}. Verifique suas regras de segurança do Firestore e a autenticação.</p>`;
-      }
-    }
-
-    // Iniciar carregamento de conteúdo ao carregar a página (o onAuthStateChanged também chamará)
-    window.addEventListener('load', loadContent);
-  </script>
-</body>
-</html>
+        // Tenta obter o documento com o UID do usuário na coleção 'admins'
+        const adminDoc = await db.
