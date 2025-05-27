@@ -3,31 +3,60 @@
 <head>
     <title>Adicionar Novo Artigo</title>
     <!-- Carregue o SDK do Firebase -->
+    <!-- Usei a versão 9.22.1 como você forneceu, mas sempre verifique a versão mais recente -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
     <style>
-        body { font-family: sans-serif; margin: 20px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input[type="text"], textarea, select { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; box-sizing: border-box; }
-        textarea { height: 150px; }
-        button { padding: 10px 15px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
-        button:hover { background-color: #45a049; }
-        #status { margin-top: 15px; padding: 10px; border-radius: 4px; }
-        .success { background-color: #d4edda; color: #155724; border-color: #c3e6cb; }
-        .error { background-color: #f8d7da; color: #721c24; border-color: #f5c6cb; }
-        .warning { background-color: #fff3cd; color: #856404; border-color: #ffeeba; }
+        body { font-family: sans-serif; margin: 20px; line-height: 1.6; color: #333; }
+        h1, h2 { color: #0056b3; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+        input[type="text"], input[type="email"], input[type="password"], textarea, select { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 1rem; }
+        textarea { height: 180px; resize: vertical; } /* Permite redimensionar verticalmente */
+        button { padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 8px; transition: background-color 0.3s ease; font-size: 1rem; }
+        button:hover { background-color: #0056b3; }
+        #sign-out-button { background-color: #dc3545; }
+        #sign-out-button:hover { background-color: #c82333; }
+        #status, #login-status { margin-top: 15px; padding: 12px; border-radius: 4px; font-size: 0.9rem; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        #auth-section { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
+        #article-form { margin-top: 30px; }
+        /* Estilo para esconder/mostrar */
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
-    <h1>Adicionar Novo Artigo</h1>
+    <h1>Gerenciador de Artigos</h1>
 
-    <div id="auth-status">
-        <p>Verificando status de login...</p>
+    <div id="auth-section">
+        <div id="auth-status">
+            <!-- O status de login será exibido aqui -->
+            <p>Verificando status de login...</p>
+        </div>
+        <!-- Botão Sair, inicialmente escondido -->
+        <button id="sign-out-button" class="hidden">Sair</button>
+
+        <div id="login-form" class="hidden">
+            <h2>Login ou Cadastro</h2>
+            <label for="login-email">Email:</label>
+            <input type="email" id="login-email" required>
+
+            <label for="login-password">Senha:</label>
+            <input type="password" id="login-password" required>
+
+            <button id="login-button">Entrar</button>
+            <button id="signup-button">Cadastrar</button>
+
+            <div id="login-status"></div> <!-- Status para login/cadastro -->
+        </div>
     </div>
 
-    <div id="article-form" style="display: none;">
+    <!-- Formulário para adicionar artigo, inicialmente escondido -->
+    <div id="article-form" class="hidden">
+        <h2>Adicionar Novo Artigo</h2>
         <label for="article-title">Título:</label>
         <input type="text" id="article-title" required>
 
@@ -43,18 +72,18 @@
 
         <button id="save-article-button">Salvar Artigo</button>
 
-        <div id="status"></div>
+        <div id="status"></div> <!-- Status para salvar artigo -->
     </div>
 
     <script>
         // Sua configuração do Firebase. Use as informações do seu projeto.
         const firebaseConfig = {
-            apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0", // Substitua por sua chave de API
+            apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0",
             authDomain: "wzzm-ce3fc.firebaseapp.com",
             projectId: "wzzm-ce3fc",
-            storageBucket: "wzzm-ce3fc.appspot.com", // Geralmente o mesmo que projectId + .appspot.com
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID", // Substitua pelo seu Sender ID
-            appId: "1:249427877153:web:0e4297294794a5aadeb260" // Substitua pelo seu App ID web
+            storageBucket: "wzzm-ce3fc.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID", // <--- Não esqueça de substituir este!
+            appId: "1:249427877153:web:0e4297294794a5aadeb260"
         };
 
         // Inicialize o Firebase
@@ -64,40 +93,128 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
+        // Referências aos elementos de autenticação
         const authStatusDiv = document.getElementById('auth-status');
+        const loginFormDiv = document.getElementById('login-form');
+        const loginEmailInput = document.getElementById('login-email');
+        const loginPasswordInput = document.getElementById('login-password');
+        const loginButton = document.getElementById('login-button');
+        const signupButton = document.getElementById('signup-button');
+        const loginStatusDiv = document.getElementById('login-status');
+        const signOutButton = document.getElementById('sign-out-button');
+
+        // Referências aos elementos do formulário de artigo
         const articleFormDiv = document.getElementById('article-form');
         const articleTitleInput = document.getElementById('article-title');
         const articleContentTextarea = document.getElementById('article-content');
         const articleAcessoSelect = document.getElementById('article-acesso');
         const saveButton = document.getElementById('save-article-button');
-        const statusDiv = document.getElementById('status');
+        const statusDiv = document.getElementById('status'); // Status para salvar artigo
 
-        // Função para exibir mensagens de status
-        function showStatus(message, type) {
+        // Função para exibir mensagens de status de login/cadastro
+        function showLoginStatus(message, type) {
+            loginStatusDiv.textContent = message;
+            loginStatusDiv.className = 'status ' + type; // Adiciona classes para estilizar
+        }
+
+        // Função para exibir mensagens de status ao salvar artigo
+        function showArticleStatus(message, type) {
             statusDiv.textContent = message;
-            statusDiv.className = 'status ' + type; // Adiciona classes para estilizar (success, error, warning)
+            statusDiv.className = 'status ' + type; // Adiciona classes para estilizar
         }
 
         // Monitorar o estado de autenticação
         auth.onAuthStateChanged(user => {
             if (user) {
                 // Usuário está logado
-                authStatusDiv.textContent = `Logado como: ${user.email} (UID: ${user.uid})`;
-                articleFormDiv.style.display = 'block'; // Mostrar o formulário
+                authStatusDiv.innerHTML = `Logado como: <strong>${user.email}</strong> (UID: ${user.uid})`;
+                loginFormDiv.classList.add('hidden'); // Esconder o formulário de login
+                articleFormDiv.classList.remove('hidden'); // Mostrar o formulário de artigo
+                signOutButton.classList.remove('hidden'); // Mostrar o botão de sair
+                showLoginStatus('', ''); // Limpa o status de login
+                showArticleStatus('', ''); // Limpa o status do artigo ao entrar
             } else {
                 // Usuário não está logado
-                authStatusDiv.innerHTML = `Você precisa estar logado para adicionar artigos. <br> Por favor, faça login primeiro.`;
-                articleFormDiv.style.display = 'none'; // Esconder o formulário
-                showStatus('Por favor, faça login para adicionar artigos.', 'warning');
+                authStatusDiv.innerHTML = `Você precisa estar logado para adicionar artigos.`;
+                loginFormDiv.classList.remove('hidden'); // Mostrar o formulário de login
+                articleFormDiv.classList.add('hidden'); // Esconder o formulário de artigo
+                signOutButton.classList.add('hidden'); // Esconder o botão de sair
+                showLoginStatus('Por favor, faça login ou cadastre-se.', 'warning');
+                showArticleStatus('', ''); // Limpa o status do artigo ao sair
             }
         });
 
-        // Adicionar listener ao botão de salvar
+        // Adicionar listener ao botão de Login
+        loginButton.addEventListener('click', async () => {
+            const email = loginEmailInput.value;
+            const password = loginPasswordInput.value;
+
+            if (!email || !password) {
+                showLoginStatus('Por favor, preencha email e senha para fazer login.', 'warning');
+                return;
+            }
+
+            showLoginStatus('Fazendo login...', '');
+
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+                // onAuthStateChanged cuidará da atualização da UI
+            } catch (error) {
+                console.error("Erro ao fazer login:", error);
+                showLoginStatus(`Erro ao fazer login: ${error.message}`, 'error');
+            }
+        });
+
+        // Adicionar listener ao botão de Cadastro
+        signupButton.addEventListener('click', async () => {
+            const email = loginEmailInput.value;
+            const password = loginPasswordInput.value;
+
+            if (!email || !password) {
+                showLoginStatus('Por favor, preencha email e senha para se cadastrar.', 'warning');
+                return;
+            }
+             if (password.length < 6) {
+                showLoginStatus('A senha deve ter pelo menos 6 caracteres.', 'warning');
+                return;
+            }
+
+
+            showLoginStatus('Cadastrando usuário...', '');
+
+            try {
+                await auth.createUserWithEmailAndPassword(email, password);
+                 // onAuthStateChanged cuidará da atualização da UI
+                showLoginStatus('Cadastro realizado com sucesso!', 'success'); // Opcional: feedback extra
+            } catch (error) {
+                console.error("Erro ao cadastrar:", error);
+                 if (error.code === 'auth/email-already-in-use') {
+                    showLoginStatus('Este email já está em uso.', 'error');
+                } else {
+                    showLoginStatus(`Erro ao cadastrar: ${error.message}`, 'error');
+                }
+            }
+        });
+
+        // Adicionar listener ao botão de Sair
+        signOutButton.addEventListener('click', async () => {
+            try {
+                await auth.signOut();
+                // onAuthStateChanged cuidará da atualização da UI
+                showLoginStatus('Você saiu da sua conta.', 'success');
+            } catch (error) {
+                console.error("Erro ao sair:", error);
+                showLoginStatus(`Erro ao sair: ${error.message}`, 'error');
+            }
+        });
+
+
+        // Adicionar listener ao botão de salvar Artigo
         saveButton.addEventListener('click', async () => {
             const user = auth.currentUser;
 
             if (!user) {
-                showStatus('Erro: Nenhum usuário logado.', 'error');
+                showArticleStatus('Erro: Nenhum usuário logado. Por favor, faça login primeiro.', 'error');
                 return;
             }
 
@@ -108,11 +225,11 @@
 
             // Validar campos básicos
             if (!title || !content || !acesso) {
-                showStatus('Erro: Por favor, preencha todos os campos.', 'error');
+                showArticleStatus('Erro: Por favor, preencha todos os campos do artigo.', 'error');
                 return;
             }
 
-            showStatus('Salvando artigo...', ''); // Limpa e mostra status de salvamento
+            showArticleStatus('Salvando artigo...', ''); // Limpa e mostra status de salvamento
 
             try {
                 // Crie o objeto do artigo incluindo o user ID
@@ -128,7 +245,7 @@
                 // As regras de segurança verificarão se o usuário logado é um admin.
                 await db.collection('articles').add(newArticleData);
 
-                showStatus('Artigo salvo com sucesso!', 'success');
+                showArticleStatus('Artigo salvo com sucesso!', 'success');
 
                 // Limpar o formulário após salvar
                 articleTitleInput.value = '';
@@ -138,9 +255,10 @@
             } catch (error) {
                 console.error("Erro ao salvar artigo:", error);
                 if (error.code === 'permission-denied') {
-                    showStatus('Erro: Permissão negada. Apenas administradores podem adicionar artigos.', 'error');
+                    // Esta mensagem aparecerá se o usuário logado NÃO for um admin
+                    showArticleStatus('Erro: Permissão negada. Apenas administradores podem adicionar artigos.', 'error');
                 } else {
-                    showStatus(`Erro ao salvar artigo: ${error.message}`, 'error');
+                    showArticleStatus(`Erro ao salvar artigo: ${error.message}`, 'error');
                 }
             }
         });
