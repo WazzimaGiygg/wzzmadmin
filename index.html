@@ -1,172 +1,293 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Updates Recentes</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f6f8;
-      margin: 0;
-      padding: 20px;
-      color: #333;
-    }
-    h2 {
-      text-align: center;
-      color: #1a73e8;
-    }
-    .note {
-      background-color: #fff3cd;
-      border-left: 6px solid #ffeeba;
-      padding: 10px 20px;
-      margin-bottom: 20px;
-      font-weight: bold;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 30px;
-      background-color: #fff;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
-    }
-    th, td {
-      padding: 10px;
-      border: 1px solid #ccc;
-      text-align: left;
-      vertical-align: top;
-    }
-    th {
-      background-color: #e9ecef;
-      color: #333;
-    }
-    a {
-      color: #007bff;
-      text-decoration: none;
-    }
-    a:hover {
-      text-decoration: underline;
-    }
-    .report {
-      background-color: #ffffff;
-      padding: 20px;
-      border-left: 5px solid #17a2b8;
-      margin-bottom: 30px;
-    }
-    .footer {
-      text-align: center;
-      font-size: 0.9em;
-      color: #666;
-      margin-top: 30px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Updates Recentes - Wiki Zone Zero Mod</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        h2 {
+            text-align: center;
+            color: #1a73e8;
+            margin-bottom: 20px;
+        }
+        .note {
+            background-color: #fff3cd;
+            border-left: 6px solid #ffeeba;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background-color: #e9ecef;
+            color: #333;
+        }
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .report {
+            background-color: #ffffff;
+            padding: 20px;
+            border-left: 5px solid #17a2b8;
+            margin-bottom: 30px;
+        }
+        .footer {
+            text-align: center;
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 30px;
+        }
+        /* Estilos para a mensagem de login */
+        #login-required {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.2em;
+            color: #555;
+            display: none; /* Inicialmente escondido */
+        }
+        #login-required button {
+            padding: 12px 25px;
+            font-size: 1em;
+            background-color: #4285f4; /* Cor do Google */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.3s ease;
+        }
+        #login-required button:hover {
+            background-color: #357ae8;
+        }
+        /* Esconde o conteúdo principal quando não logado */
+        #main-content {
+            display: none; /* Inicialmente escondido */
+        }
+    </style>
 </head>
 <body>
 
-  <h2>Updates Recentes</h2>
+    <div id="login-required">
+        <h2>Acesso Restrito</h2>
+        <p>Por favor, faça login com sua conta Google para ver os updates recentes.</p>
+        <button id="google-sign-in-button">Login com Google</button>
+        <p id="login-status-message" style="margin-top: 10px; color: red;"></p>
+    </div>
 
-  <div class="note">
-    Nota fixada: Os updates são feitos no final do dia depois das 22 horas, com atualização de 10 minutos em média.
-  </div>
+    <div id="main-content">
+        <h2>Updates Recentes</h2>
 
-  <p>Ver padrão de atualização.</p>
+        <div class="note">
+            Nota fixada: Os updates são feitos no final do dia depois das 22 horas, com atualização de 10 minutos em média.
+        </div>
 
-  <!-- Tabela de Update - 23/05/2025 -->
-  <table>
-    <tr>
-      <th>Data</th>
-      <th>Hora</th>
-      <th>Descrição do UPDATE</th>
-      <th>Log do Update</th>
-    </tr>
-      <tr>
-      <td>23/05/2025</td>
-      <td>14:15</td>
-      <td>Planejamento para postagens em WZZM.</td>
-      <td>UP90[2005-2025] Série 80</td>
-    </tr>
-    <tr>
-      <td>23/05/2025</td>
-      <td>15:47</td>
-      <td>Padronização dos livros em PDF em escolar.wzzm.org</td>
-      <td>UP90[2005-2025] Série 80</td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td>Verificar detalhes em:</td>
-      <td><a href="./admin.wzzm.org/relatorios/23_05_2025/">admin.wzzm.org/relatorios/23_05_2025/</a></td>
-    </tr>
-  </table>
+        <p>Ver padrão de atualização.</p>
 
-  <!-- Tabela de Update - 22/05/2025 -->
-  <table>
-    <tr>
-      <th>Data</th>
-      <th>Hora</th>
-      <th>Descrição do UPDATE</th>
-      <th>Log do Update</th>
-    </tr>
-    <tr>
-      <td>22/05/2025</td>
-      <td>15:47</td>
-      <td>Patch dos livros online em PDF para escolar.wzzm.org</td>
-      <td>UP90[2005-2025] Série 920</td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td>Verificar detalhes em:</td>
-      <td><a href="./admin.wzzm.org/relatorios/22_05_2025/">admin.wzzm.org/relatorios/22_05_2025/</a></td>
-    </tr>
-  </table>
+        <table>
+            <tr>
+                <th>Data</th>
+                <th>Hora</th>
+                <th>Descrição do UPDATE</th>
+                <th>Log do Update</th>
+            </tr>
+            <tr>
+                <td>23/05/2025</td>
+                <td>14:15</td>
+                <td>Planejamento para postagens em WZZM.</td>
+                <td>UP90[2005-2025] Série 80</td>
+            </tr>
+            <tr>
+                <td>23/05/2025</td>
+                <td>15:47</td>
+                <td>Padronização dos livros em PDF em escolar.wzzm.org</td>
+                <td>UP90[2005-2025] Série 80</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td>Verificar detalhes em:</td>
+                <td><a href="./admin.wzzm.org/relatorios/23_05_2025/">admin.wzzm.org/relatorios/23_05_2025/</a></td>
+            </tr>
+        </table>
 
-  <!-- Relatório do dia -->
-  <div class="report">
-    <h3>Relatório do dia:</h3>
-    <ul>
-      <li>Realizado alterações na página admin.wzzm.org para site de relatórios;</li>
-      <li>Realizado manutenção para inserir primeiro PDF educativo no site escolar.wzzm.org (livro de português para o primeiro ano);</li>
-      <li>Administração comum do wikimetrosp.miraheze.org;</li>
-      <li>Proposta de compra de livro em PDF pela UICLAP (Restrito por senha);</li>
-      <li>Alinhamento de projetos baseado em desenvolvimento de projeto;</li>
-      <li>Padronizado modelo de artigo WZZM.</li>
-    </ul>
-  </div>
+        <table>
+            <tr>
+                <th>Data</th>
+                <th>Hora</th>
+                <th>Descrição do UPDATE</th>
+                <th>Log do Update</th>
+            </tr>
+            <tr>
+                <td>22/05/2025</td>
+                <td>15:47</td>
+                <td>Patch dos livros online em PDF para escolar.wzzm.org</td>
+                <td>UP90[2005-2025] Série 920</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td>Verificar detalhes em:</td>
+                <td><a href="./admin.wzzm.org/relatorios/22_05_2025/">admin.wzzm.org/relatorios/22_05_2025/</a></td>
+            </tr>
+        </table>
 
-  <!-- Tabela de Update - 21/05/2025 -->
-  <table>
-    <tr>
-      <th>Data</th>
-      <th>Hora</th>
-      <th>Descrição do UPDATE</th>
-      <th>Log do Update</th>
-    </tr>
-    <tr>
-      <td>21/05/2025</td>
-      <td>15:47</td>
-      <td>Criação da página de update</td>
-      <td>UP90[2005-2025] Série 900</td>
-    </tr>
-    <tr>
-      <td>21/05/2025</td>
-      <td>15:47</td>
-      <td>Metodologia de Update</td>
-      <td>UP90[2005-2025] Série 950</td>
-    </tr>
-    <tr>
-      <td>21/05/2025</td>
-      <td>15:47</td>
-      <td>Modernização do site escolar.wzzm.org</td>
-      <td>
-        UP90[2005-2025] Série EX8<br>
-        <a href="https://escolar.wzzm.org/">https://escolar.wzzm.org/</a>
-      </td>
-    </tr>
-  </table>
+        <div class="report">
+            <h3>Relatório do dia:</h3>
+            <ul>
+                <li>Realizado alterações na página admin.wzzm.org para site de relatórios;</li>
+                <li>Realizado manutenção para inserir primeiro PDF educativo no site escolar.wzzm.org (livro de português para o primeiro ano);</li>
+                <li>Administração comum do wikimetrosp.miraheze.org;</li>
+                <li>Proposta de compra de livro em PDF pela UICLAP (Restrito por senha);</li>
+                <li>Alinhamento de projetos baseado em desenvolvimento de projeto;</li>
+                <li>Padronizado modelo de artigo WZZM.</li>
+            </ul>
+        </div>
 
-  <div class="footer">
-    Site administrado pela <a href="https://wzzm.org">Wiki Zone Zero Mod</a>
-  </div>
+        <table>
+            <tr>
+                <th>Data</th>
+                <th>Hora</th>
+                <th>Descrição do UPDATE</th>
+                <th>Log do Update</th>
+            </tr>
+            <tr>
+                <td>21/05/2025</td>
+                <td>15:47</td>
+                <td>Criação da página de update</td>
+                <td>UP90[2005-2025] Série 900</td>
+            </tr>
+            <tr>
+                <td>21/05/2025</td>
+                <td>15:47</td>
+                <td>Metodologia de Update</td>
+                <td>UP90[2005-2025] Série 950</td>
+            </tr>
+            <tr>
+                <td>21/05/2025</td>
+                <td>15:47</td>
+                <td>Modernização do site escolar.wzzm.org</td>
+                <td>
+                    UP90[2005-2025] Série EX8<br>
+                    <a href="https://escolar.wzzm.org/">https://escolar.wzzm.org/</a>
+                </td>
+            </tr>
+        </table>
 
+        <div class="footer">
+            Site administrado pela <a href="https://wzzm.org">Wiki Zone Zero Mod</a>
+        </div>
+    </div>
+
+    <script>
+        // --- Configuração do Firebase ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0",
+            authDomain: "wzzm-ce3fc.firebaseapp.com",
+            projectId: "wzzm-ce3fc",
+            storageBucket: "wzzm-ce3fc.appspot.com",
+            messagingSenderId: "249427877153",
+            appId: "1:249427877153:web:0e4297294794a5aadeb260",
+            measurementId: "G-PLKNZNFCQ8" // Se estiver usando Analytics
+        };
+
+        // Inicialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        // Se você for buscar os updates do Firestore, descomente a linha abaixo:
+        // const db = firebase.firestore();
+
+        // Elementos da UI
+        const loginRequiredDiv = document.getElementById('login-required');
+        const mainContentDiv = document.getElementById('main-content');
+        const googleSignInButton = document.getElementById('google-sign-in-button');
+        const loginStatusMessage = document.getElementById('login-status-message');
+
+        // Listener de estado de autenticação (Firebase)
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                // Usuário está logado
+                loginRequiredDiv.style.display = 'none'; // Esconde a mensagem de login
+                mainContentDiv.style.display = 'block'; // Mostra o conteúdo principal
+                loginStatusMessage.textContent = ''; // Limpa qualquer mensagem de erro de login
+                console.log("Usuário logado:", user.displayName || user.email);
+
+                // Se você puxa os dados do Firestore, pode chamar uma função aqui para carregá-los:
+                // loadUpdatesFromFirestore();
+
+            } else {
+                // Usuário não está logado
+                loginRequiredDiv.style.display = 'block'; // Mostra a mensagem de login
+                mainContentDiv.style.display = 'none'; // Esconde o conteúdo principal
+                console.log("Usuário não logado. Conteúdo restrito.");
+            }
+        });
+
+        // Event Listener para o botão de Login com Google
+        googleSignInButton.addEventListener('click', async () => {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            loginStatusMessage.textContent = 'Redirecionando para login...';
+            try {
+                await auth.signInWithRedirect(provider); // Redireciona para a página de login do Google
+            } catch (error) {
+                console.error("Erro ao fazer login com Google:", error);
+                loginStatusMessage.textContent = `Erro ao fazer login: ${error.message}`;
+            }
+        });
+
+        // Lidar com o resultado do signInWithRedirect (quando o usuário retorna da página de login)
+        auth.getRedirectResult().then((result) => {
+            if (result.user) {
+                console.log("Login com sucesso após redirecionamento!");
+                // O onAuthStateChanged acima cuidará de mostrar o conteúdo
+            }
+        }).catch((error) => {
+            console.error("Erro ao obter resultado do redirecionamento:", error);
+            loginStatusMessage.textContent = `Falha no login: ${error.message}`;
+        });
+
+        // Se você for carregar dados do Firestore (exemplo comentado):
+        /*
+        function loadUpdatesFromFirestore() {
+            db.collection('updates').orderBy('createdAt', 'desc').get().then((querySnapshot) => {
+                // Limpar e popular a tabela com os dados do Firestore
+                // Exemplo:
+                // const tableBody = document.getElementById('updates-table-body');
+                // tableBody.innerHTML = '';
+                // querySnapshot.forEach(doc => {
+                //     const data = doc.data();
+                //     // Criar linhas da tabela com data.data, data.hora, data.descricao, etc.
+                // });
+            }).catch(error => {
+                console.error("Erro ao carregar updates do Firestore:", error);
+                // Exibir mensagem de erro na UI se necessário
+            });
+        }
+        */
+
+    </script>
 </body>
 </html>
