@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gerenciador de Artigos</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <style>
+        body { font-family: sans-serif; margin: 20px; line-height: 1.6; color: #333; }
+        h1, h2 { color: #0056b3; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+        input[type="text"], textarea, select { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 1rem; }
+        textarea { height: 180px; resize: vertical; }
+        button { padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 8px; transition: background-color 0.3s ease; font-size: 1rem; }
+        button:hover { background-color: #0056b3; }
+        #sign-out-button { background-color: #dc3545; }
+        #sign-out-button:hover { background-color: #c82333; }
+
+        /* Estilo específico para o botão Google Sign-In */
+        #google-sign-in-button {
+            background-color: #db4437; /* Cor do Google Brand */
+            color: white;
+        }
+        #google-sign-in-button:hover {
+            background-color: #c33d2e;
+        }
+
+        #status, #login-status, #articles-status { margin-top: 15px; padding: 12px; border-radius: 4px; font-size: 0.9rem; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        #auth-section { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
+        #article-form { margin-top: 30px; }
+        /* Estilo para esconder/mostrar */
+        .hidden { display: none; }
+
+        /* Estilo para a listagem de artigos */
+        .article-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .article-item h3 {
+            margin-top: 0;
+            color: #007bff;
+        }
+        .article-item p {
+            margin-bottom: 5px;
+        }
+        .article-item small {
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Gerenciador de Artigos</h1>
+
+    <div id="auth-section">
+        <div id="auth-status">
+            <p>Verificando status de login...</p>
+        </div>
+        <button id="sign-out-button" class="hidden">Sair</button>
+
+        <div id="login-form" class="hidden">
+            <h2>Faça Login</h2>
+            <button id="google-sign-in-button">Entrar com Google</button>
+            <div id="login-status"></div>
+        </div>
+    </div>
+
+    <div id="article-form" class="hidden">
+        <h2>Adicionar Novo Artigo</h2>
+        <label for="article-title">Título:</label>
+        <input type="text" id="article-title" required>
+
+        <label for="article-content">Conteúdo:</label>
+        <textarea id="article-content" required></textarea>
+
+        <label for="article-acesso">Acesso:</label>
+        <select id="article-acesso" required>
+            <option value="publico">Público</option>
+            <option value="restrito">Restrito</option>
+            <option value="nao listado">Não Listado</option>
+        </select>
+
+        <button id="save-article-button">Salvar Artigo</button>
+        <div id="status"></div>
+    </div>
+
+    <div id="articles-list-section" style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px;">
+        <h2>Artigos Publicados</h2>
+        <div id="articles-container">
+            <p>Carregando artigos...</p>
+        </div>
+        <div id="articles-status"></div> </div>
+
+    <script>
+        // Sua configuração do Firebase. Use as informações do seu projeto.
+        const firebaseConfig = {
+            apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0",
+            authDomain: "wzzm-ce3fc.firebaseapp.com",
+            projectId: "wzzm-ce3fc",
+            storageBucket: "wzzm-ce3fc.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID", // <--- Não esqueça de substituir este!
+            appId: "1:249427877153:web:0e4297294794a5aadeb260"
+        };
+
+        // Inicialize o Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Obtenha as instâncias do Auth e Firestore
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // Referências aos elementos de autenticação
+        const authStatusDiv = document.getElementById('auth-status');
+        const loginFormDiv = document.getElementById('login-form');
+        const loginStatusDiv = document.getElementById('login-status');
+        const signOutButton = document.getElementById('sign-out-button');
+        const googleSignInButton = document.getElementById('google-sign-in-button');
+
+        // Referências aos elementos do formulário de artigo
+        const articleFormDiv = document.getElementById('article-form');
+        const articleTitleInput = document.getElementById('article-title');
+        const articleContentTextarea = document.getElementById('article-content');
+        const articleAcessoSelect = document.getElementById('article-acesso');
+        const saveButton = document.getElementById('save-article-button');
+        const statusDiv = document.getElementById('status'); // Status para salvar artigo
+
+        // Referências aos elementos de listagem de artigo
+        const articlesContainerDiv = document.getElementById('articles-container');
+        const articlesStatusDiv = document.getElementById('articles-status');
+
+        // Função para exibir mensagens de status de login
+        function showLoginStatus(message, type) {
+            loginStatusDiv.textContent = message;
+            loginStatusDiv.className = 'status ' + type;
+        }
+
+        // Função para exibir mensagens de status ao salvar artigo
+        function showArticleStatus(message, type) {
+            statusDiv.textContent = message;
+            statusDiv.className = 'status ' + type;
+        }
+
+        // Função para exibir mensagens de status na listagem de artigos
+        function showArticlesStatus(message, type) {
+            articlesStatusDiv.textContent = message;
+            articlesStatusDiv.className = 'status ' + type;
+        }
+
+        // Monitorar o estado de autenticação
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                const displayName = user.displayName || user.email;
+                authStatusDiv.innerHTML = `Logado como: <strong>${displayName}</strong> (UID: ${user.uid})`;
+                loginFormDiv.classList.add('hidden'); // Esconder o formulário de login
+                articleFormDiv.classList.remove('hidden'); // Mostrar o formulário de artigo
+                signOutButton.classList.remove('hidden'); // Mostrar o botão de sair
+                showLoginStatus('', ''); // Limpa o status de login
+                showArticleStatus('', ''); // Limpa o status do artigo ao entrar
+                loadArticles(); // Chama a função para carregar os artigos quando o usuário logar
+            } else {
+                authStatusDiv.innerHTML = `Você precisa estar logado para adicionar artigos.`;
+                loginFormDiv.classList.remove('hidden'); // Mostrar o formulário de login
+                articleFormDiv.classList.add('hidden'); // Esconder o formulário de artigo
+                signOutButton.classList.add('hidden'); // Esconder o botão de sair
+                showLoginStatus('Por favor, faça login para adicionar artigos.', 'warning');
+                showArticleStatus('', ''); // Limpa o status do artigo ao sair
+                articlesContainerDiv.innerHTML = '<p>Faça login para ver os artigos.</p>'; // Limpa a lista de artigos
+                showArticlesStatus('', '');
+            }
+        });
+
+        // Listener para o botão de Entrar com Google
+        googleSignInButton.addEventListener('click', async () => {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            showLoginStatus('Redirecionando para login do Google...', '');
+
+            try {
+                await auth.signInWithPopup(provider);
+            } catch (error) {
+                console.error("Erro ao fazer login com Google:", error);
+                showLoginStatus(`Erro ao fazer login com Google: ${error.message}`, 'error');
+            }
+        });
+
+        // Listener para o botão de Sair
+        signOutButton.addEventListener('click', async () => {
+            try {
+                await auth.signOut();
+                showLoginStatus('Você saiu da sua conta.', 'success');
+            } catch (error) {
+                console.error("Erro ao sair:", error);
+                showLoginStatus(`Erro ao sair: ${error.message}`, 'error');
+            }
+        });
+
+        // Listener para o botão de salvar Artigo
+        saveButton.addEventListener('click', async () => {
+            const user = auth.currentUser;
+
+            if (!user) {
+                showArticleStatus('Erro: Nenhum usuário logado. Por favor, faça login primeiro.', 'error');
+                return;
+            }
+
+            const title = articleTitleInput.value.trim();
+            const content = articleContentTextarea.value.trim();
+            const acesso = articleAcessoSelect.value;
+            const userId = user.uid;
+
+            if (!title || !content || !acesso) {
+                showArticleStatus('Erro: Por favor, preencha todos os campos do artigo.', 'error');
+                return;
+            }
+
+            showArticleStatus('Salvando artigo...', '');
+
+            try {
+                const newArticleData = {
+                    title: title,
+                    content: content,
+                    acesso: acesso,
+                    userId: userId,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                await db.collection('articles').add(newArticleData);
+
+                showArticleStatus('Artigo salvo com sucesso!', 'success');
+
+                articleTitleInput.value = '';
+                articleContentTextarea.value = '';
+                articleAcessoSelect.value = 'publico';
+
+            } catch (error) {
+                console.error("Erro ao salvar artigo:", error);
+                if (error.code === 'permission-denied') {
+                    showArticleStatus('Erro: Permissão negada. Verifique as regras de segurança do Firestore.', 'error');
+                } else {
+                    showArticleStatus(`Erro ao salvar artigo: ${error.message}`, 'error');
+                }
+            }
+        });
+
+        // Função para carregar e exibir os artigos
+        function loadArticles() {
+            if (!articlesContainerDiv) {
+                console.error("Erro: Elemento 'articles-container' não encontrado no HTML.");
+                return;
+            }
+
+            articlesContainerDiv.innerHTML = '<p>Carregando artigos...</p>';
+            showArticlesStatus('', '');
+
+            db.collection('articles')
+              .orderBy('createdAt', 'desc') // Ordena do mais recente para o mais antigo
+              .onSnapshot(
+                    (querySnapshot) => {
+                        articlesContainerDiv.innerHTML = ''; // Limpa o conteúdo existente
+
+                        if (querySnapshot.empty) {
+                            articlesContainerDiv.innerHTML = '<p>Nenhum artigo encontrado.</p>';
+                            showArticlesStatus('Nenhum artigo para exibir.', 'warning');
+                            return;
+                        }
+
+                        querySnapshot.forEach((doc) => {
+                            const article = doc.data();
+                            const articleId = doc.id;
+
+                            const articleElement = document.createElement('div');
+                            articleElement.classList.add('article-item'); // Adiciona a classe CSS
+
+                            articleElement.innerHTML = `
+                                <h3>${article.title}</h3>
+                                <p><strong>Acesso:</strong> ${article.acesso}</p>
+                                <p>${article.content.substring(0, 200)}${article.content.length > 200 ? '...' : ''}</p>
+                                <p><small>Criado por: ${article.userId || 'Desconhecido'}</small></p>
+                                <p><small>Em: ${article.createdAt ? new Date(article.createdAt.seconds * 1000).toLocaleString() : 'N/A'}</small></p>
+                                <button class="view-article-button" data-id="${articleId}">Ver Artigo Completo</button>
+                                <button class="delete-article-button" data-id="${articleId}" style="background-color: #dc3545; margin-left: 8px;">Excluir</button>
+                            `;
+                            articlesContainerDiv.appendChild(articleElement);
+
+                            articleElement.querySelector('.view-article-button').addEventListener('click', () => {
+                                alert(`Título: ${article.title}\n\nConteúdo:\n${article.content}`);
+                            });
+
+                            articleElement.querySelector('.delete-article-button').addEventListener('click', async (e) => {
+                                const user = firebase.auth().currentUser;
+                                if (!user) {
+                                    showArticlesStatus('Você precisa estar logado para excluir artigos.', 'error');
+                                    return;
+                                }
+
+                                const idToDelete = e.target.dataset.id;
+                                if (confirm('Tem certeza que deseja excluir este artigo?')) {
+                                    try {
+                                        await db.collection('articles').doc(idToDelete).delete();
+                                        showArticlesStatus('Artigo excluído com sucesso!', 'success');
+                                    } catch (error) {
+                                        console.error("Erro ao excluir artigo:", error);
+                                        if (error.code === 'permission-denied') {
+                                            showArticlesStatus('Erro: Permissão negada para excluir. Você pode excluir apenas seus próprios artigos (se as regras permitirem).', 'error');
+                                        } else {
+                                            showArticlesStatus(`Erro ao excluir artigo: ${error.message}`, 'error');
+                                        }
+                                    }
+                                }
+                            });
+                        });
+                        showArticlesStatus('Artigos carregados com sucesso!', 'success');
+                    },
+                    (error) => {
+                        console.error("Erro ao carregar artigos:", error);
+                        if (error.code === 'permission-denied') {
+                            showArticlesStatus('Erro: Permissão negada para ler artigos. Verifique as regras de segurança do Firestore.', 'error');
+                        } else {
+                            showArticlesStatus(`Erro ao carregar artigos: ${error.message}`, 'error');
+                        }
+                    }
+                );
+        }
+
+    </script>
+
+</body>
+</html>
