@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Updates Recentes - Wiki Zone Zero Mod</title>
+    
     <link rel="icon" href="/favicon.ico" type="image/x-icon"> 
     
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -70,7 +71,7 @@
             padding: 50px;
             font-size: 1.2em;
             color: #555;
-            display: none; /* Inicialmente escondido */
+            display: none; /* Inicialmente escondido, será mostrado pelo JS se não estiver logado */
         }
         #login-required button {
             padding: 12px 25px;
@@ -88,7 +89,7 @@
         }
         /* Esconde o conteúdo principal quando não logado */
         #main-content {
-            display: none; /* Inicialmente escondido */
+            display: none; /* Inicialmente escondido, será mostrado pelo JS se estiver logado */
         }
     </style>
 </head>
@@ -220,8 +221,7 @@
         // Inicialize Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
-        // Se você for buscar os updates do Firestore, descomente a linha abaixo:
-        // const db = firebase.firestore();
+        // const db = firebase.firestore(); // Descomente se for usar Firestore
 
         // Elementos da UI
         const loginRequiredDiv = document.getElementById('login-required');
@@ -233,26 +233,41 @@
         auth.onAuthStateChanged(user => {
             if (user) {
                 // Usuário está logado
+                console.log("Usuário logado:", user.displayName || user.email || "Nome não disponível");
                 loginRequiredDiv.style.display = 'none'; // Esconde a mensagem de login
                 mainContentDiv.style.display = 'block'; // Mostra o conteúdo principal
                 loginStatusMessage.textContent = ''; // Limpa qualquer mensagem de erro de login
-                console.log("Usuário logado:", user.displayName || user.email || "Nome não disponível");
+
+                // --- OPCIONAL: Redirecionar para outra página após o login ---
+                // Se esta página NÃO for a página inicial após o login.
+                // Exemplo: se admin.wzzm.org/updates/ for uma página de updates,
+                // e você quiser que após o login, o usuário vá para a raiz do admin.
+                // Ajuste a URL conforme sua necessidade.
+                // if (window.location.pathname === '/updates/') { // Exemplo de condição
+                //     window.location.href = 'https://admin.wzzm.org/'; // Redireciona para a home do admin
+                // } 
+                // OU, se você sempre quer redirecionar para uma página específica após login, independentemente de onde o login aconteceu:
+                // const targetUrlAfterLogin = 'https://admin.wzzm.org/dashboard.html'; // Altere para a sua página
+                // if (window.location.href !== targetUrlAfterLogin) {
+                //    window.location.href = targetUrlAfterLogin;
+                // }
+                // --- Fim da Seção Opcional de Redirecionamento ---
 
                 // Se você puxa os dados do Firestore, pode chamar uma função aqui para carregá-los:
                 // loadUpdatesFromFirestore();
 
             } else {
                 // Usuário não está logado
+                console.log("Usuário não logado. Conteúdo restrito.");
                 loginRequiredDiv.style.display = 'block'; // Mostra a mensagem de login
                 mainContentDiv.style.display = 'none'; // Esconde o conteúdo principal
-                console.log("Usuário não logado. Conteúdo restrito.");
             }
         });
 
         // Event Listener para o botão de Login com Google
         googleSignInButton.addEventListener('click', async () => {
             const provider = new firebase.auth.GoogleAuthProvider();
-            // Adiciona o escopo para informações de perfil, se necessário (geralmente já incluído)
+            // Adiciona o escopo para informações de perfil, se necessário (geralmente já incluído por padrão)
             // provider.addScope('profile');
             // provider.addScope('email'); 
 
@@ -270,18 +285,25 @@
         auth.getRedirectResult().then((result) => {
             if (result.user) {
                 // Usuário logado com sucesso após o redirecionamento.
-                // O onAuthStateChanged já lidará com a exibição do conteúdo.
+                // O onAuthStateChanged já lidará com a exibição do conteúdo e possível redirecionamento.
                 console.log("Login com sucesso após redirecionamento!");
+            } else {
+                // Se result.user for null, significa que não houve um redirecionamento de login
+                // ou o usuário cancelou o login na página do Google ANTES de ser redirecionado de volta.
+                console.log("Nenhum usuário retornado do redirecionamento (possivelmente cancelado ou sem operação).");
             }
-            // Se result.user for null, significa que não houve um redirecionamento de login ou o usuário cancelou.
         }).catch((error) => {
-            // Captura erros durante o redirecionamento ou após o retorno
+            // Captura erros que ocorreram durante o redirecionamento ou após o retorno
             console.error("Erro ao obter resultado do redirecionamento:", error);
             // Mensagens de erro específicas podem ser úteis para o usuário
             if (error.code === 'auth/popup-closed-by-user') {
                 loginStatusMessage.textContent = 'Login cancelado pelo usuário.';
             } else if (error.code === 'auth/cancelled-popup-request') {
                 loginStatusMessage.textContent = 'A janela de login foi fechada antes de ser concluída.';
+            } else if (error.code === 'auth/account-exists-with-different-credential') {
+                loginStatusMessage.textContent = 'Uma conta já existe com este endereço de e-mail usando outra forma de login. Tente fazer login com o método original.';
+            } else if (error.code === 'auth/operation-not-allowed') {
+                loginStatusMessage.textContent = 'Login com Google não está habilitado no Firebase. Verifique suas configurações.';
             } else {
                 loginStatusMessage.textContent = `Falha no login: ${error.message}`;
             }
@@ -290,8 +312,9 @@
         // Se você for carregar dados do Firestore (exemplo comentado):
         /*
         function loadUpdatesFromFirestore() {
+            // Certifique-se de que 'db' está inicializado (descomente const db = firebase.firestore(); no início)
             db.collection('updates').orderBy('createdAt', 'desc').get().then((querySnapshot) => {
-                const tableBody = document.querySelector('#main-content table tbody'); // Ajuste o seletor se sua tabela tem um tbody específico
+                const tableBody = document.querySelector('#main-content table tbody'); 
                 if (tableBody) {
                     tableBody.innerHTML = ''; // Limpa o conteúdo existente
 
@@ -303,12 +326,11 @@
                         newRow.insertCell().textContent = data.hora_update || '';
                         newRow.insertCell().textContent = data.descricao || '';
                         newRow.insertCell().textContent = data.log_update || '';
-                        // Se houver links ou outros elementos complexos, crie-os dinamicamente
+                        // Adicione mais células conforme necessário
                     });
                 }
             }).catch(error => {
                 console.error("Erro ao carregar updates do Firestore:", error);
-                // Exibir mensagem de erro na UI se necessário
                 alert("Não foi possível carregar os updates. Tente novamente mais tarde.");
             });
         }
