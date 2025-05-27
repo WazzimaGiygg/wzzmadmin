@@ -3,7 +3,7 @@
 <head>
     <title>Adicionar Novo Artigo</title>
     <!-- Carregue o SDK do Firebase -->
-    <!-- Usei a versão 9.22.1 como você forneceu, mas sempre verifique a versão mais recente -->
+    <!-- Usei a versão 9.22.1, verifique se é a correta para você -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
@@ -11,12 +11,22 @@
         body { font-family: sans-serif; margin: 20px; line-height: 1.6; color: #333; }
         h1, h2 { color: #0056b3; }
         label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
-        input[type="text"], input[type="email"], input[type="password"], textarea, select { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 1rem; }
-        textarea { height: 180px; resize: vertical; } /* Permite redimensionar verticalmente */
+        input[type="text"], textarea, select { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 1rem; }
+        textarea { height: 180px; resize: vertical; }
         button { padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 8px; transition: background-color 0.3s ease; font-size: 1rem; }
         button:hover { background-color: #0056b3; }
         #sign-out-button { background-color: #dc3545; }
         #sign-out-button:hover { background-color: #c82333; }
+
+        /* Estilo específico para o botão Google Sign-In */
+        #google-sign-in-button {
+            background-color: #db4437; /* Cor do Google Brand */
+            color: white;
+        }
+        #google-sign-in-button:hover {
+            background-color: #c33d2e;
+        }
+
         #status, #login-status { margin-top: 15px; padding: 12px; border-radius: 4px; font-size: 0.9rem; }
         .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
         .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
@@ -40,17 +50,11 @@
         <button id="sign-out-button" class="hidden">Sair</button>
 
         <div id="login-form" class="hidden">
-            <h2>Login ou Cadastro</h2>
-            <label for="login-email">Email:</label>
-            <input type="email" id="login-email" required>
+            <h2>Faça Login</h2>
+            <!-- Botão para Google Sign-In -->
+            <button id="google-sign-in-button">Entrar com Google</button>
 
-            <label for="login-password">Senha:</label>
-            <input type="password" id="login-password" required>
-
-            <button id="login-button">Entrar</button>
-            <button id="signup-button">Cadastrar</button>
-
-            <div id="login-status"></div> <!-- Status para login/cadastro -->
+            <div id="login-status"></div> <!-- Status para login -->
         </div>
     </div>
 
@@ -96,12 +100,9 @@
         // Referências aos elementos de autenticação
         const authStatusDiv = document.getElementById('auth-status');
         const loginFormDiv = document.getElementById('login-form');
-        const loginEmailInput = document.getElementById('login-email');
-        const loginPasswordInput = document.getElementById('login-password');
-        const loginButton = document.getElementById('login-button');
-        const signupButton = document.getElementById('signup-button');
         const loginStatusDiv = document.getElementById('login-status');
         const signOutButton = document.getElementById('sign-out-button');
+        const googleSignInButton = document.getElementById('google-sign-in-button'); // Novo botão
 
         // Referências aos elementos do formulário de artigo
         const articleFormDiv = document.getElementById('article-form');
@@ -111,7 +112,7 @@
         const saveButton = document.getElementById('save-article-button');
         const statusDiv = document.getElementById('status'); // Status para salvar artigo
 
-        // Função para exibir mensagens de status de login/cadastro
+        // Função para exibir mensagens de status de login
         function showLoginStatus(message, type) {
             loginStatusDiv.textContent = message;
             loginStatusDiv.className = 'status ' + type; // Adiciona classes para estilizar
@@ -127,7 +128,9 @@
         auth.onAuthStateChanged(user => {
             if (user) {
                 // Usuário está logado
-                authStatusDiv.innerHTML = `Logado como: <strong>${user.email}</strong> (UID: ${user.uid})`;
+                // Exibe o nome/email do usuário logado, se disponível (Google geralmente fornece)
+                 const displayName = user.displayName || user.email;
+                authStatusDiv.innerHTML = `Logado como: <strong>${displayName}</strong> (UID: ${user.uid})`;
                 loginFormDiv.classList.add('hidden'); // Esconder o formulário de login
                 articleFormDiv.classList.remove('hidden'); // Mostrar o formulário de artigo
                 signOutButton.classList.remove('hidden'); // Mostrar o botão de sair
@@ -139,60 +142,25 @@
                 loginFormDiv.classList.remove('hidden'); // Mostrar o formulário de login
                 articleFormDiv.classList.add('hidden'); // Esconder o formulário de artigo
                 signOutButton.classList.add('hidden'); // Esconder o botão de sair
-                showLoginStatus('Por favor, faça login ou cadastre-se.', 'warning');
+                showLoginStatus('Por favor, faça login para adicionar artigos.', 'warning');
                 showArticleStatus('', ''); // Limpa o status do artigo ao sair
             }
         });
 
-        // Adicionar listener ao botão de Login
-        loginButton.addEventListener('click', async () => {
-            const email = loginEmailInput.value;
-            const password = loginPasswordInput.value;
-
-            if (!email || !password) {
-                showLoginStatus('Por favor, preencha email e senha para fazer login.', 'warning');
-                return;
-            }
-
-            showLoginStatus('Fazendo login...', '');
+        // Adicionar listener ao botão de Entrar com Google
+        googleSignInButton.addEventListener('click', async () => {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            showLoginStatus('Redirecionando para login do Google...', '');
 
             try {
-                await auth.signInWithEmailAndPassword(email, password);
-                // onAuthStateChanged cuidará da atualização da UI
+                // Você pode escolher entre `signInWithPopup` (abre uma janela popup)
+                // ou `signInWithRedirect` (redireciona a página toda). Popup é mais comum para web.
+                await auth.signInWithPopup(provider);
+                // onAuthStateChanged cuidará da atualização da UI após o login bem-sucedido
+                // showLoginStatus('Login com Google realizado com sucesso!', 'success'); // onAuthStateChanged já atualiza
             } catch (error) {
-                console.error("Erro ao fazer login:", error);
-                showLoginStatus(`Erro ao fazer login: ${error.message}`, 'error');
-            }
-        });
-
-        // Adicionar listener ao botão de Cadastro
-        signupButton.addEventListener('click', async () => {
-            const email = loginEmailInput.value;
-            const password = loginPasswordInput.value;
-
-            if (!email || !password) {
-                showLoginStatus('Por favor, preencha email e senha para se cadastrar.', 'warning');
-                return;
-            }
-             if (password.length < 6) {
-                showLoginStatus('A senha deve ter pelo menos 6 caracteres.', 'warning');
-                return;
-            }
-
-
-            showLoginStatus('Cadastrando usuário...', '');
-
-            try {
-                await auth.createUserWithEmailAndPassword(email, password);
-                 // onAuthStateChanged cuidará da atualização da UI
-                showLoginStatus('Cadastro realizado com sucesso!', 'success'); // Opcional: feedback extra
-            } catch (error) {
-                console.error("Erro ao cadastrar:", error);
-                 if (error.code === 'auth/email-already-in-use') {
-                    showLoginStatus('Este email já está em uso.', 'error');
-                } else {
-                    showLoginStatus(`Erro ao cadastrar: ${error.message}`, 'error');
-                }
+                console.error("Erro ao fazer login com Google:", error);
+                showLoginStatus(`Erro ao fazer login com Google: ${error.message}`, 'error');
             }
         });
 
@@ -207,7 +175,6 @@
                 showLoginStatus(`Erro ao sair: ${error.message}`, 'error');
             }
         });
-
 
         // Adicionar listener ao botão de salvar Artigo
         saveButton.addEventListener('click', async () => {
@@ -255,7 +222,7 @@
             } catch (error) {
                 console.error("Erro ao salvar artigo:", error);
                 if (error.code === 'permission-denied') {
-                    // Esta mensagem aparecerá se o usuário logado NÃO for um admin
+                    // Esta mensagem aparecerá se o usuário logado (via Google) NÃO for um admin
                     showArticleStatus('Erro: Permissão negada. Apenas administradores podem adicionar artigos.', 'error');
                 } else {
                     showArticleStatus(`Erro ao salvar artigo: ${error.message}`, 'error');
