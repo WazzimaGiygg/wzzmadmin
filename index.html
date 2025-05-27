@@ -2,7 +2,10 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Updates Recentes - Wiki Zone Zero Mod</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon"> 
+    
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <style>
@@ -233,7 +236,7 @@
                 loginRequiredDiv.style.display = 'none'; // Esconde a mensagem de login
                 mainContentDiv.style.display = 'block'; // Mostra o conteúdo principal
                 loginStatusMessage.textContent = ''; // Limpa qualquer mensagem de erro de login
-                console.log("Usuário logado:", user.displayName || user.email);
+                console.log("Usuário logado:", user.displayName || user.email || "Nome não disponível");
 
                 // Se você puxa os dados do Firestore, pode chamar uma função aqui para carregá-los:
                 // loadUpdatesFromFirestore();
@@ -249,11 +252,16 @@
         // Event Listener para o botão de Login com Google
         googleSignInButton.addEventListener('click', async () => {
             const provider = new firebase.auth.GoogleAuthProvider();
-            loginStatusMessage.textContent = 'Redirecionando para login...';
+            // Adiciona o escopo para informações de perfil, se necessário (geralmente já incluído)
+            // provider.addScope('profile');
+            // provider.addScope('email'); 
+
+            loginStatusMessage.textContent = 'Redirecionando para a página de login do Google...';
             try {
-                await auth.signInWithRedirect(provider); // Redireciona para a página de login do Google
+                // signInWithRedirect dispara um redirecionamento, então o código abaixo dele não será executado imediatamente.
+                await auth.signInWithRedirect(provider); 
             } catch (error) {
-                console.error("Erro ao fazer login com Google:", error);
+                console.error("Erro ao iniciar login com Google:", error);
                 loginStatusMessage.textContent = `Erro ao fazer login: ${error.message}`;
             }
         });
@@ -261,29 +269,47 @@
         // Lidar com o resultado do signInWithRedirect (quando o usuário retorna da página de login)
         auth.getRedirectResult().then((result) => {
             if (result.user) {
+                // Usuário logado com sucesso após o redirecionamento.
+                // O onAuthStateChanged já lidará com a exibição do conteúdo.
                 console.log("Login com sucesso após redirecionamento!");
-                // O onAuthStateChanged acima cuidará de mostrar o conteúdo
             }
+            // Se result.user for null, significa que não houve um redirecionamento de login ou o usuário cancelou.
         }).catch((error) => {
+            // Captura erros durante o redirecionamento ou após o retorno
             console.error("Erro ao obter resultado do redirecionamento:", error);
-            loginStatusMessage.textContent = `Falha no login: ${error.message}`;
+            // Mensagens de erro específicas podem ser úteis para o usuário
+            if (error.code === 'auth/popup-closed-by-user') {
+                loginStatusMessage.textContent = 'Login cancelado pelo usuário.';
+            } else if (error.code === 'auth/cancelled-popup-request') {
+                loginStatusMessage.textContent = 'A janela de login foi fechada antes de ser concluída.';
+            } else {
+                loginStatusMessage.textContent = `Falha no login: ${error.message}`;
+            }
         });
 
         // Se você for carregar dados do Firestore (exemplo comentado):
         /*
         function loadUpdatesFromFirestore() {
             db.collection('updates').orderBy('createdAt', 'desc').get().then((querySnapshot) => {
-                // Limpar e popular a tabela com os dados do Firestore
-                // Exemplo:
-                // const tableBody = document.getElementById('updates-table-body');
-                // tableBody.innerHTML = '';
-                // querySnapshot.forEach(doc => {
-                //     const data = doc.data();
-                //     // Criar linhas da tabela com data.data, data.hora, data.descricao, etc.
-                // });
+                const tableBody = document.querySelector('#main-content table tbody'); // Ajuste o seletor se sua tabela tem um tbody específico
+                if (tableBody) {
+                    tableBody.innerHTML = ''; // Limpa o conteúdo existente
+
+                    querySnapshot.forEach(doc => {
+                        const data = doc.data();
+                        const newRow = tableBody.insertRow();
+                        // Ajuste os campos conforme a estrutura do seu documento Firestore
+                        newRow.insertCell().textContent = data.data_update || '';
+                        newRow.insertCell().textContent = data.hora_update || '';
+                        newRow.insertCell().textContent = data.descricao || '';
+                        newRow.insertCell().textContent = data.log_update || '';
+                        // Se houver links ou outros elementos complexos, crie-os dinamicamente
+                    });
+                }
             }).catch(error => {
                 console.error("Erro ao carregar updates do Firestore:", error);
                 // Exibir mensagem de erro na UI se necessário
+                alert("Não foi possível carregar os updates. Tente novamente mais tarde.");
             });
         }
         */
