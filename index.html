@@ -153,12 +153,24 @@
             color: #d32f2f; /* Cor de erro/alerta */
             display: none;
         }
+
+        /* Estilos para o iframe */
+        #content-iframe {
+            width: 100%;
+            height: 800px; /* Ajuste a altura conforme necessário */
+            border: 1px solid #ccc;
+            background-color: #fff;
+            display: none; /* Escondido por padrão, mostrado quando um link é clicado */
+        }
     </style>
 </head>
 <body>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script> <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-analytics-compat.js"></script> <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-analytics-compat.js"></script>
+
+    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
         <header class="mdl-layout__header">
             <div class="mdl-layout__header-row">
                 <span class="mdl-layout-title">WZZM Admin</span>
@@ -176,8 +188,10 @@
         <div class="mdl-layout__drawer">
             <span class="mdl-layout-title">Menu Principal</span>
             <nav class="mdl-navigation" id="main-navigation">
-                <a class="mdl-navigation__link" href="./index.html">Página Inicial</a> <a class="mdl-navigation__link" href="./admintools/editordeartigos.html">Adicionar Artigo</a>
-                <a class="mdl-navigation__link" href="./register-material.html">Registrar Matéria</a> <a class="mdl-navigation__link" href="conhecawazzimagiygg.html">Conheça WazzimaGiygg</a>
+                <a class="mdl-navigation__link" href="./index.html" data-target-iframe="true">Página Inicial</a>
+                <a class="mdl-navigation__link" href="./admintools/editordeartigos.html" data-target-iframe="true">Adicionar Artigo</a>
+                <a class="mdl-navigation__link" href="./register-material.html" data-target-iframe="true">Registrar Matéria</a>
+                <a class="mdl-navigation__link" href="conhecawazzimagiygg.html" data-target-iframe="true">Conheça WazzimaGiygg</a>
             </nav>
         </div>
 
@@ -201,6 +215,8 @@
                 </div>
 
                 <div id="main-content-display">
+                    <iframe id="content-iframe" name="content-iframe" title="Conteúdo Detalhado"></iframe>
+
                     <h2>Log recente (27/05/2025): </h2>
 
                     <div class="note">
@@ -232,7 +248,7 @@
                             <td></td>
                             <td></td>
                             <td>Verificar detalhes em:</td>
-                            <td><a href="./admin.wzzm.org/relatorios/23_05_2025/">admin.wzzm.org/relatorios/23_05_2025/</a></td>
+                            <td><a href="./admin.wzzm.org/relatorios/23_05_2025/" data-target-iframe="true">admin.wzzm.org/relatorios/23_05_2025/</a></td>
                         </tr>
                     </table>
 
@@ -253,7 +269,7 @@
                             <td></td>
                             <td></td>
                             <td>Verificar detalhes em:</td>
-                            <td><a href="./admin.wzzm.org/relatorios/22_05_2025/">admin.wzzm.org/relatorios/22_05_2025/</a></td>
+                            <td><a href="./admin.wzzm.org/relatorios/22_05_2025/" data-target-iframe="true">admin.wzzm.org/relatorios/22_05_2025/</a></td>
                         </tr>
                     </table>
 
@@ -294,7 +310,7 @@
                             <td>Modernização do site escolar.wzzm.org</td>
                             <td>
                                 UP90[2005-2025] Série EX8<br>
-                                <a href="https://escolar.wzzm.org/">https://escolar.wzzm.org/</a>
+                                <a href="https://escolar.wzzm.org/" data-target-iframe="true">https://escolar.wzzm.org/</a>
                             </td>
                         </tr>
                     </table>
@@ -306,14 +322,14 @@
             <div class="mdl-mini-footer__left-section">
                 <div class="mdl-logo">WZZM Escolar © 2025</div>
                 <ul class="mdl-mini-footer__link-list">
-                    <li><a href="./Privacidade/">Privacidade</a></li>
-                    <li><a href="./Termos/">Termos</a></li>
+                    <li><a href="./Privacidade/" data-target-iframe="true">Privacidade</a></li>
+                    <li><a href="./Termos/" data-target-iframe="true">Termos</a></li>
                 </ul>
             </div>
             <div class="mdl-mini-footer__right-section">
-                <p>Feito com auxílio do site: <a href="https://html-online.com/">html-online.com</a></p>
+                <p>Feito com auxílio do site: <a href="https://html-online.com/" data-target-iframe="true">html-online.com</a></p>
                 <p>Editor: Collei "Grigori" Ludwig</p>
-                <p style="text-align: center;">Site administrador pela <a href="http://wzzm.org">Wiki Zone Zero Mod</a></p>
+                <p style="text-align: center;">Site administrador pela <a href="http://wzzm.org" data-target-iframe="true">Wiki Zone Zero Mod</a></p>
             </div>
         </footer>
     </div>
@@ -346,6 +362,9 @@
         const googleSignInButtonMain = document.getElementById('google-sign-in-button-main');
         const loginStatusMessage = document.getElementById('login-status-message');
         const accessDeniedAdminMessage = document.getElementById('access-denied-admin'); // Nova div para acesso negado
+
+        // Novo elemento: o iframe
+        const contentIframe = document.getElementById('content-iframe');
 
         // --- Função para criar/atualizar o perfil do usuário no Firestore (copiado do exemplo anterior) ---
         async function createUserProfileDocument(user) {
@@ -404,10 +423,13 @@
                         loginRequiredDiv.style.display = 'none';
                         accessDeniedAdminMessage.style.display = 'none';
                         mainContentDisplay.style.display = 'block';
+                        // Por padrão, o iframe não é visível. O conteúdo principal da página é.
+                        contentIframe.style.display = 'none';
                     } else {
                         // Não é administrador: esconde o conteúdo principal, mostra mensagem de acesso negado
                         loginRequiredDiv.style.display = 'none';
                         mainContentDisplay.style.display = 'none';
+                        contentIframe.style.display = 'none'; // Garante que o iframe também esteja escondido
                         accessDeniedAdminMessage.style.display = 'block';
                         userInfo.textContent = `Olá, ${user.displayName || user.email} (Não Admin)!`; // Ajuste na mensagem
                     }
@@ -415,6 +437,7 @@
                     console.error("Erro ao verificar permissões de administrador:", error);
                     loginRequiredDiv.style.display = 'none';
                     mainContentDisplay.style.display = 'none';
+                    contentIframe.style.display = 'none'; // Garante que o iframe também esteja escondido
                     accessDeniedAdminMessage.style.display = 'block';
                     userInfo.textContent = `Olá, ${user.displayName || user.email} (Erro na verificação)!`;
                 }
@@ -428,6 +451,7 @@
                 // Esconde o conteúdo principal e mostra a mensagem de login
                 loginRequiredDiv.style.display = 'block';
                 mainContentDisplay.style.display = 'none';
+                contentIframe.style.display = 'none'; // Garante que o iframe também esteja escondido
                 accessDeniedAdminMessage.style.display = 'none'; // Esconde a mensagem de acesso negado se não está logado
             }
         });
@@ -486,10 +510,72 @@
             });
         });
 
-        // Inicialização do estado ao carregar a página e upgrade do MDL
+        // --- Lógica para abrir links no iframe ---
         document.addEventListener('DOMContentLoaded', () => {
             if (componentHandler) {
                 componentHandler.upgradeDom();
+            }
+
+            // Seleciona todos os links que devem abrir no iframe
+            // Adicionei o atributo `data-target-iframe="true"` aos links que você quer que abram no iframe
+            const iframeLinks = document.querySelectorAll('a[data-target-iframe="true"]');
+
+            iframeLinks.forEach(link => {
+                link.addEventListener('click', function(event) {
+                    event.preventDefault(); // Impede o comportamento padrão do link
+
+                    const url = this.href; // Obtém a URL do link clicado
+
+                    // Esconde o conteúdo principal da página e mostra o iframe
+                    const mainContent = document.querySelector('#main-content-display');
+                    if (mainContent) {
+                        mainContent.style.display = 'none';
+                    }
+
+                    if (contentIframe) {
+                        contentIframe.style.display = 'block'; // Mostra o iframe
+                        contentIframe.src = url; // Define a URL do iframe
+                    } else {
+                        console.error("Iframe com ID 'content-iframe' não encontrado.");
+                        // Se o iframe não for encontrado, ainda pode abrir o link como fallback
+                        window.open(url, '_self');
+                    }
+
+                    // Fechar o drawer do MDL se estiver aberto (para links do menu lateral)
+                    const layout = document.querySelector('.mdl-layout');
+                    if (layout && layout.MaterialLayout.drawer_.classList.contains('is-visible')) {
+                        layout.MaterialLayout.toggleDrawer();
+                    }
+                });
+            });
+
+            // Adicionar um botão ou link para voltar para a página principal (se o iframe estiver visível)
+            // Ou o iframe pode ser escondido quando o usuário clica em outros links do menu que não são para o iframe
+            // Por exemplo, se você tiver um link "Voltar para o Painel" que deve mostrar o conteúdo original.
+            // Para simplificar, vou adicionar um evento ao iframe que, ao carregar, pode ajustar a UI se necessário.
+            contentIframe.onload = function() {
+                console.log("Iframe carregado:", contentIframe.src);
+                // Você pode adicionar mais lógica aqui, como desativar o scroll da página principal, etc.
+            };
+
+            // Lógica para quando o usuário clicar no "Página Inicial" no menu lateral
+            // Isso garante que o conteúdo original seja exibido e o iframe escondido.
+            const homeLink = document.querySelector('.mdl-navigation__link[href="./index.html"]');
+            if (homeLink) {
+                homeLink.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    if (contentIframe) {
+                        contentIframe.style.display = 'none';
+                        contentIframe.src = 'about:blank'; // Limpa o iframe
+                    }
+                    if (mainContentDisplay) {
+                        mainContentDisplay.style.display = 'block'; // Mostra o conteúdo original
+                    }
+                    const layout = document.querySelector('.mdl-layout');
+                    if (layout && layout.MaterialLayout.drawer_.classList.contains('is-visible')) {
+                        layout.MaterialLayout.toggleDrawer();
+                    }
+                });
             }
         });
     </script>
