@@ -1,175 +1,193 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adicionar Novo Artigo - WZZM Escolar</title>
+    <title>Registrar Nova Matéria - WZZM</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
     <style>
         body {
-            font-family: sans-serif;
-            margin: 20px;
-            line-height: 1.6;
-            color: #333;
+            font-family: 'Roboto', sans-serif;
             background-color: #f5f5f5;
         }
-        .container {
-            max-width: 800px;
+        .mdl-card {
             margin: 20px auto;
-            padding: 30px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12);
-        }
-        h1 {
-            color: #3f51b5;
-            text-align: center;
-            margin-bottom: 30px;
+            max-width: 600px;
+            padding: 20px;
         }
         .mdl-textfield {
             width: 100%;
-            margin-bottom: 20px;
         }
-        textarea {
-            resize: vertical; /* Permite redimensionar verticalmente */
-        }
-        .mdl-button--colored {
-            background-color: #3f51b5 !important;
-        }
-        .mdl-button--raised.mdl-button--colored:hover {
-            background-color: #303f9f !important;
-        }
-        #status-message {
+        .mdl-button {
+            width: 100%;
             margin-top: 20px;
-            padding: 15px;
-            border-radius: 5px;
-            text-align: center;
-            font-weight: bold;
-        }
-        .status-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .status-error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
         }
     </style>
 </head>
 <body>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script> <div class="container">
-        <h1>Adicionar Novo Artigo</h1>
+    <div class="mdl-card mdl-shadow--2dp">
+        <div class="mdl-card__title">
+            <h2 class="mdl-card__title-text">Registrar Nova Matéria</h2>
+        </div>
+        <div class="mdl-card__supporting-text">
+            <form id="material-form">
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input class="mdl-textfield__input" type="text" id="material-name" required>
+                    <label class="mdl-textfield__label" for="material-name">Nome da Matéria</label>
+                </div>
 
-        <form id="add-article-form">
-            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                <input class="mdl-textfield__input" type="text" id="article-title" required>
-                <label class="mdl-textfield__label" for="article-title">Título do Artigo</label>
-            </div>
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input class="mdl-textfield__input" type="text" id="material-type" required>
+                    <label class="mdl-textfield__label" for="material-type">Tipo de Matéria (Ex: Artigo, Tutorial, Notícia)</label>
+                </div>
 
-            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                <input class="mdl-textfield__input" type="text" id="article-acesso" required>
-                <label class="mdl-textfield__label" for="article-acesso">Nível de Acesso (Ex: Público, Restrito, Alunos)</label>
-            </div>
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input class="mdl-textfield__input" type="number" id="material-year" pattern="-?[0-9]*(\.[0-9]+)?" required>
+                    <label class="mdl-textfield__label" for="material-year">Ano de Publicação</label>
+                    <span class="mdl-textfield__error">Apenas números!</span>
+                </div>
 
-            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                <textarea class="mdl-textfield__input" type="text" rows="8" id="article-content" required></textarea>
-                <label class="mdl-textfield__label" for="article-content">Conteúdo do Artigo</label>
-            </div>
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input class="mdl-textfield__input" type="url" id="material-link" required>
+                    <label class="mdl-textfield__label" for="material-link">Link para a Matéria (URL)</label>
+                </div>
 
-            <button type="submit" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect">
-                <i class="material-icons">send</i> Publicar Artigo
-            </button>
-        </form>
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input class="mdl-textfield__input" type="url" id="material-image-link">
+                    <label class="mdl-textfield__label" for="material-image-link">Link para Imagem de Capa (URL)</label>
+                </div>
 
-        <div id="status-message"></div>
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input class="mdl-textfield__input" type="text" id="material-tags" placeholder="Separar por vírgulas (ex: aventura, RPG, guia)">
+                    <label class="mdl-textfield__label" for="material-tags">Tags para Exibição</label>
+                </div>
+
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input class="mdl-textfield__input" type="text" id="material-age-range" placeholder="Ex: Livre, +10, +16">
+                    <label class="mdl-textfield__label" for="material-age-range">Faixa Etária</label>
+                </div>
+
+                <button type="submit" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                    Registrar Matéria
+                </button>
+            </form>
+            <div id="response-message" class="mdl-card__actions" style="display: none; text-align: center; color: green;"></div>
+        </div>
     </div>
 
     <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-analytics-compat.js"></script>
+
     <script>
-        // --- Configuração do Firebase ---
+        // --- Configuração do Firebase (copiar do seu index.html) ---
         const firebaseConfig = {
             apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0",
             authDomain: "wzzm-ce3fc.firebaseapp.com",
             projectId: "wzzm-ce3fc",
             storageBucket: "wzzm-ce3fc.appspot.com",
-            messagingSenderId: "249427877153", // SUBSTITUA PELO SEU VALOR REAL!
-            appId: "1:249427877153:web:0e4297294794a5aadeb260"
+            messagingSenderId: "249427877153",
+            appId: "1:249427877153:web:0e4297294794a5aadeb260",
+            measurementId: "G-PLKNZNFCQ8"
         };
 
-        // Inicialize o Firebase
+        // Inicialize Firebase
         const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const auth = firebase.auth(); // Obtenha a instância de autenticação
+        const auth = firebase.auth();
+        const firestore = firebase.firestore();
 
-        // Referências aos elementos do formulário e mensagem de status
-        const addArticleForm = document.getElementById('add-article-form');
-        const articleTitleInput = document.getElementById('article-title');
-        const articleAcessoInput = document.getElementById('article-acesso');
-        const articleContentInput = document.getElementById('article-content');
-        const statusMessageDiv = document.getElementById('status-message');
+        // Elementos do formulário
+        const materialForm = document.getElementById('material-form');
+        const materialNameInput = document.getElementById('material-name');
+        const materialTypeInput = document.getElementById('material-type');
+        const materialYearInput = document.getElementById('material-year');
+        const materialLinkInput = document.getElementById('material-link');
+        const materialImageLinkInput = document.getElementById('material-image-link');
+        const materialTagsInput = document.getElementById('material-tags');
+        const materialAgeRangeInput = document.getElementById('material-age-range');
+        const responseMessage = document.getElementById('response-message');
 
-        // Função para exibir mensagens de status
-        function showStatus(message, type) {
-            statusMessageDiv.textContent = message;
-            statusMessageDiv.className = type ? `status-message ${type}` : 'status-message';
-        }
-
-        // Listener para o envio do formulário
-        addArticleForm.addEventListener('submit', async (e) => {
+        // Event Listener para o envio do formulário
+        materialForm.addEventListener('submit', async (e) => {
             e.preventDefault(); // Impede o envio padrão do formulário
 
-            const user = auth.currentUser; // Obtém o usuário logado atualmente
-
-            if (!user) {
-                showStatus('Você precisa estar logado para adicionar artigos.', 'status-error');
+            const currentUser = auth.currentUser;
+            if (!currentUser) {
+                responseMessage.style.color = 'red';
+                responseMessage.textContent = 'Você precisa estar logado para registrar matérias.';
+                responseMessage.style.display = 'block';
                 return;
             }
 
-            const title = articleTitleInput.value.trim();
-            const acesso = articleAcessoInput.value.trim();
-            const content = articleContentInput.value.trim();
+            // Coleta os dados do formulário
+            const name = materialNameInput.value.trim();
+            const type = materialTypeInput.value.trim();
+            const year = parseInt(materialYearInput.value.trim()); // Converte para número
+            const link = materialLinkInput.value.trim();
+            const imageLink = materialImageLinkInput.value.trim();
+            // Divide as tags por vírgula e remove espaços em branco
+            const tags = materialTagsInput.value.trim().split(',').map(tag => tag.trim()).filter(tag => tag !== '');
+            const ageRange = materialAgeRangeInput.value.trim();
 
-            if (!title || !acesso || !content) {
-                showStatus('Por favor, preencha todos os campos.', 'status-error');
+            if (!name || !type || isNaN(year) || !link) {
+                responseMessage.style.color = 'red';
+                responseMessage.textContent = 'Por favor, preencha todos os campos obrigatórios (Nome, Tipo, Ano, Link).';
+                responseMessage.style.display = 'block';
                 return;
             }
-
-            showStatus('Publicando artigo...', '');
 
             try {
-                await db.collection('articles').add({
-                    title: title,
-                    acesso: acesso,
-                    content: content,
-                    userId: user.uid, // Salva o ID do usuário que criou o artigo
-                    userName: user.displayName || user.email, // Salva o nome ou email do usuário
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp() // Adiciona um timestamp do servidor
+                // Adiciona um novo documento na coleção 'materials'
+                await firestore.collection('materials').add({
+                    name: name,
+                    type: type,
+                    year: year,
+                    link: link,
+                    imageLink: imageLink,
+                    tags: tags,
+                    ageRange: ageRange,
+                    registeredBy: currentUser.uid, // Quem registrou (ID do Firebase Auth)
+                    registeredByName: currentUser.displayName || currentUser.email, // Nome de quem registrou
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp() // Timestamp do servidor
                 });
 
-                showStatus('Artigo publicado com sucesso!', 'status-success');
+                responseMessage.style.color = 'green';
+                responseMessage.textContent = 'Matéria registrada com sucesso!';
+                responseMessage.style.display = 'block';
+
                 // Limpa o formulário após o sucesso
-                articleTitleInput.value = '';
-                articleAcessoInput.value = '';
-                articleContentInput.value = '';
-                // Reinicia os componentes MDL do formulário
-                componentHandler.upgradeDom(); 
+                materialForm.reset();
+                // Atualiza o MDL para remover o preenchimento dos campos
+                if (componentHandler) {
+                    componentHandler.upgradeDom();
+                }
 
             } catch (error) {
-                console.error("Erro ao adicionar artigo:", error);
-                if (error.code === 'permission-denied') {
-                    showStatus('Erro: Permissão negada. Você pode não ter permissão para criar artigos.', 'status-error');
-                } else {
-                    showStatus(`Erro ao publicar artigo: ${error.message}`, 'status-error');
-                }
+                console.error("Erro ao registrar matéria:", error);
+                responseMessage.style.color = 'red';
+                responseMessage.textContent = `Erro ao registrar matéria: ${error.message}`;
+                responseMessage.style.display = 'block';
             }
         });
 
-        // Inicializa componentes MDL após o carregamento do DOM
+        // Opcional: Verifique se o usuário está logado ao carregar a página
+        // E talvez redirecione ou exiba uma mensagem se não estiver autorizado
+        auth.onAuthStateChanged(user => {
+            if (!user) {
+                // Se a página de registro de material exigir login, e o usuário não estiver logado,
+                // você pode exibir uma mensagem ou redirecionar.
+                // Ex: window.parent.location.href = 'index.html'; // Redireciona o pai
+                console.log("Usuário não logado na página de registro de material.");
+                responseMessage.style.color = 'orange';
+                responseMessage.textContent = 'Faça login para registrar uma nova matéria.';
+                responseMessage.style.display = 'block';
+            }
+        });
+
+        // Garante que o MDL seja carregado após o DOM
         document.addEventListener('DOMContentLoaded', () => {
             if (componentHandler) {
                 componentHandler.upgradeDom();
