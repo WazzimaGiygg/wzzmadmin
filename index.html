@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WZZM Admin</title>
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon"> <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
     <style>
         body {
@@ -17,7 +16,6 @@
             max-width: 1200px; /* Limita a largura do conteúdo */
             margin: auto; /* Centraliza o conteúdo */
         }
-        /* Corrigido: mdl-layout__content será o pai do main-content-display */
         .mdl-layout__content {
             padding: 20px; /* Adiciona padding ao conteúdo principal do MDL */
         }
@@ -69,7 +67,7 @@
             text-decoration: underline;
         }
 
-        /* Estilo para o banner (adaptado do seu outro código) */
+        /* Estilo para o banner */
         .banner-container {
             clear: both;
             text-align: center;
@@ -191,7 +189,8 @@
         <div class="mdl-layout__drawer">
             <span class="mdl-layout-title">Menu Principal</span>
             <nav class="mdl-navigation" id="main-navigation">
-                <a class="mdl-navigation__link" href="./index.html" data-target-iframe="false">Página Inicial</a> <a class="mdl-navigation__link" href="./admintools/editordeartigos.html" data-target-iframe="true">Adicionar Artigo</a>
+                <a class="mdl-navigation__link" href="./index.html" data-target-iframe="false">Página Inicial</a>
+                <a class="mdl-navigation__link" href="./admintools/editordeartigos.html" data-target-iframe="true">Adicionar Artigo</a>
                 <a class="mdl-navigation__link" href="./register-material.html" data-target-iframe="true">Registrar Matéria</a>
                 <a class="mdl-navigation__link" href="conhecawazzimagiygg.html" data-target-iframe="true">Conheça WazzimaGiygg</a>
                 <a class="mdl-navigation__link" href="/relatorios/23_05_2025/" data-target-iframe="true">Relatório 23/05/2025</a>
@@ -218,8 +217,8 @@
             <div id="main-content-display" class="container">
                 <div class="banner-container">
                     <a href="https://wzzm.org" target="_blank" rel="noopener noreferrer">
-                        <img src="https://static.wixstatic.com/media/078a9c_f06d863f6ee14d5e947d7c67c54176d6~mv2.gif" alt="WZZM Banner">
-                    </a>
+                        <img src="/images/wzzm-banner.gif" alt="WZZM Banner">
+                        </a>
                 </div>
 
                 <h1>Painel Administrativo WZZM</h1>
@@ -233,18 +232,22 @@
                     <h2>Resumo Administrativo</h2>
                     <p>Visão geral rápida das atividades recentes.</p>
                     <div class="grid">
-                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                        <a class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
+                           href="./admintools/editordeartigos.html" data-target-iframe="true">
                             <i class="material-icons">assignment</i> Gerenciar Artigos
-                        </button>
-                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                        </a>
+                        <a class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
+                           href="./admintools/gerenciar-usuarios.html" data-target-iframe="true">
                             <i class="material-icons">person_add</i> Gerenciar Usuários
-                        </button>
-                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                        </a>
+                        <a class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
+                           href="./admintools/configuracoes.html" data-target-iframe="true">
                             <i class="material-icons">build</i> Configurações do Site
-                        </button>
-                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                        </a>
+                        <a class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
+                           href="./admintools/estatisticas.html" data-target-iframe="true">
                             <i class="material-icons">show_chart</i> Ver Estatísticas
-                        </button>
+                        </a>
                     </div>
                 </div>
 
@@ -314,7 +317,7 @@
     <script>
         // --- Configuração do Firebase ---
         const firebaseConfig = {
-            apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0",
+            apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0", // SUAS CREDENCIAIS DO FIREBASE AQUI
             authDomain: "wzzm-ce3fc.firebaseapp.com",
             projectId: "wzzm-ce3fc",
             storageBucket: "wzzm-ce3fc.appspot.com",
@@ -326,7 +329,7 @@
         // Inicialize Firebase
         const app = firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
-        const firestore = firebase.firestore(); // Inicializa o Firestore
+        const firestore = firebase.firestore();
 
         // Elementos da UI
         const loginGoogleButton = document.getElementById('login-google');
@@ -335,11 +338,10 @@
 
         const loginRequiredDiv = document.getElementById('login-required');
         const mainContentDisplay = document.getElementById('main-content-display');
-        const googleSignInButtonMain = document.getElementById('google-sign-in-button-main'); // Botão adicionado ao HTML
+        const googleSignInButtonMain = document.getElementById('google-sign-in-button-main');
         const loginStatusMessage = document.getElementById('login-status-message');
         const accessDeniedAdminMessage = document.getElementById('access-denied-admin');
 
-        // Novo elemento: o iframe
         const contentIframe = document.getElementById('content-iframe');
 
         // --- Função para criar/atualizar o perfil do usuário no Firestore ---
@@ -442,7 +444,7 @@
         });
 
         // Login Google (para o botão na área de conteúdo restrito)
-        if (googleSignInButtonMain) { // Verifica se o elemento existe antes de adicionar o listener
+        if (googleSignInButtonMain) {
             googleSignInButtonMain.addEventListener('click', async () => {
                 const provider = new firebase.auth.GoogleAuthProvider();
                 loginStatusMessage.textContent = 'Redirecionando para a página de login do Google...';
@@ -460,7 +462,6 @@
         auth.getRedirectResult().then(async (result) => {
             if (result.user) {
                 console.log("Login com sucesso após redirecionamento!");
-                // O onAuthStateChanged já lidará com a exibição do conteúdo e a criação/atualização do perfil.
             } else {
                 console.log("Nenhum usuário retornado do redirecionamento (possivelmente cancelado ou sem operação).");
             }
@@ -507,6 +508,13 @@
                     if (mainContentDisplay) {
                         mainContentDisplay.style.display = 'none';
                     }
+                    if (loginRequiredDiv) { // Certifica-se de esconder a tela de login se ela estiver visível
+                        loginRequiredDiv.style.display = 'none';
+                    }
+                    if (accessDeniedAdminMessage) { // Esconde a mensagem de acesso negado
+                        accessDeniedAdminMessage.style.display = 'none';
+                    }
+
 
                     if (contentIframe) {
                         contentIframe.style.display = 'block'; // Mostra o iframe
@@ -535,15 +543,36 @@
                             contentIframe.style.display = 'none';
                             contentIframe.src = 'about:blank'; // Limpa o iframe
                         }
-                        if (mainContentDisplay) {
-                            mainContentDisplay.style.display = 'block'; // Mostra o conteúdo original
-                        }
+                        // Re-evaluar qual conteúdo mostrar com base no estado de autenticação
+                        auth.onAuthStateChanged(user => {
+                            if (user) {
+                                firestore.collection('users').doc(user.uid).get().then(doc => {
+                                    if (doc.exists && doc.data() && doc.data().isAdmin === true) {
+                                        mainContentDisplay.style.display = 'block';
+                                        loginRequiredDiv.style.display = 'none';
+                                        accessDeniedAdminMessage.style.display = 'none';
+                                    } else {
+                                        mainContentDisplay.style.display = 'none';
+                                        loginRequiredDiv.style.display = 'none';
+                                        accessDeniedAdminMessage.style.display = 'block';
+                                    }
+                                }).catch(error => {
+                                    console.error("Erro ao verificar permissões ao voltar para Home:", error);
+                                    mainContentDisplay.style.display = 'none';
+                                    loginRequiredDiv.style.display = 'none';
+                                    accessDeniedAdminMessage.style.display = 'block';
+                                });
+                            } else {
+                                loginRequiredDiv.style.display = 'block';
+                                mainContentDisplay.style.display = 'none';
+                                accessDeniedAdminMessage.style.display = 'none';
+                            }
+                        });
                         const layout = document.querySelector('.mdl-layout');
                         if (layout && layout.MaterialLayout && layout.MaterialLayout.drawer_ && layout.MaterialLayout.drawer_.classList.contains('is-visible')) {
                             layout.MaterialLayout.toggleDrawer();
                         }
                     }
-                    // Se data-target-iframe="true", o evento é tratado pelo loop `iframeLinks.forEach`
                 });
             }
 
