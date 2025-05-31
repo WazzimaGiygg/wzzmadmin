@@ -50,8 +50,6 @@
             font-size: 1rem; /* Tamanho da fonte */
         }
 
-        /* Removido #iframeContent pois não será mais usado */
-
         /* Estilos para o rodapé */
         footer {
             margin-top: 40px;
@@ -143,16 +141,24 @@
         #login-required button:hover {
             background-color: #357ae8;
         }
-        /* Esconde o conteúdo principal quando não logado */
+        /* Esconde o conteúdo principal quando não logado OU não admin */
         #main-content-display { /* Renomeado para evitar conflito com div 'main-content' do seu segundo código */
-            display: none; /* Inicialmente escondido, será mostrado pelo JS se estiver logado */
+            display: none; /* Inicialmente escondido, será mostrado pelo JS se estiver logado E for admin */
+        }
+        /* Mensagem de acesso negado para não-admins */
+        #access-denied-admin {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.2em;
+            color: #d32f2f; /* Cor de erro/alerta */
+            display: none;
         }
     </style>
 </head>
 <body>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
-    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script> <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-analytics-compat.js"></script> <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
         <header class="mdl-layout__header">
             <div class="mdl-layout__header-row">
                 <span class="mdl-layout-title">WZZM Admin</span>
@@ -170,9 +176,8 @@
         <div class="mdl-layout__drawer">
             <span class="mdl-layout-title">Menu Principal</span>
             <nav class="mdl-navigation" id="main-navigation">
-                <a class="mdl-navigation__link" href="#" ">Página Inicial</a>
-                <a class="mdl-navigation__link" href="./admintools/editordeartigos.html">Adicionar Artigo</a>
-                <a class="mdl-navigation__link" href="conhecawazzimagiygg.html" >Conheça WazzimaGiygg</a>
+                <a class="mdl-navigation__link" href="./index.html">Página Inicial</a> <a class="mdl-navigation__link" href="./admintools/editordeartigos.html">Adicionar Artigo</a>
+                <a class="mdl-navigation__link" href="./register-material.html">Registrar Matéria</a> <a class="mdl-navigation__link" href="conhecawazzimagiygg.html">Conheça WazzimaGiygg</a>
             </nav>
         </div>
 
@@ -187,6 +192,12 @@
                     <p>Por favor, faça login com sua conta Google para ver os updates recentes.</p>
                     <button id="google-sign-in-button-main">Login com Google</button>
                     <p id="login-status-message" style="margin-top: 10px; color: red;"></p>
+                </div>
+
+                <div id="access-denied-admin" style="display: none;">
+                    <h2>Acesso Negado!</h2>
+                    <p>Você não tem permissão de administrador para acessar este painel.</p>
+                    <p>Por favor, entre em contato com o suporte se acreditar que isso é um erro.</p>
                 </div>
 
                 <div id="main-content-display">
@@ -288,7 +299,7 @@
                         </tr>
                     </table>
                 </div>
-                </div>
+            </div>
         </main>
 
         <footer class="mdl-mini-footer">
@@ -323,40 +334,101 @@
         // Inicialize Firebase
         const app = firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
+        const firestore = firebase.firestore(); // Inicializa o Firestore
 
         // Elementos da UI
-        const loginGoogleButton = document.getElementById('login-google'); // Botão de login no header
+        const loginGoogleButton = document.getElementById('login-google');
         const logoutButton = document.getElementById('logout-button');
         const userInfo = document.getElementById('user-info');
 
-        // Novos elementos para o conteúdo principal
         const loginRequiredDiv = document.getElementById('login-required');
-        const mainContentDisplay = document.getElementById('main-content-display'); // Renomeado
+        const mainContentDisplay = document.getElementById('main-content-display');
         const googleSignInButtonMain = document.getElementById('google-sign-in-button-main');
         const loginStatusMessage = document.getElementById('login-status-message');
+        const accessDeniedAdminMessage = document.getElementById('access-denied-admin'); // Nova div para acesso negado
 
+        // --- Função para criar/atualizar o perfil do usuário no Firestore (copiado do exemplo anterior) ---
+        async function createUserProfileDocument(user) {
+            if (!user) return;
+
+            const userRef = firestore.collection('users').doc(user.uid);
+            const docSnapshot = await userRef.get();
+
+            if (!docSnapshot.exists) {
+                const { displayName, email, photoURL } = user;
+                const createdAt = firebase.firestore.FieldValue.serverTimestamp();
+
+                try {
+                    await userRef.set({
+                        uid: user.uid,
+                        name: displayName,
+                        email: email,
+                        profilePictureUrl: photoURL,
+                        createdAt: createdAt,
+                        lastLoginAt: createdAt,
+                        isAdmin: false // NOVO: Define isAdmin como false por padrão para novos usuários
+                    });
+                    console.log("Novo perfil de usuário criado no Firestore!");
+                } catch (error) {
+                    console.error("Erro ao criar perfil de usuário no Firestore:", error);
+                }
+            } else {
+                try {
+                    await userRef.update({
+                        lastLoginAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    console.log("Perfil de usuário atualizado no Firestore (lastLoginAt).");
+                } catch (error) {
+                    console.error("Erro ao atualizar perfil de usuário no Firestore:", error);
+                }
+            }
+        }
 
         // Listener de estado de autenticação (Firebase)
-        auth.onAuthStateChanged((user) => {
+        auth.onAuthStateChanged(async (user) => {
             if (user) {
                 // Usuário logado
                 userInfo.textContent = `Olá, ${user.displayName || user.email}!`;
                 loginGoogleButton.style.display = 'none';
-                logoutButton.style.display = 'inline-block'; // Mostra o botão de logout
+                logoutButton.style.display = 'inline-block';
 
-                // Exibe o conteúdo principal e esconde a mensagem de login
-                loginRequiredDiv.style.display = 'none';
-                mainContentDisplay.style.display = 'block';
+                // Salva/Atualiza o perfil do usuário no Firestore
+                await createUserProfileDocument(user);
+
+                // --- VERIFICAR PERMISSÃO DE ADMINISTRADOR ---
+                try {
+                    const userProfileRef = firestore.collection('users').doc(user.uid);
+                    const doc = await userProfileRef.get();
+                    if (doc.exists && doc.data() && doc.data().isAdmin === true) {
+                        // É administrador: mostra o conteúdo principal
+                        loginRequiredDiv.style.display = 'none';
+                        accessDeniedAdminMessage.style.display = 'none';
+                        mainContentDisplay.style.display = 'block';
+                    } else {
+                        // Não é administrador: esconde o conteúdo principal, mostra mensagem de acesso negado
+                        loginRequiredDiv.style.display = 'none';
+                        mainContentDisplay.style.display = 'none';
+                        accessDeniedAdminMessage.style.display = 'block';
+                        userInfo.textContent = `Olá, ${user.displayName || user.email} (Não Admin)!`; // Ajuste na mensagem
+                    }
+                } catch (error) {
+                    console.error("Erro ao verificar permissões de administrador:", error);
+                    loginRequiredDiv.style.display = 'none';
+                    mainContentDisplay.style.display = 'none';
+                    accessDeniedAdminMessage.style.display = 'block';
+                    userInfo.textContent = `Olá, ${user.displayName || user.email} (Erro na verificação)!`;
+                }
 
             } else {
                 // Usuário não logado
                 userInfo.textContent = '';
                 loginGoogleButton.style.display = 'inline-block';
-                logoutButton.style.display = 'none'; // Esconde o botão de logout
+                logoutButton.style.display = 'none';
 
-                // Esconde o conteúdo principal e exibe a mensagem de login
+                // Esconde o conteúdo principal e mostra a mensagem de login
                 loginRequiredDiv.style.display = 'block';
                 mainContentDisplay.style.display = 'none';
+                accessDeniedAdminMessage.style.display = 'none'; // Esconde a mensagem de acesso negado se não está logado
             }
         });
 
@@ -376,7 +448,6 @@
             const provider = new firebase.auth.GoogleAuthProvider();
             loginStatusMessage.textContent = 'Redirecionando para a página de login do Google...';
             try {
-                // signInWithRedirect dispara um redirecionamento, então o código abaixo dele não será executado imediatamente.
                 await auth.signInWithRedirect(provider);
             } catch (error) {
                 console.error("Erro ao iniciar login com Google:", error);
@@ -385,11 +456,10 @@
         });
 
         // Lidar com o resultado do signInWithRedirect (quando o usuário retorna da página de login)
-        auth.getRedirectResult().then((result) => {
+        auth.getRedirectResult().then(async (result) => { // Adicionado 'async' aqui
             if (result.user) {
-                // Usuário logado com sucesso após o redirecionamento.
-                // O onAuthStateChanged já lidará com a exibição do conteúdo.
                 console.log("Login com sucesso após redirecionamento!");
+                // O onAuthStateChanged já lidará com a exibição do conteúdo e a criação/atualização do perfil.
             } else {
                 console.log("Nenhum usuário retornado do redirecionamento (possivelmente cancelado ou sem operação).");
             }
@@ -406,12 +476,10 @@
             }
         });
 
-
         // Logout
         logoutButton.addEventListener('click', () => {
             auth.signOut().then(() => {
                 console.log("Usuário deslogado.");
-                // O onAuthStateChanged vai esconder o conteúdo principal e mostrar a mensagem de login
             }).catch((error) => {
                 console.error("Erro ao fazer logout:", error);
                 alert(`Erro ao fazer logout: ${error.message}`);
@@ -423,8 +491,6 @@
             if (componentHandler) {
                 componentHandler.upgradeDom();
             }
-            // Não há mais iframe para carregar página inicial aqui.
-            // A visibilidade do conteúdo principal é controlada pelo estado de autenticação.
         });
     </script>
 </body>
