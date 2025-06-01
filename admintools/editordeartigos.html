@@ -1,197 +1,422 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registrar Nova Matéria - WZZM</title>
+    <title>Gerenciar Artigos - WZZM Admin</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
     <style>
         body {
             font-family: 'Roboto', sans-serif;
             background-color: #f5f5f5;
+            padding: 20px;
+            color: #333;
         }
         .mdl-card {
+            width: 100%;
+            max-width: 900px;
             margin: 20px auto;
-            max-width: 600px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .mdl-card__title {
+            color: #fff;
+            background-color: #3f51b5;
+            padding: 16px;
+            font-size: 24px;
+            line-height: 1.2;
+        }
+        .mdl-card__supporting-text {
             padding: 20px;
         }
-        .mdl-textfield {
+        table {
             width: 100%;
-        }
-        .mdl-button {
-            width: 100%;
+            border-collapse: collapse;
             margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+            vertical-align: middle;
+        }
+        th {
+            background-color: #f0f0f0;
+            color: #444;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .action-buttons button {
+            margin-right: 8px;
+        }
+        .mdl-button.mdl-button--fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 999;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            padding-top: 60px;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto; /* 5% from the top and centered */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 90%; /* Could be more or less, depending on screen size */
+            max-width: 700px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+            position: relative;
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .modal-content h3 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #3f51b5;
+        }
+        .mdl-dialog__actions {
+            display: flex;
+            justify-content: flex-end;
+            padding-top: 20px;
         }
     </style>
 </head>
 <body>
-    <div class="mdl-card mdl-shadow--2dp">
+
+    <div class="mdl-card mdl-shadow--4dp">
         <div class="mdl-card__title">
-            <h2 class="mdl-card__title-text">Registrar Nova Matéria</h2>
+            <h2 class="mdl-card__title-text">Gerenciar Artigos</h2>
         </div>
         <div class="mdl-card__supporting-text">
-            <form id="material-form">
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    <input class="mdl-textfield__input" type="text" id="material-name" required>
-                    <label class="mdl-textfield__label" for="material-name">Nome da Matéria</label>
-                </div>
+            <p>Lista de todos os artigos publicados. Adicione, edite ou remova artigos.</p>
 
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    <input class="mdl-textfield__input" type="text" id="material-type" required>
-                    <label class="mdl-textfield__label" for="material-type">Tipo de Matéria (Ex: Artigo, Tutorial, Notícia)</label>
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--expandable mdl-textfield--floating-label mdl-textfield--align-right">
+                <label class="mdl-button mdl-js-button mdl-button--icon" for="search-article">
+                    <i class="material-icons">search</i>
+                </label>
+                <div class="mdl-textfield__expandable-holder">
+                    <input class="mdl-textfield__input" type="text" id="search-article" onkeyup="filterArticles()">
+                    <label class="mdl-textfield__label" for="search-article">Buscar artigo por título ou autor</label>
                 </div>
+            </div>
 
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    <input class="mdl-textfield__input" type="number" id="material-year" pattern="-?[0-9]*(\.[0-9]+)?" required>
-                    <label class="mdl-textfield__label" for="material-year">Ano de Publicação</label>
-                    <span class="mdl-textfield__error">Apenas números!</span>
-                </div>
-
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    <input class="mdl-textfield__input" type="url" id="material-link" required>
-                    <label class="mdl-textfield__label" for="material-link">Link para a Matéria (URL)</label>
-                </div>
-
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    <input class="mdl-textfield__input" type="url" id="material-image-link">
-                    <label class="mdl-textfield__label" for="material-image-link">Link para Imagem de Capa (URL)</label>
-                </div>
-
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    <input class="mdl-textfield__input" type="text" id="material-tags" placeholder="Separar por vírgulas (ex: aventura, RPG, guia)">
-                    <label class="mdl-textfield__label" for="material-tags">Tags para Exibição</label>
-                </div>
-
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    <input class="mdl-textfield__input" type="text" id="material-age-range" placeholder="Ex: Livre, +10, +16">
-                    <label class="mdl-textfield__label" for="material-age-range">Faixa Etária</label>
-                </div>
-
-                <button type="submit" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
-                    Registrar Matéria
-                </button>
-            </form>
-            <div id="response-message" class="mdl-card__actions" style="display: none; text-align: center; color: green;"></div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Título</th>
+                        <th>Autor</th>
+                        <th>Status</th>
+                        <th>Publicado Em</th>
+                        <th>Visualizações</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="articles-table-body">
+                    <tr><td colspan="6">Carregando artigos...</td></tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-analytics-compat.js"></script>
+    <button class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored" onclick="openArticleModal('add')">
+        <i class="material-icons">add</i>
+    </button>
 
+    <div id="articleModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeArticleModal()">&times;</span>
+            <h3 id="modal-title">Adicionar Novo Artigo</h3>
+            <form id="articleForm">
+                <input type="hidden" id="article-id"> <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input class="mdl-textfield__input" type="text" id="article-title" required>
+                    <label class="mdl-textfield__label" for="article-title">Título do Artigo</label>
+                </div>
+
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input class="mdl-textfield__input" type="text" id="article-author" required>
+                    <label class="mdl-textfield__label" for="article-author">Autor</label>
+                </div>
+
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <textarea class="mdl-textfield__input" type="text" rows="5" id="article-content" required></textarea>
+                    <label class="mdl-textfield__label" for="article-content">Conteúdo do Artigo (HTML ou Markdown)</label>
+                </div>
+
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input class="mdl-textfield__input" type="text" id="article-image-url">
+                    <label class="mdl-textfield__label" for="article-image-url">URL da Imagem de Destaque</label>
+                </div>
+
+                <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="article-published">
+                    <input type="checkbox" id="article-published" class="mdl-switch__input" checked>
+                    <span class="mdl-switch__label">Publicado</span>
+                </label>
+                <br>
+                <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="article-featured">
+                    <input type="checkbox" id="article-featured" class="mdl-switch__input">
+                    <span class="mdl-switch__label">Artigo em Destaque</span>
+                </label>
+
+                <div class="mdl-dialog__actions">
+                    <button type="submit" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">Salvar Artigo</button>
+                    <button type="button" class="mdl-button mdl-js-button" onclick="closeArticleModal()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
     <script>
-        // --- Configuração do Firebase (copiar do seu index.html) ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0",
-            authDomain: "wzzm-ce3fc.firebaseapp.com",
-            projectId: "wzzm-ce3fc",
-            storageBucket: "wzzm-ce3fc.appspot.com",
-            messagingSenderId: "249427877153",
-            appId: "1:249427877153:web:0e4297294794a5aadeb260",
-            measurementId: "G-PLKNZNFCQ8"
-        };
+        let allArticlesData = []; // Para armazenar todos os artigos e facilitar a busca/filtro
 
-        // Inicialize Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const firestore = firebase.firestore();
+        // Referências aos elementos do modal
+        const articleModal = document.getElementById('articleModal');
+        const modalTitle = document.getElementById('modal-title');
+        const articleIdField = document.getElementById('article-id');
+        const articleTitleField = document.getElementById('article-title');
+        const articleAuthorField = document.getElementById('article-author');
+        const articleContentField = document.getElementById('article-content');
+        const articleImageUrlField = document.getElementById('article-image-url');
+        const articlePublishedSwitch = document.getElementById('article-published');
+        const articleFeaturedSwitch = document.getElementById('article-featured');
+        const articleForm = document.getElementById('articleForm');
 
-        // Elementos do formulário
-        const materialForm = document.getElementById('material-form');
-        const materialNameInput = document.getElementById('material-name');
-        const materialTypeInput = document.getElementById('material-type');
-        const materialYearInput = document.getElementById('material-year');
-        const materialLinkInput = document.getElementById('material-link');
-        const materialImageLinkInput = document.getElementById('material-image-link');
-        const materialTagsInput = document.getElementById('material-tags');
-        const materialAgeRangeInput = document.getElementById('material-age-range');
-        const responseMessage = document.getElementById('response-message');
-
-        // Event Listener para o envio do formulário
-        materialForm.addEventListener('submit', async (e) => {
-            e.preventDefault(); // Impede o envio padrão do formulário
-
-            const currentUser = auth.currentUser;
-            if (!currentUser) {
-                responseMessage.style.color = 'red';
-                responseMessage.textContent = 'Você precisa estar logado para registrar matérias.';
-                responseMessage.style.display = 'block';
-                return;
-            }
-
-            // Coleta os dados do formulário
-            const name = materialNameInput.value.trim();
-            const type = materialTypeInput.value.trim();
-            const year = parseInt(materialYearInput.value.trim()); // Converte para número
-            const link = materialLinkInput.value.trim();
-            const imageLink = materialImageLinkInput.value.trim();
-            // Divide as tags por vírgula e remove espaços em branco
-            const tags = materialTagsInput.value.trim().split(',').map(tag => tag.trim()).filter(tag => tag !== '');
-            const ageRange = materialAgeRangeInput.value.trim();
-
-            if (!name || !type || isNaN(year) || !link) {
-                responseMessage.style.color = 'red';
-                responseMessage.textContent = 'Por favor, preencha todos os campos obrigatórios (Nome, Tipo, Ano, Link).';
-                responseMessage.style.display = 'block';
-                return;
-            }
+        // Função para carregar os artigos do Firebase Firestore
+        async function loadArticles() {
+            const articlesTableBody = document.getElementById('articles-table-body');
+            articlesTableBody.innerHTML = '<tr><td colspan="6">Carregando artigos...</td></tr>'; // Mensagem de carregamento
 
             try {
-                // Adiciona um novo documento na coleção 'materials'
-                await firestore.collection('materials').add({
-                    name: name,
-                    type: type,
-                    year: year,
-                    link: link,
-                    imageLink: imageLink,
-                    tags: tags,
-                    ageRange: ageRange,
-                    registeredBy: currentUser.uid, // Quem registrou (ID do Firebase Auth)
-                    registeredByName: currentUser.displayName || currentUser.email, // Nome de quem registrou
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp() // Timestamp do servidor
-                });
+                const firestore = parent.firebase.firestore();
+                const articlesSnapshot = await firestore.collection('articles').orderBy('publishedAt', 'desc').get();
 
-                responseMessage.style.color = 'green';
-                responseMessage.textContent = 'Matéria registrada com sucesso!';
-                responseMessage.style.display = 'block';
+                allArticlesData = []; // Limpa os dados anteriores
+                articlesTableBody.innerHTML = ''; // Limpa a mensagem de carregamento
 
-                // Limpa o formulário após o sucesso
-                materialForm.reset();
-                // Atualiza o MDL para remover o preenchimento dos campos
-                if (componentHandler) {
-                    componentHandler.upgradeDom();
+                if (articlesSnapshot.empty) {
+                    articlesTableBody.innerHTML = '<tr><td colspan="6">Nenhum artigo encontrado.</td></tr>';
+                    return;
                 }
 
+                articlesSnapshot.forEach(doc => {
+                    const article = doc.data();
+                    article.id = doc.id; // Adiciona o ID do documento ao objeto do artigo
+                    allArticlesData.push(article);
+                });
+
+                displayArticles(allArticlesData);
+
             } catch (error) {
-                console.error("Erro ao registrar matéria:", error);
-                responseMessage.style.color = 'red';
-                responseMessage.textContent = `Erro ao registrar matéria: ${error.message}`;
-                responseMessage.style.display = 'block';
+                console.error("Erro ao carregar artigos:", error);
+                articlesTableBody.innerHTML = '<tr><td colspan="6">Erro ao carregar artigos. Verifique as permissões.</td></tr>';
+            }
+        }
+
+        // Função para exibir os artigos na tabela
+        function displayArticles(articlesToDisplay) {
+            const articlesTableBody = document.getElementById('articles-table-body');
+            articlesTableBody.innerHTML = ''; // Limpa a tabela antes de preencher
+
+            if (articlesToDisplay.length === 0) {
+                articlesTableBody.innerHTML = '<tr><td colspan="6">Nenhum artigo encontrado com os critérios de busca.</td></tr>';
+                return;
+            }
+
+            articlesToDisplay.forEach(article => {
+                const row = articlesTableBody.insertRow();
+
+                row.insertCell().textContent = article.title || 'Sem Título';
+                row.insertCell().textContent = article.author || 'Desconhecido';
+
+                const statusCell = row.insertCell();
+                statusCell.textContent = article.published ? 'Publicado' : 'Rascunho';
+                statusCell.style.fontWeight = 'bold';
+                statusCell.style.color = article.published ? '#4CAF50' : '#FFC107';
+
+                row.insertCell().textContent = article.publishedAt ? new Date(article.publishedAt.toDate()).toLocaleDateString() : 'N/A';
+                row.insertCell().textContent = article.views || 0;
+
+                const actionsCell = row.insertCell();
+                const editButton = document.createElement('button');
+                editButton.classList.add('mdl-button', 'mdl-js-button', 'mdl-button--icon', 'mdl-js-ripple-effect');
+                editButton.innerHTML = '<i class="material-icons">edit</i>';
+                editButton.title = 'Editar Artigo';
+                editButton.onclick = () => openArticleModal('edit', article);
+                actionsCell.appendChild(editButton);
+
+                const deleteButton = document.createElement('button');
+                deleteButton.classList.add('mdl-button', 'mdl-js-button', 'mdl-button--icon', 'mdl-js-ripple-effect', 'mdl-color-text--red');
+                deleteButton.innerHTML = '<i class="material-icons">delete</i>';
+                deleteButton.title = 'Remover Artigo';
+                deleteButton.onclick = () => confirmAndDeleteArticle(article.id, article.title);
+                actionsCell.appendChild(deleteButton);
+            });
+
+            if (window.componentHandler) {
+                window.componentHandler.upgradeDom();
+            }
+        }
+
+        // Função para filtrar artigos
+        function filterArticles() {
+            const searchTerm = document.getElementById('search-article').value.toLowerCase();
+            const filtered = allArticlesData.filter(article =>
+                (article.title && article.title.toLowerCase().includes(searchTerm)) ||
+                (article.author && article.author.toLowerCase().includes(searchTerm))
+            );
+            displayArticles(filtered);
+        }
+
+        // --- Lógica do Modal de Adicionar/Editar Artigo ---
+        function openArticleModal(mode, article = null) {
+            articleForm.reset(); // Limpa o formulário
+
+            // Reseta o estado dos switches para o padrão (checked se houver atributo checked no HTML)
+            articlePublishedSwitch.checked = true;
+            articleFeaturedSwitch.checked = false;
+
+            if (mode === 'add') {
+                modalTitle.textContent = 'Adicionar Novo Artigo';
+                articleIdField.value = '';
+            } else if (mode === 'edit' && article) {
+                modalTitle.textContent = 'Editar Artigo';
+                articleIdField.value = article.id;
+                articleTitleField.value = article.title || '';
+                articleAuthorField.value = article.author || '';
+                articleContentField.value = article.content || '';
+                articleImageUrlField.value = article.imageUrl || '';
+                articlePublishedSwitch.checked = article.published === true;
+                articleFeaturedSwitch.checked = article.featured === true;
+            }
+
+            // Garante que o MDL atualize os campos de texto e switches
+            if (window.componentHandler) {
+                window.componentHandler.upgradeAllRegistered();
+                // Força o "is-dirty" para campos preenchidos programaticamente
+                document.querySelectorAll('.mdl-textfield').forEach(tf => {
+                    if (tf.querySelector('input, textarea').value) {
+                        tf.classList.add('is-dirty');
+                    } else {
+                        tf.classList.remove('is-dirty');
+                    }
+                });
+                // Atualiza o estado visual dos switches
+                const publishedSwitchElement = articlePublishedSwitch.closest('.mdl-switch');
+                if (publishedSwitchElement) {
+                    if (articlePublishedSwitch.checked) publishedSwitchElement.classList.add('is-checked');
+                    else publishedSwitchElement.classList.remove('is-checked');
+                }
+                const featuredSwitchElement = articleFeaturedSwitch.closest('.mdl-switch');
+                if (featuredSwitchElement) {
+                    if (articleFeaturedSwitch.checked) featuredSwitchElement.classList.add('is-checked');
+                    else featuredSwitchElement.classList.remove('is-checked');
+                }
+            }
+
+            articleModal.style.display = 'block';
+        }
+
+        function closeArticleModal() {
+            articleModal.style.display = 'none';
+        }
+
+        // Enviar formulário
+        articleForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); // Impede o envio padrão do formulário
+
+            const id = articleIdField.value;
+            const title = articleTitleField.value;
+            const author = articleAuthorField.value;
+            const content = articleContentField.value;
+            const imageUrl = articleImageUrlField.value;
+            const published = articlePublishedSwitch.checked;
+            const featured = articleFeaturedSwitch.checked;
+
+            const firestore = parent.firebase.firestore();
+            const serverTimestamp = parent.firebase.firestore.FieldValue.serverTimestamp();
+            const currentUser = parent.firebase.auth().currentUser;
+
+            const articleData = {
+                title,
+                author,
+                content,
+                imageUrl,
+                published,
+                featured,
+                // views são incrementadas no frontend do site, não aqui na edição
+                // authorId: currentUser ? currentUser.uid : null, // Opcional: registrar quem criou/editou
+                lastModifiedAt: serverTimestamp
+            };
+
+            try {
+                if (id) {
+                    // Modo Edição
+                    await firestore.collection('articles').doc(id).update(articleData);
+                    alert('Artigo atualizado com sucesso!');
+                } else {
+                    // Modo Adicionar
+                    // Ao criar, defina a data de publicação e views iniciais
+                    articleData.publishedAt = serverTimestamp;
+                    articleData.views = 0; // Inicia com 0 visualizações
+                    const newDocRef = await firestore.collection('articles').add(articleData);
+                    alert(`Artigo adicionado com sucesso! ID: ${newDocRef.id}`);
+                }
+                closeArticleModal();
+                loadArticles(); // Recarrega a lista
+            } catch (error) {
+                console.error("Erro ao salvar artigo:", error);
+                alert(`Erro ao salvar artigo: ${error.message}`);
             }
         });
 
-        // Opcional: Verifique se o usuário está logado ao carregar a página
-        // E talvez redirecione ou exiba uma mensagem se não estiver autorizado
-        auth.onAuthStateChanged(user => {
-            if (!user) {
-                // Se a página de registro de material exigir login, e o usuário não estiver logado,
-                // você pode exibir uma mensagem ou redirecionar.
-                // Ex: window.parent.location.href = 'index.html'; // Redireciona o pai
-                console.log("Usuário não logado na página de registro de material.");
-                responseMessage.style.color = 'orange';
-                responseMessage.textContent = 'Faça login para registrar uma nova matéria.';
-                responseMessage.style.display = 'block';
+        // Função para confirmar e deletar artigo
+        async function confirmAndDeleteArticle(id, title) {
+            if (confirm(`Tem certeza que deseja remover o artigo "${title}"? Esta ação é irreversível!`)) {
+                try {
+                    const firestore = parent.firebase.firestore();
+                    await firestore.collection('articles').doc(id).delete();
+                    alert('Artigo removido com sucesso!');
+                    loadArticles(); // Recarrega a lista
+                } catch (error) {
+                    console.error("Erro ao remover artigo:", error);
+                    alert(`Erro ao remover artigo: ${error.message}. Verifique as regras de segurança.`);
+                }
             }
-        });
+        }
 
-        // Garante que o MDL seja carregado após o DOM
+        // Chama a função para carregar os artigos quando a página for carregada
         document.addEventListener('DOMContentLoaded', () => {
-            if (componentHandler) {
-                componentHandler.upgradeDom();
+            if (window.componentHandler) {
+                window.componentHandler.upgradeDom();
             }
+            loadArticles();
         });
     </script>
 </body>
