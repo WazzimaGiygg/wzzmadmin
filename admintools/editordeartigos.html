@@ -66,9 +66,6 @@
             flex-grow: 1; /* Permite que o texto de suporte ocupe espaço restante */
             overflow: hidden;
             text-overflow: ellipsis;
-            /* display: -webkit-box;
-            -webkit-line-clamp: 3; /* Limita a 3 linhas */
-            /* -webkit-box-orient: vertical; */
         }
         .article-card .mdl-card__actions {
             border-top: 1px solid rgba(0,0,0,.1);
@@ -125,23 +122,25 @@
         </div>
 
         <div id="error-display" class="error-message" style="display: none;">
-            </div>
+        </div>
     </div>
 
     <script>
-        // --- Configuração do Firebase (precisa ser a mesma do seu index.html) ---
-        // ATENÇÃO: SUBSTITUA COM SUAS PRÓPRIAS CREDENCIAIS DO FIREBASE
+        // --- Configuração do Firebase com suas chaves e dados originais ---
         const firebaseConfig = {
-            apiKey: "SUA_API_KEY_AQUI", // Exemplo: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0"
-            authDomain: "SEU_AUTH_DOMAIN_AQUI.firebaseapp.com", // Exemplo: "wzzm-ce3fc.firebaseapp.com"
-            projectId: "SEU_PROJECT_ID_AQUI", // Exemplo: "wzzm-ce3fc"
-            storageBucket: "SEU_STORAGE_BUCKET_AQUI.appspot.com", // Exemplo: "wzzm-ce3fc.appspot.com"
-            messagingSenderId: "SEU_MESSAGING_SENDER_ID_AQUI", // Exemplo: "249427877153"
-            appId: "SEU_APP_ID_AQUI", // Exemplo: "1:249427877153:web:0e4297294794a5aadeb260"
-            measurementId: "SEU_MEASUREMENT_ID_AQUI" // Exemplo: "G-PLKNZNFCQ8"
+            apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0",
+            authDomain: "wzzm-ce3fc.firebaseapp.com",
+            projectId: "wzzm-ce3fc",
+            storageBucket: "wzzm-ce3fc.appspot.com",
+            messagingSenderId: "249427877153",
+            appId: "1:249427877153:web:0e4297294794a5aadeb260",
+            measurementId: "G-PLKNZNFCQ8"
         };
 
-        // Inicialize Firebase se ainda não foi inicializado (importante para iframes)
+        // Inicialize Firebase se ainda não foi inicializado.
+        // A try-catch block helps prevent "Firebase app already initialized" errors
+        // if this script runs multiple times in the same context (e.g., in an iframe
+        // where the parent might have already initialized Firebase).
         let app;
         try {
             app = firebase.app();
@@ -164,7 +163,7 @@
                 errorDisplay.textContent = `Erro: ${message}`;
                 errorDisplay.style.display = 'block';
             } else {
-                console.error("Elemento 'error-display' não encontrado.");
+                console.error("Elemento 'error-display' não encontrado no DOM.");
             }
             if (loadingMessage) {
                 loadingMessage.style.display = 'none'; // Esconde a mensagem de carregamento
@@ -175,6 +174,7 @@
          * Função para carregar e exibir os artigos do Firestore.
          */
         async function loadArticles() {
+            // CORREÇÃO: Verifica se o elemento 'articlesListDiv' existe antes de tentar manipulá-lo.
             if (!articlesListDiv) {
                 console.error("Elemento 'articles-list' não encontrado. Não é possível carregar artigos.");
                 displayError("Erro interno: Contêiner de artigos não encontrado.");
@@ -206,12 +206,13 @@
                     const articleData = doc.data(); // Obtém os dados do documento
                     const articleId = doc.id; // Obtém o ID do documento para ações futuras
 
-                    // **INÍCIO DA SOLUÇÃO PARA 'TypeError: Cannot convert undefined or null to object'**
-                    // A linha 42:33 do seu erro provavelmente está tentando usar 'Object.values(articleData)'
-                    // ou similar, sem verificar se articleData é um objeto válido.
-                    // Esta verificação é crucial antes de tentar acessar propriedades do artigoData.
+                    // CORREÇÃO CRÍTICA:
+                    // Verifica se articleData existe e é um objeto válido.
+                    // Isso previne o 'TypeError: Cannot convert undefined or null to object'
+                    // se um documento estiver vazio ou corrompido no Firestore.
                     if (articleData && typeof articleData === 'object') {
                         const card = document.createElement('div');
+                        // CORREÇÃO: Garante que as classes MDL para responsividade estão no card.
                         card.className = 'article-card mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet mdl-cell--12-col-phone';
                         card.innerHTML = `
                             <div class="mdl-card__title">
@@ -233,13 +234,13 @@
                         `;
                         articlesListDiv.appendChild(card);
                     } else {
+                        // CORREÇÃO: Loga um aviso para documentos com dados inválidos.
                         console.warn(`Documento com ID ${articleId} possui dados inválidos, nulos ou indefinidos. Ignorando este artigo.`);
-                        // Você pode optar por exibir uma mensagem de erro ou um placeholder para documentos corrompidos
                     }
-                    // **FIM DA SOLUÇÃO PARA 'TypeError'**
                 });
 
-                // Atualiza os componentes MDL dinamicamente adicionados
+                // CORREÇÃO: Atualiza os componentes MDL dinamicamente adicionados
+                // É crucial chamar upgradeElements ou upgradeDom após adicionar conteúdo dinâmico.
                 if (window.componentHandler) {
                     window.componentHandler.upgradeElements(articlesListDiv);
                 }
@@ -247,10 +248,6 @@
             } catch (error) {
                 console.error("Erro ao carregar artigos:", error);
                 displayError(`Não foi possível carregar os artigos. ${error.message}`);
-                // Se o erro original for "TypeError: Cannot convert undefined or null to object"
-                // e a linha 42:33 apontar para algo como Object.values(articleData),
-                // este catch não será acionado, pois o erro ocorre dentro do forEach
-                // antes do render. A correção precisa ser na validação do articleData.
             }
         }
 
@@ -275,17 +272,19 @@
         }
 
         // --- Event Listeners ---
+        // CORREÇÃO: Garante que o script só interage com o DOM após ele estar completamente carregado.
         document.addEventListener('DOMContentLoaded', () => {
             // Carrega os artigos ao carregar a página
             loadArticles();
 
-            // Adiciona um listener para os botões de excluir (delegação de eventos)
-            // Isso é importante porque os botões são adicionados dinamicamente
-            if (articlesListDiv) { // Verifica se articlesListDiv existe
+            // CORREÇÃO: Adiciona um listener de evento ao contêiner pai para lidar com botões de exclusão
+            // adicionados dinamicamente (delegação de eventos).
+            // Isso previne problemas com elementos que não existem no momento da carga inicial do DOM.
+            if (articlesListDiv) { // CORREÇÃO: Verifica se o elemento existe antes de adicionar o listener
                 articlesListDiv.addEventListener('click', (event) => {
                     const target = event.target;
                     // Verifica se o clique foi em um botão com a classe 'delete-article-button'
-                    // e se ele possui o atributo 'data-article-id'
+                    // e se ele possui o atributo 'data-article-id'.
                     if (target.classList.contains('delete-article-button') && target.dataset.articleId) {
                         const articleId = target.dataset.articleId;
                         deleteArticle(articleId);
@@ -295,7 +294,7 @@
                 console.error("Elemento 'articles-list' não encontrado para adicionar listener de exclusão.");
             }
 
-            // Garante que os componentes MDL são atualizados após o carregamento inicial
+            // Garante que os componentes MDL são atualizados após o carregamento inicial do DOM.
             if (window.componentHandler) {
                 window.componentHandler.upgradeDom();
             }
