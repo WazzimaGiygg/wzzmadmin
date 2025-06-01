@@ -187,7 +187,7 @@
                     articleContentInput.value = data.content || '';
                     currentArticleId = articleId;
 
-                    // Atualiza o estado dos campos MDL
+                    // Atualiza o estado dos campos MDL para que o label flutue
                     articleTitleInput.parentNode.MaterialTextfield.checkDirty();
                     articleSummaryInput.parentNode.MaterialTextfield.checkDirty();
                     articleContentInput.parentNode.MaterialTextfield.checkDirty();
@@ -233,9 +233,10 @@
                     const docRef = await firestore.collection('articles').add(articleData);
                     displaySuccess('Artigo salvo com sucesso!');
                     console.log("Novo artigo salvo com ID: " + docRef.id);
-                    // Opcional: Redirecionar após salvar novo artigo
-                    // currentArticleId = docRef.id; // Atualiza para o ID do novo artigo
-                    // pageTitle.textContent = 'Editar Artigo'; // Mudar título para editar
+                    // Opcional: Para um novo artigo, resetar o formulário ou redirecionar.
+                    // Se você quer continuar editando o novo artigo, você pode fazer:
+                    // currentArticleId = docRef.id;
+                    // pageTitle.textContent = 'Editar Artigo';
                     // window.history.pushState({}, '', `?id=${docRef.id}`); // Atualiza URL sem recarregar
                 }
             } catch (error) {
@@ -268,13 +269,12 @@
             // Botão Voltar para a Lista
             if (backToListBtn) {
                 backToListBtn.addEventListener('click', () => {
-                    // Esta lógica precisa "dizer" ao seu `index.html` para voltar
-                    // para `gerenciar-artigos.html` no iframe.
+                    // Comunica com a janela pai para voltar à lista de artigos
                     if (window.parent !== window && window.parent.postMessage) {
                         window.parent.postMessage({
                             type: 'navigateIframe',
                             url: './admintools/gerenciar-artigos.html'
-                        }, '*'); // Use o domínio do seu pai para segurança
+                        }, window.location.origin); // Use window.location.origin para segurança
                     } else {
                         // Fallback: se não estiver em um iframe, ou se o pai não ouve postMessage,
                         // navega diretamente. Ajuste o caminho se necessário.
