@@ -148,7 +148,7 @@
         const articlesListDiv = document.getElementById('articles-list');
         const loadingMessage = document.getElementById('loading-message');
         const errorDisplay = document.getElementById('error-display');
-        const addArticleBtn = document.getElementById('add-article-btn'); // NOVO: Referência ao botão de adicionar
+        const addArticleBtn = document.getElementById('add-article-btn');
 
         function displayError(message) {
             if (errorDisplay) {
@@ -258,7 +258,7 @@
                         const articleId = target.dataset.articleId;
                         deleteArticle(articleId);
                     }
-                    // MUDANÇA NO JS: Lógica para o botão Editar (também via delegação de eventos)
+                    // Lógica para o botão Editar
                     if (target.classList.contains('edit-article-button') && target.dataset.articleId) {
                         event.preventDefault(); // Evita que o link navegue o iframe diretamente
 
@@ -270,7 +270,7 @@
                             window.parent.postMessage({
                                 type: 'navigateIframe',
                                 url: urlToLoad
-                            }, '*'); // Use a origem do seu pai para segurança, ex: 'https://admin.wzzm.org'
+                            }, window.location.origin); // Use window.location.origin para segurança
                         } else {
                             // Fallback se não estiver em um iframe (ex: testando diretamente a página)
                             window.location.href = urlToLoad;
@@ -281,7 +281,7 @@
                 console.error("Elemento 'articles-list' não encontrado para adicionar listeners.");
             }
 
-            // MUDANÇA NO JS: Lógica para o botão "Adicionar Novo Artigo"
+            // Lógica para o botão "Adicionar Novo Artigo"
             if (addArticleBtn) {
                 addArticleBtn.addEventListener('click', (event) => {
                     event.preventDefault(); // Impede o comportamento padrão do link
@@ -292,7 +292,7 @@
                         window.parent.postMessage({
                             type: 'navigateIframe',
                             url: urlToLoad
-                        }, '*'); // Use o domínio do seu pai aqui para segurança, ex: 'https://admin.wzzm.org'
+                        }, window.location.origin); // Use window.location.origin para segurança
                     } else { // Se não estiver em um iframe
                         window.location.href = urlToLoad; // Navega a janela atual
                     }
