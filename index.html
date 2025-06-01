@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WZZM Admin</title>
-    <link rel="icon" href="/favicon.ico" type="image/x-icon"> <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
     <style>
         body {
@@ -218,7 +219,7 @@
                 <div class="banner-container">
                     <a href="https://wzzm.org" target="_blank" rel="noopener noreferrer">
                         <img src="/images/wzzm-banner.gif" alt="WZZM Banner">
-                        </a>
+                    </a>
                 </div>
 
                 <h1>Painel Administrativo WZZM</h1>
@@ -232,8 +233,9 @@
                     <h2>Resumo Administrativo</h2>
                     <p>Visão geral rápida das atividades recentes.</p>
                     <div class="grid">
-                    <a class="mdl-navigation__link" href="#" onclick="loadIframe('/admintools/gerenciar-artigos.html', 'Gerenciar Artigos'); return false;">
-                    <i class="mdl-color-text--blue-grey-400 material-icons" role="presentation">article</i>Gerenciar Artigos
+                        <a class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
+                           href="./admintools/gerenciar-artigos.html" data-target-iframe="true">
+                            <i class="material-icons">article</i> Gerenciar Artigos
                         </a>
                         <a class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
                            href="./admintools/gerenciar-usuarios.html" data-target-iframe="true">
@@ -405,6 +407,7 @@
                         loginRequiredDiv.style.display = 'none';
                         mainContentDisplay.style.display = 'none';
                         contentIframe.style.display = 'none';
+                        G
                         accessDeniedAdminMessage.style.display = 'block';
                         userInfo.textContent = `Olá, ${user.displayName || user.email} (Não Admin)!`;
                     }
