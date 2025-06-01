@@ -82,7 +82,7 @@
             padding: 50px;
             color: #777;
             font-size: 1.1em;
-            width: 100%; /* Garante que a mensagem de estado vazio ocupe a largura total */
+            width: 100%;
         }
         .error-message {
             text-align: center;
@@ -92,7 +92,7 @@
             border: 1px solid #d32f2f;
             border-radius: 5px;
             margin-top: 20px;
-            width: 100%; /* Garante que a mensagem de erro ocupe a largura total */
+            width: 100%;
         }
         .add-article-button-container {
             text-align: right;
@@ -111,7 +111,7 @@
         <h1>Gerenciar Artigos</h1>
 
         <div class="add-article-button-container">
-            <a href="./editordeartigos.html"
+            <a href="#" id="add-article-btn"
                class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
                 <i class="material-icons">add</i> Adicionar Novo Artigo
             </a>
@@ -137,10 +137,6 @@
             measurementId: "G-PLKNZNFCQ8"
         };
 
-        // Inicialize Firebase se ainda não foi inicializado.
-        // A try-catch block helps prevent "Firebase app already initialized" errors
-        // if this script runs multiple times in the same context (e.g., in an iframe
-        // where the parent might have already initialized Firebase).
         let app;
         try {
             app = firebase.app();
@@ -149,15 +145,11 @@
         }
         const firestore = firebase.firestore();
 
-        // Elementos da UI
         const articlesListDiv = document.getElementById('articles-list');
         const loadingMessage = document.getElementById('loading-message');
         const errorDisplay = document.getElementById('error-display');
+        const addArticleBtn = document.getElementById('add-article-btn'); // NOVO: Referência ao botão de adicionar
 
-        /**
-         * Exibe uma mensagem de erro na interface.
-         * @param {string} message - A mensagem de erro a ser exibida.
-         */
         function displayError(message) {
             if (errorDisplay) {
                 errorDisplay.textContent = `Erro: ${message}`;
@@ -166,34 +158,29 @@
                 console.error("Elemento 'error-display' não encontrado no DOM.");
             }
             if (loadingMessage) {
-                loadingMessage.style.display = 'none'; // Esconde a mensagem de carregamento
+                loadingMessage.style.display = 'none';
             }
         }
 
-        /**
-         * Função para carregar e exibir os artigos do Firestore.
-         */
         async function loadArticles() {
-            // CORREÇÃO: Verifica se o elemento 'articlesListDiv' existe antes de tentar manipulá-lo.
             if (!articlesListDiv) {
                 console.error("Elemento 'articles-list' não encontrado. Não é possível carregar artigos.");
                 displayError("Erro interno: Contêiner de artigos não encontrado.");
                 return;
             }
 
-            articlesListDiv.innerHTML = ''; // Limpa qualquer conteúdo anterior
+            articlesListDiv.innerHTML = '';
             if (loadingMessage) {
-                loadingMessage.style.display = 'block'; // Mostra a mensagem de carregamento
+                loadingMessage.style.display = 'block';
             }
-            errorDisplay.style.display = 'none'; // Esconde mensagens de erro anteriores
+            errorDisplay.style.display = 'none';
 
             try {
-                // Obter a coleção de artigos, ordenada pelo timestamp (se existir)
                 const articlesRef = firestore.collection('articles').orderBy('timestamp', 'desc');
                 const snapshot = await articlesRef.get();
 
                 if (loadingMessage) {
-                    loadingMessage.style.display = 'none'; // Esconde a mensagem de carregamento
+                    loadingMessage.style.display = 'none';
                 }
 
                 if (snapshot.empty) {
@@ -203,16 +190,11 @@
                 }
 
                 snapshot.forEach(doc => {
-                    const articleData = doc.data(); // Obtém os dados do documento
-                    const articleId = doc.id; // Obtém o ID do documento para ações futuras
+                    const articleData = doc.data();
+                    const articleId = doc.id;
 
-                    // CORREÇÃO CRÍTICA:
-                    // Verifica se articleData existe e é um objeto válido.
-                    // Isso previne o 'TypeError: Cannot convert undefined or null to object'
-                    // se um documento estiver vazio ou corrompido no Firestore.
                     if (articleData && typeof articleData === 'object') {
                         const card = document.createElement('div');
-                        // CORREÇÃO: Garante que as classes MDL para responsividade estão no card.
                         card.className = 'article-card mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet mdl-cell--12-col-phone';
                         card.innerHTML = `
                             <div class="mdl-card__title">
@@ -222,8 +204,7 @@
                                 <p>${articleData.summary || 'Nenhum resumo disponível.'}</p>
                             </div>
                             <div class="mdl-card__actions mdl-card--border">
-                                <a href="./editordeartigos.html?id=${articleId}"
-                                   class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
+                                <a href="#" class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect edit-article-button" data-article-id="${articleId}">
                                     Editar
                                 </a>
                                 <button class="mdl-button mdl-button--accent mdl-js-button mdl-js-ripple-effect delete-article-button"
@@ -234,13 +215,10 @@
                         `;
                         articlesListDiv.appendChild(card);
                     } else {
-                        // CORREÇÃO: Loga um aviso para documentos com dados inválidos.
                         console.warn(`Documento com ID ${articleId} possui dados inválidos, nulos ou indefinidos. Ignorando este artigo.`);
                     }
                 });
 
-                // CORREÇÃO: Atualiza os componentes MDL dinamicamente adicionados
-                // É crucial chamar upgradeElements ou upgradeDom após adicionar conteúdo dinâmico.
                 if (window.componentHandler) {
                     window.componentHandler.upgradeElements(articlesListDiv);
                 }
@@ -251,10 +229,6 @@
             }
         }
 
-        /**
-         * Função para excluir um artigo do Firestore.
-         * @param {string} articleId - O ID do artigo a ser excluído.
-         */
         async function deleteArticle(articleId) {
             if (!confirm('Tem certeza que deseja excluir este artigo? Esta ação é irreversível.')) {
                 return;
@@ -264,7 +238,7 @@
                 await firestore.collection('articles').doc(articleId).delete();
                 alert('Artigo excluído com sucesso!');
                 console.log(`Artigo com ID ${articleId} excluído.`);
-                loadArticles(); // Recarrega a lista para refletir a exclusão
+                loadArticles();
             } catch (error) {
                 console.error("Erro ao excluir artigo:", error);
                 displayError(`Não foi possível excluir o artigo. ${error.message}`);
@@ -272,29 +246,60 @@
         }
 
         // --- Event Listeners ---
-        // CORREÇÃO: Garante que o script só interage com o DOM após ele estar completamente carregado.
         document.addEventListener('DOMContentLoaded', () => {
-            // Carrega os artigos ao carregar a página
             loadArticles();
 
-            // CORREÇÃO: Adiciona um listener de evento ao contêiner pai para lidar com botões de exclusão
-            // adicionados dinamicamente (delegação de eventos).
-            // Isso previne problemas com elementos que não existem no momento da carga inicial do DOM.
-            if (articlesListDiv) { // CORREÇÃO: Verifica se o elemento existe antes de adicionar o listener
+            if (articlesListDiv) {
                 articlesListDiv.addEventListener('click', (event) => {
                     const target = event.target;
-                    // Verifica se o clique foi em um botão com a classe 'delete-article-button'
-                    // e se ele possui o atributo 'data-article-id'.
+
+                    // Lógica para o botão Excluir
                     if (target.classList.contains('delete-article-button') && target.dataset.articleId) {
                         const articleId = target.dataset.articleId;
                         deleteArticle(articleId);
                     }
+                    // NOVO: Lógica para o botão Editar (também via delegação de eventos)
+                    if (target.classList.contains('edit-article-button') && target.dataset.articleId) {
+                        event.preventDefault(); // Evita que o link navegue o iframe
+                        const articleId = target.dataset.articleId;
+                        // CORREÇÃO: Informa o pai (index.html) para carregar a URL no iframe principal.
+                        // Assumimos que o index.html tem um script para lidar com postMessage.
+                        // Se o index.html não tiver isso, esta linha não fará nada.
+                        if (window.parent !== window) { // Verifica se está em um iframe
+                            window.parent.postMessage({
+                                type: 'navigateIframe',
+                                url: `./admintools/editordeartigos.html?id=${articleId}`
+                            }, '*'); // '*' é para qualquer origem, use a origem do seu pai para segurança
+                        } else { // Se não estiver em um iframe, apenas navega
+                            window.location.href = `./editordeartigos.html?id=${articleId}`;
+                        }
+                    }
                 });
             } else {
-                console.error("Elemento 'articles-list' não encontrado para adicionar listener de exclusão.");
+                console.error("Elemento 'articles-list' não encontrado para adicionar listeners.");
             }
 
-            // Garante que os componentes MDL são atualizados após o carregamento inicial do DOM.
+            // CORREÇÃO MAIS DIRETA para o botão "Adicionar Novo Artigo":
+            // Faz com que o clique no botão envie uma mensagem para o iframe pai
+            // ou navegue a janela principal, se não estiver em um iframe.
+            if (addArticleBtn) {
+                addArticleBtn.addEventListener('click', (event) => {
+                    event.preventDefault(); // Impede o comportamento padrão do link
+
+                    if (window.parent !== window) { // Se estiver em um iframe
+                        // Envia uma mensagem para o pai para que ele atualize o iframe
+                        window.parent.postMessage({
+                            type: 'navigateIframe',
+                            url: './admintools/editordeartigos.html' // URL para o editor de artigos
+                        }, '*'); // Use o domínio do seu pai aqui para segurança, ex: 'https://admin.wzzm.org'
+                    } else { // Se não estiver em um iframe (ex: testando diretamente a página)
+                        window.location.href = './editordeartigos.html'; // Navega a janela atual
+                    }
+                });
+            } else {
+                console.error("Botão 'Adicionar Novo Artigo' não encontrado.");
+            }
+
             if (window.componentHandler) {
                 window.componentHandler.upgradeDom();
             }
