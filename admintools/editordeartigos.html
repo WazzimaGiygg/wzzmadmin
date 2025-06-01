@@ -46,7 +46,6 @@
         }
         .article-card .mdl-card__title {
             color: #fff;
-            /* background-color: #5c6bc0; */ /* Cor mais suave do MDL */
             background-color: #3f51b5; /* Cor primária do MDL */
             min-height: 80px; /* Garante espaço para o título */
             display: flex;
@@ -86,6 +85,7 @@
             padding: 50px;
             color: #777;
             font-size: 1.1em;
+            width: 100%; /* Garante que a mensagem de estado vazio ocupe a largura total */
         }
         .error-message {
             text-align: center;
@@ -95,6 +95,7 @@
             border: 1px solid #d32f2f;
             border-radius: 5px;
             margin-top: 20px;
+            width: 100%; /* Garante que a mensagem de erro ocupe a largura total */
         }
         .add-article-button-container {
             text-align: right;
@@ -114,8 +115,7 @@
 
         <div class="add-article-button-container">
             <a href="./editordeartigos.html"
-               class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
-               data-target-iframe="true">
+               class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
                 <i class="material-icons">add</i> Adicionar Novo Artigo
             </a>
         </div>
@@ -130,19 +130,18 @@
 
     <script>
         // --- Configuração do Firebase (precisa ser a mesma do seu index.html) ---
+        // ATENÇÃO: SUBSTITUA COM SUAS PRÓPRIAS CREDENCIAIS DO FIREBASE
         const firebaseConfig = {
-            apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0", // SUAS CREDENCIAIS DO FIREBASE AQUI
-            authDomain: "wzzm-ce3fc.firebaseapp.com",
-            projectId: "wzzm-ce3fc",
-            storageBucket: "wzzm-ce3fc.appspot.com",
-            messagingSenderId: "249427877153",
-            appId: "1:249427877153:web:0e4297294794a5aadeb260",
-            measurementId: "G-PLKNZNFCQ8"
+            apiKey: "SUA_API_KEY_AQUI", // Exemplo: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0"
+            authDomain: "SEU_AUTH_DOMAIN_AQUI.firebaseapp.com", // Exemplo: "wzzm-ce3fc.firebaseapp.com"
+            projectId: "SEU_PROJECT_ID_AQUI", // Exemplo: "wzzm-ce3fc"
+            storageBucket: "SEU_STORAGE_BUCKET_AQUI.appspot.com", // Exemplo: "wzzm-ce3fc.appspot.com"
+            messagingSenderId: "SEU_MESSAGING_SENDER_ID_AQUI", // Exemplo: "249427877153"
+            appId: "SEU_APP_ID_AQUI", // Exemplo: "1:249427877153:web:0e4297294794a5aadeb260"
+            measurementId: "SEU_MEASUREMENT_ID_AQUI" // Exemplo: "G-PLKNZNFCQ8"
         };
 
         // Inicialize Firebase se ainda não foi inicializado (importante para iframes)
-        // A linha abaixo tenta evitar erro se o app já foi inicializado pelo pai (index.html)
-        // mas é safer inicializar aqui, pois iframes são contextos isolados.
         let app;
         try {
             app = firebase.app();
@@ -178,6 +177,7 @@
         async function loadArticles() {
             if (!articlesListDiv) {
                 console.error("Elemento 'articles-list' não encontrado. Não é possível carregar artigos.");
+                displayError("Erro interno: Contêiner de artigos não encontrado.");
                 return;
             }
 
@@ -206,19 +206,22 @@
                     const articleData = doc.data(); // Obtém os dados do documento
                     const articleId = doc.id; // Obtém o ID do documento para ações futuras
 
-                    // Verifica se os dados do artigo são válidos e contêm o título e resumo
-                    if (articleData && typeof articleData === 'object' && articleData.title) {
+                    // **INÍCIO DA SOLUÇÃO PARA 'TypeError: Cannot convert undefined or null to object'**
+                    // A linha 42:33 do seu erro provavelmente está tentando usar 'Object.values(articleData)'
+                    // ou similar, sem verificar se articleData é um objeto válido.
+                    // Esta verificação é crucial antes de tentar acessar propriedades do artigoData.
+                    if (articleData && typeof articleData === 'object') {
                         const card = document.createElement('div');
-                        card.className = 'article-card mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet mdl-cell--12-col-phone'; // Adapta para responsividade
+                        card.className = 'article-card mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet mdl-cell--12-col-phone';
                         card.innerHTML = `
                             <div class="mdl-card__title">
-                                <h2 class="mdl-card__title-text">${articleData.title}</h2>
+                                <h2 class="mdl-card__title-text">${articleData.title || 'Título Indisponível'}</h2>
                             </div>
                             <div class="mdl-card__supporting-text">
                                 <p>${articleData.summary || 'Nenhum resumo disponível.'}</p>
                             </div>
                             <div class="mdl-card__actions mdl-card--border">
-                                <a href="../admintools/editordeartigos.html?id=${articleId}"
+                                <a href="./editordeartigos.html?id=${articleId}"
                                    class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
                                     Editar
                                 </a>
@@ -230,8 +233,10 @@
                         `;
                         articlesListDiv.appendChild(card);
                     } else {
-                        console.warn(`Artigo com ID ${articleId} possui dados inválidos ou faltando título.`);
+                        console.warn(`Documento com ID ${articleId} possui dados inválidos, nulos ou indefinidos. Ignorando este artigo.`);
+                        // Você pode optar por exibir uma mensagem de erro ou um placeholder para documentos corrompidos
                     }
+                    // **FIM DA SOLUÇÃO PARA 'TypeError'**
                 });
 
                 // Atualiza os componentes MDL dinamicamente adicionados
@@ -242,6 +247,10 @@
             } catch (error) {
                 console.error("Erro ao carregar artigos:", error);
                 displayError(`Não foi possível carregar os artigos. ${error.message}`);
+                // Se o erro original for "TypeError: Cannot convert undefined or null to object"
+                // e a linha 42:33 apontar para algo como Object.values(articleData),
+                // este catch não será acionado, pois o erro ocorre dentro do forEach
+                // antes do render. A correção precisa ser na validação do articleData.
             }
         }
 
@@ -272,32 +281,18 @@
 
             // Adiciona um listener para os botões de excluir (delegação de eventos)
             // Isso é importante porque os botões são adicionados dinamicamente
-            articlesListDiv.addEventListener('click', (event) => {
-                const target = event.target;
-                if (target.classList.contains('delete-article-button')) {
-                    const articleId = target.dataset.articleId;
-                    if (articleId) {
+            if (articlesListDiv) { // Verifica se articlesListDiv existe
+                articlesListDiv.addEventListener('click', (event) => {
+                    const target = event.target;
+                    // Verifica se o clique foi em um botão com a classe 'delete-article-button'
+                    // e se ele possui o atributo 'data-article-id'
+                    if (target.classList.contains('delete-article-button') && target.dataset.articleId) {
+                        const articleId = target.dataset.articleId;
                         deleteArticle(articleId);
                     }
-                }
-            });
-
-            // Se o botão "Adicionar Novo Artigo" for clicado e o pai (index.html)
-            // estiver usando data-target-iframe="true", ele funcionará automaticamente.
-            // Se não, este link funcionaria como um redirecionamento normal.
-            const addArticleLink = document.querySelector('.add-article-button-container a');
-            if (addArticleLink && window.parent !== window) { // Só para iframes
-                addArticleLink.addEventListener('click', function(event) {
-                    // Se o iframe estiver em um contexto pai que gerencia iframes,
-                    // pode ser necessário sinalizar o pai para carregar a nova URL
-                    // no iframe principal. Isso é um cenário mais complexo.
-                    // Para simplificar, o 'data-target-iframe="true"' no index.html
-                    // já deve lidar com isso se o link for clicado no menu.
-                    // Dentro do iframe, o link direto pode apenas tentar mudar o próprio iframe.
-                    // O método mais robusto seria postMessage para o pai.
-                    // Por agora, o href direto já está configurado para o index.html para o iframe.
-                    // Não é preciso um event listener aqui se o index.html já o escuta.
                 });
+            } else {
+                console.error("Elemento 'articles-list' não encontrado para adicionar listener de exclusão.");
             }
 
             // Garante que os componentes MDL são atualizados após o carregamento inicial
