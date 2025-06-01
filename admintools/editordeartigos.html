@@ -4,419 +4,306 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerenciar Artigos - WZZM Admin</title>
-    <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
     <style>
         body {
-            font-family: 'Roboto', sans-serif;
+            font-family: 'Roboto', 'Helvetica', Arial, sans-serif;
             background-color: #f5f5f5;
+            margin: 0;
             padding: 20px;
-            color: #333;
         }
-        .mdl-card {
-            width: 100%;
-            max-width: 900px;
+        .container {
+            max-width: 1200px;
             margin: 20px auto;
-            padding: 20px;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12);
+        }
+        h1 {
+            color: #3f51b5; /* Cor primária do MDL */
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        #articles-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .article-card {
+            background: #fff;
+            box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        .article-card:hover {
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,.2), 0 6px 2px -4px rgba(0,0,0,.2), 0 2px 10px 0 rgba(0,0,0,.12);
+        }
+        .article-card .mdl-card__title {
+            color: #fff;
+            /* background-color: #5c6bc0; */ /* Cor mais suave do MDL */
+            background-color: #3f51b5; /* Cor primária do MDL */
+            min-height: 80px; /* Garante espaço para o título */
+            display: flex;
+            align-items: center;
+            padding: 16px;
             box-sizing: border-box;
         }
-        .mdl-card__title {
+        .article-card .mdl-card__title-text {
             color: #fff;
-            background-color: #3f51b5;
-            padding: 16px;
-            font-size: 24px;
+            font-size: 1.5em;
             line-height: 1.2;
+            word-break: break-word; /* Quebra palavras longas */
         }
-        .mdl-card__supporting-text {
-            padding: 20px;
+        .article-card .mdl-card__supporting-text {
+            padding: 16px;
+            font-size: 0.9em;
+            line-height: 1.5;
+            flex-grow: 1; /* Permite que o texto de suporte ocupe espaço restante */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            /* display: -webkit-box;
+            -webkit-line-clamp: 3; /* Limita a 3 linhas */
+            /* -webkit-box-orient: vertical; */
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        .article-card .mdl-card__actions {
+            border-top: 1px solid rgba(0,0,0,.1);
+            padding: 8px 16px;
+            display: flex;
+            justify-content: flex-end; /* Alinha os botões à direita */
+            align-items: center;
+        }
+        .article-card .mdl-card__actions .mdl-button {
+            margin-left: 8px; /* Espaço entre os botões */
+        }
+        .empty-state {
+            text-align: center;
+            padding: 50px;
+            color: #777;
+            font-size: 1.1em;
+        }
+        .error-message {
+            text-align: center;
+            padding: 30px;
+            color: #d32f2f;
+            background-color: #ffebee;
+            border: 1px solid #d32f2f;
+            border-radius: 5px;
             margin-top: 20px;
         }
-        th, td {
-            padding: 12px;
-            border: 1px solid #ddd;
-            text-align: left;
-            vertical-align: middle;
-        }
-        th {
-            background-color: #f0f0f0;
-            color: #444;
-            font-weight: bold;
-        }
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        .action-buttons button {
-            margin-right: 8px;
-        }
-        .mdl-button.mdl-button--fab {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            z-index: 999;
-        }
-
-        /* Modal Styles */
-        .modal {
-            display: none; /* Hidden by default */
-            position: fixed; /* Stay in place */
-            z-index: 1000; /* Sit on top */
-            left: 0;
-            top: 0;
-            width: 100%; /* Full width */
-            height: 100%; /* Full height */
-            overflow: auto; /* Enable scroll if needed */
-            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
-            padding-top: 60px;
-        }
-        .modal-content {
-            background-color: #fefefe;
-            margin: 5% auto; /* 5% from the top and centered */
-            padding: 20px;
-            border: 1px solid #888;
-            width: 90%; /* Could be more or less, depending on screen size */
-            max-width: 700px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
-            position: relative;
-        }
-        .close-button {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-        }
-        .close-button:hover,
-        .close-button:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
-        }
-        .modal-content h3 {
-            margin-top: 0;
+        .add-article-button-container {
+            text-align: right;
             margin-bottom: 20px;
-            color: #3f51b5;
-        }
-        .mdl-dialog__actions {
-            display: flex;
-            justify-content: flex-end;
-            padding-top: 20px;
         }
     </style>
 </head>
 <body>
-
-    <div class="mdl-card mdl-shadow--4dp">
-        <div class="mdl-card__title">
-            <h2 class="mdl-card__title-text">Gerenciar Artigos</h2>
-        </div>
-        <div class="mdl-card__supporting-text">
-            <p>Lista de todos os artigos publicados. Adicione, edite ou remova artigos.</p>
-
-            <div class="mdl-textfield mdl-js-textfield mdl-textfield--expandable mdl-textfield--floating-label mdl-textfield--align-right">
-                <label class="mdl-button mdl-js-button mdl-button--icon" for="search-article">
-                    <i class="material-icons">search</i>
-                </label>
-                <div class="mdl-textfield__expandable-holder">
-                    <input class="mdl-textfield__input" type="text" id="search-article" onkeyup="filterArticles()">
-                    <label class="mdl-textfield__label" for="search-article">Buscar artigo por título ou autor</label>
-                </div>
-            </div>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>Título</th>
-                        <th>Autor</th>
-                        <th>Status</th>
-                        <th>Publicado Em</th>
-                        <th>Visualizações</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="articles-table-body">
-                    <tr><td colspan="6">Carregando artigos...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <button class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored" onclick="openArticleModal('add')">
-        <i class="material-icons">add</i>
-    </button>
-
-    <div id="articleModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button" onclick="closeArticleModal()">&times;</span>
-            <h3 id="modal-title">Adicionar Novo Artigo</h3>
-            <form id="articleForm">
-                <input type="hidden" id="article-id"> <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    <input class="mdl-textfield__input" type="text" id="article-title" required>
-                    <label class="mdl-textfield__label" for="article-title">Título do Artigo</label>
-                </div>
-
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    <input class="mdl-textfield__input" type="text" id="article-author" required>
-                    <label class="mdl-textfield__label" for="article-author">Autor</label>
-                </div>
-
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    <textarea class="mdl-textfield__input" type="text" rows="5" id="article-content" required></textarea>
-                    <label class="mdl-textfield__label" for="article-content">Conteúdo do Artigo (HTML ou Markdown)</label>
-                </div>
-
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    <input class="mdl-textfield__input" type="text" id="article-image-url">
-                    <label class="mdl-textfield__label" for="article-image-url">URL da Imagem de Destaque</label>
-                </div>
-
-                <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="article-published">
-                    <input type="checkbox" id="article-published" class="mdl-switch__input" checked>
-                    <span class="mdl-switch__label">Publicado</span>
-                </label>
-                <br>
-                <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="article-featured">
-                    <input type="checkbox" id="article-featured" class="mdl-switch__input">
-                    <span class="mdl-switch__label">Artigo em Destaque</span>
-                </label>
-
-                <div class="mdl-dialog__actions">
-                    <button type="submit" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">Salvar Artigo</button>
-                    <button type="button" class="mdl-button mdl-js-button" onclick="closeArticleModal()">Cancelar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-analytics-compat.js"></script>
     <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+
+    <div class="container">
+        <h1>Gerenciar Artigos</h1>
+
+        <div class="add-article-button-container">
+            <a href="./editordeartigos.html"
+               class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
+               data-target-iframe="true">
+                <i class="material-icons">add</i> Adicionar Novo Artigo
+            </a>
+        </div>
+
+        <div id="articles-list" class="mdl-grid">
+            <p class="empty-state" id="loading-message">Carregando artigos...</p>
+        </div>
+
+        <div id="error-display" class="error-message" style="display: none;">
+            </div>
+    </div>
+
     <script>
-        let allArticlesData = []; // Para armazenar todos os artigos e facilitar a busca/filtro
+        // --- Configuração do Firebase (precisa ser a mesma do seu index.html) ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0", // SUAS CREDENCIAIS DO FIREBASE AQUI
+            authDomain: "wzzm-ce3fc.firebaseapp.com",
+            projectId: "wzzm-ce3fc",
+            storageBucket: "wzzm-ce3fc.appspot.com",
+            messagingSenderId: "249427877153",
+            appId: "1:249427877153:web:0e4297294794a5aadeb260",
+            measurementId: "G-PLKNZNFCQ8"
+        };
 
-        // Referências aos elementos do modal
-        const articleModal = document.getElementById('articleModal');
-        const modalTitle = document.getElementById('modal-title');
-        const articleIdField = document.getElementById('article-id');
-        const articleTitleField = document.getElementById('article-title');
-        const articleAuthorField = document.getElementById('article-author');
-        const articleContentField = document.getElementById('article-content');
-        const articleImageUrlField = document.getElementById('article-image-url');
-        const articlePublishedSwitch = document.getElementById('article-published');
-        const articleFeaturedSwitch = document.getElementById('article-featured');
-        const articleForm = document.getElementById('articleForm');
+        // Inicialize Firebase se ainda não foi inicializado (importante para iframes)
+        // A linha abaixo tenta evitar erro se o app já foi inicializado pelo pai (index.html)
+        // mas é safer inicializar aqui, pois iframes são contextos isolados.
+        let app;
+        try {
+            app = firebase.app();
+        } catch (e) {
+            app = firebase.initializeApp(firebaseConfig);
+        }
+        const firestore = firebase.firestore();
 
-        // Função para carregar os artigos do Firebase Firestore
-        async function loadArticles() {
-            const articlesTableBody = document.getElementById('articles-table-body');
-            articlesTableBody.innerHTML = '<tr><td colspan="6">Carregando artigos...</td></tr>'; // Mensagem de carregamento
+        // Elementos da UI
+        const articlesListDiv = document.getElementById('articles-list');
+        const loadingMessage = document.getElementById('loading-message');
+        const errorDisplay = document.getElementById('error-display');
 
-            try {
-                const firestore = parent.firebase.firestore();
-                const articlesSnapshot = await firestore.collection('articles').orderBy('publishedAt', 'desc').get();
-
-                allArticlesData = []; // Limpa os dados anteriores
-                articlesTableBody.innerHTML = ''; // Limpa a mensagem de carregamento
-
-                if (articlesSnapshot.empty) {
-                    articlesTableBody.innerHTML = '<tr><td colspan="6">Nenhum artigo encontrado.</td></tr>';
-                    return;
-                }
-
-                articlesSnapshot.forEach(doc => {
-                    const article = doc.data();
-                    article.id = doc.id; // Adiciona o ID do documento ao objeto do artigo
-                    allArticlesData.push(article);
-                });
-
-                displayArticles(allArticlesData);
-
-            } catch (error) {
-                console.error("Erro ao carregar artigos:", error);
-                articlesTableBody.innerHTML = '<tr><td colspan="6">Erro ao carregar artigos. Verifique as permissões.</td></tr>';
+        /**
+         * Exibe uma mensagem de erro na interface.
+         * @param {string} message - A mensagem de erro a ser exibida.
+         */
+        function displayError(message) {
+            if (errorDisplay) {
+                errorDisplay.textContent = `Erro: ${message}`;
+                errorDisplay.style.display = 'block';
+            } else {
+                console.error("Elemento 'error-display' não encontrado.");
+            }
+            if (loadingMessage) {
+                loadingMessage.style.display = 'none'; // Esconde a mensagem de carregamento
             }
         }
 
-        // Função para exibir os artigos na tabela
-        function displayArticles(articlesToDisplay) {
-            const articlesTableBody = document.getElementById('articles-table-body');
-            articlesTableBody.innerHTML = ''; // Limpa a tabela antes de preencher
-
-            if (articlesToDisplay.length === 0) {
-                articlesTableBody.innerHTML = '<tr><td colspan="6">Nenhum artigo encontrado com os critérios de busca.</td></tr>';
+        /**
+         * Função para carregar e exibir os artigos do Firestore.
+         */
+        async function loadArticles() {
+            if (!articlesListDiv) {
+                console.error("Elemento 'articles-list' não encontrado. Não é possível carregar artigos.");
                 return;
             }
 
-            articlesToDisplay.forEach(article => {
-                const row = articlesTableBody.insertRow();
-
-                row.insertCell().textContent = article.title || 'Sem Título';
-                row.insertCell().textContent = article.author || 'Desconhecido';
-
-                const statusCell = row.insertCell();
-                statusCell.textContent = article.published ? 'Publicado' : 'Rascunho';
-                statusCell.style.fontWeight = 'bold';
-                statusCell.style.color = article.published ? '#4CAF50' : '#FFC107';
-
-                row.insertCell().textContent = article.publishedAt ? new Date(article.publishedAt.toDate()).toLocaleDateString() : 'N/A';
-                row.insertCell().textContent = article.views || 0;
-
-                const actionsCell = row.insertCell();
-                const editButton = document.createElement('button');
-                editButton.classList.add('mdl-button', 'mdl-js-button', 'mdl-button--icon', 'mdl-js-ripple-effect');
-                editButton.innerHTML = '<i class="material-icons">edit</i>';
-                editButton.title = 'Editar Artigo';
-                editButton.onclick = () => openArticleModal('edit', article);
-                actionsCell.appendChild(editButton);
-
-                const deleteButton = document.createElement('button');
-                deleteButton.classList.add('mdl-button', 'mdl-js-button', 'mdl-button--icon', 'mdl-js-ripple-effect', 'mdl-color-text--red');
-                deleteButton.innerHTML = '<i class="material-icons">delete</i>';
-                deleteButton.title = 'Remover Artigo';
-                deleteButton.onclick = () => confirmAndDeleteArticle(article.id, article.title);
-                actionsCell.appendChild(deleteButton);
-            });
-
-            if (window.componentHandler) {
-                window.componentHandler.upgradeDom();
+            articlesListDiv.innerHTML = ''; // Limpa qualquer conteúdo anterior
+            if (loadingMessage) {
+                loadingMessage.style.display = 'block'; // Mostra a mensagem de carregamento
             }
-        }
-
-        // Função para filtrar artigos
-        function filterArticles() {
-            const searchTerm = document.getElementById('search-article').value.toLowerCase();
-            const filtered = allArticlesData.filter(article =>
-                (article.title && article.title.toLowerCase().includes(searchTerm)) ||
-                (article.author && article.author.toLowerCase().includes(searchTerm))
-            );
-            displayArticles(filtered);
-        }
-
-        // --- Lógica do Modal de Adicionar/Editar Artigo ---
-        function openArticleModal(mode, article = null) {
-            articleForm.reset(); // Limpa o formulário
-
-            // Reseta o estado dos switches para o padrão (checked se houver atributo checked no HTML)
-            articlePublishedSwitch.checked = true;
-            articleFeaturedSwitch.checked = false;
-
-            if (mode === 'add') {
-                modalTitle.textContent = 'Adicionar Novo Artigo';
-                articleIdField.value = '';
-            } else if (mode === 'edit' && article) {
-                modalTitle.textContent = 'Editar Artigo';
-                articleIdField.value = article.id;
-                articleTitleField.value = article.title || '';
-                articleAuthorField.value = article.author || '';
-                articleContentField.value = article.content || '';
-                articleImageUrlField.value = article.imageUrl || '';
-                articlePublishedSwitch.checked = article.published === true;
-                articleFeaturedSwitch.checked = article.featured === true;
-            }
-
-            // Garante que o MDL atualize os campos de texto e switches
-            if (window.componentHandler) {
-                window.componentHandler.upgradeAllRegistered();
-                // Força o "is-dirty" para campos preenchidos programaticamente
-                document.querySelectorAll('.mdl-textfield').forEach(tf => {
-                    if (tf.querySelector('input, textarea').value) {
-                        tf.classList.add('is-dirty');
-                    } else {
-                        tf.classList.remove('is-dirty');
-                    }
-                });
-                // Atualiza o estado visual dos switches
-                const publishedSwitchElement = articlePublishedSwitch.closest('.mdl-switch');
-                if (publishedSwitchElement) {
-                    if (articlePublishedSwitch.checked) publishedSwitchElement.classList.add('is-checked');
-                    else publishedSwitchElement.classList.remove('is-checked');
-                }
-                const featuredSwitchElement = articleFeaturedSwitch.closest('.mdl-switch');
-                if (featuredSwitchElement) {
-                    if (articleFeaturedSwitch.checked) featuredSwitchElement.classList.add('is-checked');
-                    else featuredSwitchElement.classList.remove('is-checked');
-                }
-            }
-
-            articleModal.style.display = 'block';
-        }
-
-        function closeArticleModal() {
-            articleModal.style.display = 'none';
-        }
-
-        // Enviar formulário
-        articleForm.addEventListener('submit', async (e) => {
-            e.preventDefault(); // Impede o envio padrão do formulário
-
-            const id = articleIdField.value;
-            const title = articleTitleField.value;
-            const author = articleAuthorField.value;
-            const content = articleContentField.value;
-            const imageUrl = articleImageUrlField.value;
-            const published = articlePublishedSwitch.checked;
-            const featured = articleFeaturedSwitch.checked;
-
-            const firestore = parent.firebase.firestore();
-            const serverTimestamp = parent.firebase.firestore.FieldValue.serverTimestamp();
-            const currentUser = parent.firebase.auth().currentUser;
-
-            const articleData = {
-                title,
-                author,
-                content,
-                imageUrl,
-                published,
-                featured,
-                // views são incrementadas no frontend do site, não aqui na edição
-                // authorId: currentUser ? currentUser.uid : null, // Opcional: registrar quem criou/editou
-                lastModifiedAt: serverTimestamp
-            };
+            errorDisplay.style.display = 'none'; // Esconde mensagens de erro anteriores
 
             try {
-                if (id) {
-                    // Modo Edição
-                    await firestore.collection('articles').doc(id).update(articleData);
-                    alert('Artigo atualizado com sucesso!');
-                } else {
-                    // Modo Adicionar
-                    // Ao criar, defina a data de publicação e views iniciais
-                    articleData.publishedAt = serverTimestamp;
-                    articleData.views = 0; // Inicia com 0 visualizações
-                    const newDocRef = await firestore.collection('articles').add(articleData);
-                    alert(`Artigo adicionado com sucesso! ID: ${newDocRef.id}`);
-                }
-                closeArticleModal();
-                loadArticles(); // Recarrega a lista
-            } catch (error) {
-                console.error("Erro ao salvar artigo:", error);
-                alert(`Erro ao salvar artigo: ${error.message}`);
-            }
-        });
+                // Obter a coleção de artigos, ordenada pelo timestamp (se existir)
+                const articlesRef = firestore.collection('articles').orderBy('timestamp', 'desc');
+                const snapshot = await articlesRef.get();
 
-        // Função para confirmar e deletar artigo
-        async function confirmAndDeleteArticle(id, title) {
-            if (confirm(`Tem certeza que deseja remover o artigo "${title}"? Esta ação é irreversível!`)) {
-                try {
-                    const firestore = parent.firebase.firestore();
-                    await firestore.collection('articles').doc(id).delete();
-                    alert('Artigo removido com sucesso!');
-                    loadArticles(); // Recarrega a lista
-                } catch (error) {
-                    console.error("Erro ao remover artigo:", error);
-                    alert(`Erro ao remover artigo: ${error.message}. Verifique as regras de segurança.`);
+                if (loadingMessage) {
+                    loadingMessage.style.display = 'none'; // Esconde a mensagem de carregamento
                 }
+
+                if (snapshot.empty) {
+                    articlesListDiv.innerHTML = '<p class="empty-state">Nenhum artigo publicado ainda.</p>';
+                    console.log("Nenhum artigo encontrado na coleção 'articles'.");
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const articleData = doc.data(); // Obtém os dados do documento
+                    const articleId = doc.id; // Obtém o ID do documento para ações futuras
+
+                    // Verifica se os dados do artigo são válidos e contêm o título e resumo
+                    if (articleData && typeof articleData === 'object' && articleData.title) {
+                        const card = document.createElement('div');
+                        card.className = 'article-card mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet mdl-cell--12-col-phone'; // Adapta para responsividade
+                        card.innerHTML = `
+                            <div class="mdl-card__title">
+                                <h2 class="mdl-card__title-text">${articleData.title}</h2>
+                            </div>
+                            <div class="mdl-card__supporting-text">
+                                <p>${articleData.summary || 'Nenhum resumo disponível.'}</p>
+                            </div>
+                            <div class="mdl-card__actions mdl-card--border">
+                                <a href="../admintools/editordeartigos.html?id=${articleId}"
+                                   class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
+                                    Editar
+                                </a>
+                                <button class="mdl-button mdl-button--accent mdl-js-button mdl-js-ripple-effect delete-article-button"
+                                        data-article-id="${articleId}">
+                                    Excluir
+                                </button>
+                            </div>
+                        `;
+                        articlesListDiv.appendChild(card);
+                    } else {
+                        console.warn(`Artigo com ID ${articleId} possui dados inválidos ou faltando título.`);
+                    }
+                });
+
+                // Atualiza os componentes MDL dinamicamente adicionados
+                if (window.componentHandler) {
+                    window.componentHandler.upgradeElements(articlesListDiv);
+                }
+
+            } catch (error) {
+                console.error("Erro ao carregar artigos:", error);
+                displayError(`Não foi possível carregar os artigos. ${error.message}`);
             }
         }
 
-        // Chama a função para carregar os artigos quando a página for carregada
+        /**
+         * Função para excluir um artigo do Firestore.
+         * @param {string} articleId - O ID do artigo a ser excluído.
+         */
+        async function deleteArticle(articleId) {
+            if (!confirm('Tem certeza que deseja excluir este artigo? Esta ação é irreversível.')) {
+                return;
+            }
+
+            try {
+                await firestore.collection('articles').doc(articleId).delete();
+                alert('Artigo excluído com sucesso!');
+                console.log(`Artigo com ID ${articleId} excluído.`);
+                loadArticles(); // Recarrega a lista para refletir a exclusão
+            } catch (error) {
+                console.error("Erro ao excluir artigo:", error);
+                displayError(`Não foi possível excluir o artigo. ${error.message}`);
+            }
+        }
+
+        // --- Event Listeners ---
         document.addEventListener('DOMContentLoaded', () => {
+            // Carrega os artigos ao carregar a página
+            loadArticles();
+
+            // Adiciona um listener para os botões de excluir (delegação de eventos)
+            // Isso é importante porque os botões são adicionados dinamicamente
+            articlesListDiv.addEventListener('click', (event) => {
+                const target = event.target;
+                if (target.classList.contains('delete-article-button')) {
+                    const articleId = target.dataset.articleId;
+                    if (articleId) {
+                        deleteArticle(articleId);
+                    }
+                }
+            });
+
+            // Se o botão "Adicionar Novo Artigo" for clicado e o pai (index.html)
+            // estiver usando data-target-iframe="true", ele funcionará automaticamente.
+            // Se não, este link funcionaria como um redirecionamento normal.
+            const addArticleLink = document.querySelector('.add-article-button-container a');
+            if (addArticleLink && window.parent !== window) { // Só para iframes
+                addArticleLink.addEventListener('click', function(event) {
+                    // Se o iframe estiver em um contexto pai que gerencia iframes,
+                    // pode ser necessário sinalizar o pai para carregar a nova URL
+                    // no iframe principal. Isso é um cenário mais complexo.
+                    // Para simplificar, o 'data-target-iframe="true"' no index.html
+                    // já deve lidar com isso se o link for clicado no menu.
+                    // Dentro do iframe, o link direto pode apenas tentar mudar o próprio iframe.
+                    // O método mais robusto seria postMessage para o pai.
+                    // Por agora, o href direto já está configurado para o index.html para o iframe.
+                    // Não é preciso um event listener aqui se o index.html já o escuta.
+                });
+            }
+
+            // Garante que os componentes MDL são atualizados após o carregamento inicial
             if (window.componentHandler) {
                 window.componentHandler.upgradeDom();
             }
-            loadArticles();
         });
     </script>
 </body>
