@@ -258,20 +258,22 @@
                         const articleId = target.dataset.articleId;
                         deleteArticle(articleId);
                     }
-                    // NOVO: Lógica para o botão Editar (também via delegação de eventos)
+                    // MUDANÇA NO JS: Lógica para o botão Editar (também via delegação de eventos)
                     if (target.classList.contains('edit-article-button') && target.dataset.articleId) {
-                        event.preventDefault(); // Evita que o link navegue o iframe
+                        event.preventDefault(); // Evita que o link navegue o iframe diretamente
+
                         const articleId = target.dataset.articleId;
-                        // CORREÇÃO: Informa o pai (index.html) para carregar a URL no iframe principal.
-                        // Assumimos que o index.html tem um script para lidar com postMessage.
-                        // Se o index.html não tiver isso, esta linha não fará nada.
-                        if (window.parent !== window) { // Verifica se está em um iframe
+                        const urlToLoad = `./admintools/editordeartigos.html?id=${articleId}`;
+
+                        // Comunica com a janela pai para carregar a URL no iframe principal
+                        if (window.parent !== window && window.parent.postMessage) {
                             window.parent.postMessage({
                                 type: 'navigateIframe',
-                                url: `./admintools/editordeartigos.html?id=${articleId}`
-                            }, '*'); // '*' é para qualquer origem, use a origem do seu pai para segurança
-                        } else { // Se não estiver em um iframe, apenas navega
-                            window.location.href = `./editordeartigos.html?id=${articleId}`;
+                                url: urlToLoad
+                            }, '*'); // Use a origem do seu pai para segurança, ex: 'https://admin.wzzm.org'
+                        } else {
+                            // Fallback se não estiver em um iframe (ex: testando diretamente a página)
+                            window.location.href = urlToLoad;
                         }
                     }
                 });
@@ -279,21 +281,20 @@
                 console.error("Elemento 'articles-list' não encontrado para adicionar listeners.");
             }
 
-            // CORREÇÃO MAIS DIRETA para o botão "Adicionar Novo Artigo":
-            // Faz com que o clique no botão envie uma mensagem para o iframe pai
-            // ou navegue a janela principal, se não estiver em um iframe.
+            // MUDANÇA NO JS: Lógica para o botão "Adicionar Novo Artigo"
             if (addArticleBtn) {
                 addArticleBtn.addEventListener('click', (event) => {
                     event.preventDefault(); // Impede o comportamento padrão do link
 
-                    if (window.parent !== window) { // Se estiver em um iframe
-                        // Envia uma mensagem para o pai para que ele atualize o iframe
+                    const urlToLoad = './admintools/editordeartigos.html'; // URL para o editor de artigos
+
+                    if (window.parent !== window && window.parent.postMessage) { // Se estiver em um iframe
                         window.parent.postMessage({
                             type: 'navigateIframe',
-                            url: './admintools/editordeartigos.html' // URL para o editor de artigos
+                            url: urlToLoad
                         }, '*'); // Use o domínio do seu pai aqui para segurança, ex: 'https://admin.wzzm.org'
-                    } else { // Se não estiver em um iframe (ex: testando diretamente a página)
-                        window.location.href = './editordeartigos.html'; // Navega a janela atual
+                    } else { // Se não estiver em um iframe
+                        window.location.href = urlToLoad; // Navega a janela atual
                     }
                 });
             } else {
