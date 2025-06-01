@@ -1,1 +1,256 @@
 
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estatísticas do Site - WZZM Admin</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+            color: #333;
+        }
+        .mdl-card {
+            width: 100%;
+            max-width: 900px; /* Largura um pouco maior para gráficos */
+            margin: 20px auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .mdl-card__title {
+            color: #fff;
+            background-color: #3f51b5;
+            padding: 16px;
+            font-size: 24px;
+            line-height: 1.2;
+        }
+        .mdl-card__supporting-text {
+            padding: 20px;
+        }
+        .mdl-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around; /* Distribui os itens uniformemente */
+            gap: 20px; /* Espaço entre os cards de métricas */
+            margin-top: 20px;
+        }
+        .metric-card {
+            min-width: 250px;
+            flex: 1; /* Permite que os cards se expandam */
+            text-align: center;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12);
+        }
+        .metric-card h4 {
+            color: #555;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        .metric-card .value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #3f51b5; /* Cor primária do MDL */
+        }
+        .metric-card .description {
+            font-size: 0.9em;
+            color: #777;
+        }
+
+        /* Estilo para áreas de gráfico ou tabelas de dados */
+        .chart-container, .data-table-container {
+            margin-top: 30px;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12);
+        }
+        .chart-container h3, .data-table-container h3 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #424242;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #eee;
+            text-align: left;
+        }
+        th {
+            background-color: #f0f0f0;
+            color: #444;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="mdl-card mdl-shadow--4dp">
+        <div class="mdl-card__title">
+            <h2 class="mdl-card__title-text">Estatísticas do Site</h2>
+        </div>
+        <div class="mdl-card__supporting-text">
+            <p>Visão geral e detalhes sobre o desempenho e uso do site WZZM.</p>
+
+            <div class="mdl-grid">
+                <div class="metric-card">
+                    <h4>Total de Artigos</h4>
+                    <div class="value" id="total-articles">--</div>
+                    <div class="description">Artigos publicados no site</div>
+                </div>
+                <div class="metric-card">
+                    <h4>Usuários Ativos</h4>
+                    <div class="value" id="active-users">--</div>
+                    <div class="description">Usuários que logaram nos últimos 30 dias</div>
+                </div>
+                <div class="metric-card">
+                    <h4>Visualizações (Hoje)</h4>
+                    <div class="value" id="today-views">--</div>
+                    <div class="description">Visualizações de página hoje</div>
+                </div>
+                <div class="metric-card">
+                    <h4>Visualizações (Total)</h4>
+                    <div class="value" id="total-views">--</div>
+                    <div class="description">Visualizações de página acumuladas</div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h3>Visualizações de Página por Período</h3>
+                <p>Aqui você pode integrar um gráfico (ex: Chart.js ou Google Charts) que mostra a tendência de visualizações ao longo do tempo.</p>
+                <div id="views-chart" style="width: 100%; height: 300px; background-color: #f8f8f8; border: 1px dashed #ccc; display: flex; justify-content: center; align-items: center; color: #999;">
+                    [Espaço para Gráfico de Visualizações]
+                </div>
+            </div>
+
+            <div class="data-table-container">
+                <h3>Artigos Mais Populares</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Título do Artigo</th>
+                            <th>Visualizações</th>
+                            <th>Última Publicação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="popular-articles-table-body">
+                        <tr><td>Carregando...</td><td></td><td></td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="data-table-container">
+                <h3>Últimos Logins de Usuários</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nome do Usuário</th>
+                            <th>E-mail</th>
+                            <th>Último Login</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recent-logins-table-body">
+                        <tr><td>Carregando...</td><td></td><td></td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+    <script>
+        // Função para carregar as estatísticas do Firebase Firestore
+        async function loadStatistics() {
+            try {
+                // Acessa o Firebase Firestore do documento pai (index.html)
+                const firestore = parent.firebase.firestore();
+
+                // Exemplo: Obter o total de artigos
+                const articlesSnapshot = await firestore.collection('articles').get();
+                document.getElementById('total-articles').textContent = articlesSnapshot.size;
+
+                // Exemplo: Obter o total de usuários (poderia filtrar por 'active' se houver um campo)
+                const usersSnapshot = await firestore.collection('users').get();
+                // Para "Usuários Ativos", você precisaria de uma lógica mais avançada para filtrar por data do lastLoginAt
+                document.getElementById('active-users').textContent = usersSnapshot.size; // Por enquanto, mostra todos
+
+                // Exemplo: Visualizações (isso geralmente vem de uma ferramenta de analytics,
+                // ou você teria uma coleção 'views' no Firestore que incrementa a cada acesso)
+                // Vamos simular valores por enquanto
+                document.getElementById('today-views').textContent = Math.floor(Math.random() * 500) + 100; // Valor aleatório
+                document.getElementById('total-views').textContent = Math.floor(Math.random() * 10000) + 5000; // Valor aleatório
+
+                // Exemplo: Artigos Mais Populares (carregar os 5 artigos com mais visualizações)
+                const popularArticlesTableBody = document.getElementById('popular-articles-table-body');
+                popularArticlesTableBody.innerHTML = ''; // Limpa o "Carregando..."
+                const popularArticlesSnapshot = await firestore.collection('articles')
+                    .orderBy('views', 'desc') // Supondo um campo 'views' no seu artigo
+                    .limit(5)
+                    .get();
+
+                if (popularArticlesSnapshot.empty) {
+                    popularArticlesTableBody.innerHTML = '<tr><td colspan="3">Nenhum artigo encontrado.</td></tr>';
+                } else {
+                    popularArticlesSnapshot.forEach(doc => {
+                        const article = doc.data();
+                        const row = popularArticlesTableBody.insertRow();
+                        row.insertCell().textContent = article.title || 'Sem Título';
+                        row.insertCell().textContent = article.views || 0;
+                        row.insertCell().textContent = article.publishedAt ? new Date(article.publishedAt.toDate()).toLocaleDateString() : 'N/A';
+                    });
+                }
+
+                // Exemplo: Últimos Logins de Usuários (os 5 usuários com o lastLoginAt mais recente)
+                const recentLoginsTableBody = document.getElementById('recent-logins-table-body');
+                recentLoginsTableBody.innerHTML = ''; // Limpa o "Carregando..."
+                const recentLoginsSnapshot = await firestore.collection('users')
+                    .orderBy('lastLoginAt', 'desc')
+                    .limit(5)
+                    .get();
+
+                if (recentLoginsSnapshot.empty) {
+                    recentLoginsTableBody.innerHTML = '<tr><td colspan="3">Nenhum usuário encontrado.</td></tr>';
+                } else {
+                    recentLoginsSnapshot.forEach(doc => {
+                        const user = doc.data();
+                        const row = recentLoginsTableBody.insertRow();
+                        row.insertCell().textContent = user.name || 'Sem Nome';
+                        row.insertCell().textContent = user.email || 'N/A';
+                        row.insertCell().textContent = user.lastLoginAt ? new Date(user.lastLoginAt.toDate()).toLocaleString() : 'N/A';
+                    });
+                }
+
+            } catch (error) {
+                console.error("Erro ao carregar estatísticas:", error);
+                // Exiba uma mensagem de erro na interface
+                document.getElementById('total-articles').textContent = 'Erro';
+                document.getElementById('active-users').textContent = 'Erro';
+                document.getElementById('today-views').textContent = 'Erro';
+                document.getElementById('total-views').textContent = 'Erro';
+                document.getElementById('popular-articles-table-body').innerHTML = '<tr><td colspan="3">Erro ao carregar dados.</td></tr>';
+                document.getElementById('recent-logins-table-body').innerHTML = '<tr><td colspan="3">Erro ao carregar dados.</td></tr>';
+            }
+        }
+
+        // Chama a função para carregar as estatísticas quando a página for carregada
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.componentHandler) {
+                window.componentHandler.upgradeDom();
+            }
+            loadStatistics();
+        });
+    </script>
+</body>
+</html>
