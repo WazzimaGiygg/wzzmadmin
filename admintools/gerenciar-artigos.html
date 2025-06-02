@@ -158,13 +158,14 @@
             if (user) {
                 currentUser = user;
                 console.log("Usuário logado:", currentUser.uid);
-                // Opcional: Atualizar UI ou carregar artigos só após login
+                // Carrega os artigos somente após o usuário estar logado
                 loadArticles(); 
             } else {
                 currentUser = null;
                 console.log("Nenhum usuário logado. Redirecionando para login?");
-                // Redirecionar para página de login se necessário
-                // window.location.href = './login.html'; 
+                // Exiba uma mensagem ou redirecione para a página de login se esta for uma página admin
+                // displayError("Você precisa estar logado para gerenciar artigos.");
+                // window.location.href = './login.html'; // Exemplo de redirecionamento
             }
         });
 
@@ -194,8 +195,11 @@
             errorDisplay.style.display = 'none';
 
             try {
-                // APONTA PARA A NOVA COLEÇÃO: 'WZZM/artigos'
-                const articlesRef = firestore.collection('WZZM').doc('paginashtmlweb').collection('paginas').doc('artigos').collection('seus_artigos_aqui'); // <<--- Precisa de MAIS um nível se for assim
+                // CORREÇÃO CRÍTICA AQUI: Usando .doc() antes de .collection() para subcoleção
+                // Assumindo que você tem um documento 'site_data' dentro da coleção 'WZZM'
+                // E dentro de 'site_data' existe a subcoleção 'artigos'
+                const articlesRef = firestore.collection('WZZM').doc('site_data').collection('artigos').orderBy('timestamp', 'desc');
+                
                 const snapshot = await articlesRef.get();
 
                 if (loadingMessage) {
@@ -204,7 +208,7 @@
 
                 if (snapshot.empty) {
                     articlesListDiv.innerHTML = '<p class="empty-state">Nenhum artigo publicado ainda.</p>';
-                    console.log("Nenhum artigo encontrado na coleção 'WZZM/artigos'.");
+                    console.log("Nenhum artigo encontrado na coleção 'WZZM/site_data/artigos'.");
                     return;
                 }
 
@@ -261,8 +265,8 @@
             }
 
             try {
-                // Aponta para a nova coleção: 'WZZM/artigos'
-                await firestore.collection('WZZM').collection('artigos').doc(articleId).delete();
+                // CORREÇÃO CRÍTICA AQUI: Usando .doc() antes de .collection() para subcoleção
+                await firestore.collection('WZZM').doc('site_data').collection('artigos').doc(articleId).delete();
                 alert('Artigo excluído com sucesso!');
                 console.log(`Artigo com ID ${articleId} excluído.`);
                 loadArticles(); // Recarrega a lista após a exclusão
@@ -332,6 +336,20 @@
             // Garante que todos os componentes MDL na página sejam inicializados
             if (window.componentHandler) {
                 window.componentHandler.upgradeDom();
+            }
+        });
+
+        // Listener para receber mensagens da página filho (editor de artigos)
+        window.addEventListener('message', (event) => {
+            // Garante que a mensagem vem da sua própria origem por segurança
+            if (event.origin !== window.location.origin) {
+                console.warn('Mensagem recebida de origem desconhecida:', event.origin);
+                return;
+            }
+
+            if (event.data && event.data.type === 'refreshArticlesList') {
+                console.log('Mensagem de atualização de lista recebida. Recarregando artigos...');
+                loadArticles(); // Recarrega a lista quando o editor informa que um artigo foi salvo
             }
         });
     </script>
