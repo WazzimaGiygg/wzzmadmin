@@ -158,14 +158,17 @@
             if (user) {
                 currentUser = user;
                 console.log("Usuário logado:", currentUser.uid);
-                // Carrega os artigos somente após o usuário estar logado
+                // Opcional: Atualizar UI ou carregar artigos só após login
                 loadArticles(); 
             } else {
                 currentUser = null;
                 console.log("Nenhum usuário logado. Redirecionando para login?");
-                // Exiba uma mensagem ou redirecione para a página de login se esta for uma página admin
-                // displayError("Você precisa estar logado para gerenciar artigos.");
-                // window.location.href = './login.html'; // Exemplo de redirecionamento
+                // Você pode adicionar uma lógica para redirecionar para a página de login aqui,
+                // ou mostrar uma mensagem de que é preciso estar logado para ver os artigos.
+                articlesListDiv.innerHTML = '<p class="empty-state">Faça login para gerenciar artigos.</p>';
+                if (loadingMessage) {
+                    loadingMessage.style.display = 'none';
+                }
             }
         });
 
@@ -195,10 +198,11 @@
             errorDisplay.style.display = 'none';
 
             try {
-                // CORREÇÃO CRÍTICA AQUI: Usando .doc() antes de .collection() para subcoleção
-                // Assumindo que você tem um documento 'site_data' dentro da coleção 'WZZM'
-                // E dentro de 'site_data' existe a subcoleção 'artigos'
-                const articlesRef = firestore.collection('WZZM').doc('site_data').collection('artigos').orderBy('timestamp', 'desc');
+                // **CORREÇÃO AQUI:** MUDANÇA PARA A COLEÇÃO DE NÍVEL SUPERIOR 'artigos'
+                // Ou, se você quiser uma subcoleção dentro de um documento específico de 'WZZM':
+                // const articlesRef = firestore.collection('WZZM').doc('nomeDoSeuDocumentoAqui').collection('artigos').orderBy('timestamp', 'desc');
+                // Mas, para simplicidade e se for para artigos gerenciáveis, uma coleção top-level é comum:
+                const articlesRef = firestore.collection('artigos').orderBy('timestamp', 'desc');
                 
                 const snapshot = await articlesRef.get();
 
@@ -208,7 +212,7 @@
 
                 if (snapshot.empty) {
                     articlesListDiv.innerHTML = '<p class="empty-state">Nenhum artigo publicado ainda.</p>';
-                    console.log("Nenhum artigo encontrado na coleção 'WZZM/site_data/artigos'.");
+                    console.log("Nenhum artigo encontrado na coleção 'artigos'.");
                     return;
                 }
 
@@ -265,8 +269,8 @@
             }
 
             try {
-                // CORREÇÃO CRÍTICA AQUI: Usando .doc() antes de .collection() para subcoleção
-                await firestore.collection('WZZM').doc('site_data').collection('artigos').doc(articleId).delete();
+                // **CORREÇÃO AQUI:** MUDANÇA PARA A COLEÇÃO DE NÍVEL SUPERIOR 'artigos'
+                await firestore.collection('artigos').doc(articleId).delete();
                 alert('Artigo excluído com sucesso!');
                 console.log(`Artigo com ID ${articleId} excluído.`);
                 loadArticles(); // Recarrega a lista após a exclusão
@@ -337,20 +341,18 @@
             if (window.componentHandler) {
                 window.componentHandler.upgradeDom();
             }
-        });
 
-        // Listener para receber mensagens da página filho (editor de artigos)
-        window.addEventListener('message', (event) => {
-            // Garante que a mensagem vem da sua própria origem por segurança
-            if (event.origin !== window.location.origin) {
-                console.warn('Mensagem recebida de origem desconhecida:', event.origin);
-                return;
-            }
-
-            if (event.data && event.data.type === 'refreshArticlesList') {
-                console.log('Mensagem de atualização de lista recebida. Recarregando artigos...');
-                loadArticles(); // Recarrega a lista quando o editor informa que um artigo foi salvo
-            }
+            // Listener para receber mensagens da janela pai (do editordeartigos.html)
+            window.addEventListener('message', (event) => {
+                if (event.origin !== window.location.origin) {
+                    // Ignora mensagens de outras origens por segurança
+                    return;
+                }
+                if (event.data && event.data.type === 'refreshArticlesList') {
+                    console.log('Mensagem recebida: refreshArticlesList. Recarregando artigos...');
+                    loadArticles(); // Recarrega a lista quando o editor de artigos envia o sinal
+                }
+            });
         });
     </script>
 </body>
