@@ -195,7 +195,7 @@
 
             try {
                 // APONTA PARA A NOVA COLEÇÃO: 'WZZM/artigos'
-                const articlesRef = firestore.collection('WZZM').collection('artigos').orderBy('timestamp', 'desc');
+                const articlesRef = firestore.collection('WZZM').doc('paginashtmlweb').collection('paginas').doc('artigos').collection('seus_artigos_aqui'); // <<--- Precisa de MAIS um nível se for assim
                 const snapshot = await articlesRef.get();
 
                 if (loadingMessage) {
