@@ -80,7 +80,7 @@
                 <input class="mdl-textfield__input" type="text" id="article-description">
                 <label class="mdl-textfield__label" for="article-description">Descrição Curta</label>
             </div>
-            
+
             <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                 <textarea class="mdl-textfield__input" type="text" rows="3" id="article-summary"></textarea>
                 <label class="mdl-textfield__label" for="article-summary">Resumo (Max 250 palavras)</label>
@@ -191,20 +191,23 @@
             } else {
                 currentUser = null;
                 console.warn("Nenhum usuário logado. Redirecionando para login?");
-                // alert("Você precisa estar logado para acessar esta página.");
-                // Opcional: Redirecionar para a página de login
-                // if (window.parent !== window && window.parent.postMessage) {
-                //     window.parent.postMessage({ type: 'navigateIframe', url: './login.html' }, window.location.origin);
-                // } else {
-                //     window.location.href = './login.html';
-                // }
+                // Como a criação e edição agora requerem login, pode ser bom redirecionar
+                alert("Você precisa estar logado para adicionar ou editar artigos.");
+                if (window.parent !== window && window.parent.postMessage) {
+                    // Assumindo que a página de login está em './login.html'
+                    window.parent.postMessage({ type: 'navigateIframe', url: './login.html' }, window.location.origin);
+                } else {
+                     // Fallback para ambiente de desenvolvimento fora do iframe
+                    window.location.href = './login.html';
+                }
             }
         });
 
         // Carrega dados do artigo para edição
         async function loadArticleData(articleId) {
             try {
-                const docRef = firestore.collection('WZZM').collection('artigos').doc(articleId);
+                // *** MODIFICAÇÃO AQUI: Mude o caminho da coleção para 'articlesdoc' ***
+                const docRef = firestore.collection('articlesdoc').doc(articleId);
                 const doc = await docRef.get();
 
                 if (doc.exists) {
@@ -222,17 +225,21 @@
                     // Atualiza o MDL para os campos pré-preenchidos
                     if (window.componentHandler) {
                         articleForm.querySelectorAll('.mdl-textfield').forEach(textfield => {
-                            textfield.MaterialTextfield.checkDirty();
-                            textfield.MaterialTextfield.checkValidity();
+                            // Verifica se o componente foi inicializado antes de chamar os métodos
+                             if (textfield.MaterialTextfield) {
+                                textfield.MaterialTextfield.checkDirty();
+                                textfield.MaterialTextfield.checkValidity();
+                             }
                         });
                     }
                 } else {
                     displayError("Artigo não encontrado.");
-                    console.error("Artigo com ID", articleId, "não encontrado.");
+                    console.error("Artigo com ID", articleId, "não encontrado na coleção 'articlesdoc'.");
                 }
             } catch (error) {
                 displayError("Erro ao carregar dados do artigo: " + error.message);
-                console.error("Erro ao carregar dados do artigo:", error);
+                // *** MODIFICAÇÃO AQUI: Atualize a mensagem de erro no console ***
+                console.error("Erro ao carregar dados do artigo da coleção 'articlesdoc':", error);
             }
         }
 
@@ -240,6 +247,7 @@
         async function saveArticle(event) {
             event.preventDefault(); // Impede o envio padrão do formulário
 
+            // Esta verificação já está no listener de autenticação, mas é bom ter aqui também
             if (!currentUser) {
                 displayError("Você precisa estar logado para salvar artigos.");
                 return;
@@ -256,7 +264,7 @@
             saveArticleBtn.disabled = true; // Desabilita o botão para evitar cliques múltiplos
 
             const articleData = {
-                userId: currentUser.uid, // ID do usuário logado
+                userId: currentUser.uid, // ID do usuário logado (quem criou ou editou)
                 title: articleTitleInput.value.trim(),
                 description: articleDescriptionInput.value.trim(),
                 summary: articleSummaryInput.value.trim(),
@@ -272,35 +280,46 @@
             };
 
             try {
+                // *** MODIFICAÇÃO AQUI: Mude o caminho da coleção para 'articlesdoc' ***
+                const articlesCollectionRef = firestore.collection('articlesdoc');
+
                 if (currentArticleId) {
                     // Atualizar artigo existente
-                    // Não atualiza 'timestamp' se já existe, apenas 'lastModified'
-                    await firestore.collection('WZZM').collection('artigos').doc(currentArticleId).update(articleData);
+                    // Note: As regras de segurança devem garantir que apenas admins podem fazer isso.
+                    await articlesCollectionRef.doc(currentArticleId).update(articleData);
                     alert("Artigo atualizado com sucesso!");
-                    console.log("Artigo atualizado:", currentArticleId);
+                    // *** MODIFICAÇÃO AQUI: Atualize a mensagem de log ***
+                    console.log("Artigo atualizado na coleção 'articlesdoc':", currentArticleId);
                 } else {
                     // Criar novo artigo
+                    // Note: As regras de segurança devem garantir que apenas usuários logados podem fazer isso.
                     articleData.timestamp = firebase.firestore.FieldValue.serverTimestamp(); // Adiciona timestamp na criação
-                    const newDocRef = await firestore.collection('WZZM').collection('artigos').add(articleData);
+                    const newDocRef = await articlesCollectionRef.add(articleData);
                     currentArticleId = newDocRef.id; // Define o ID para futuras edições sem recarregar
                     alert("Artigo adicionado com sucesso! ID: " + newDocRef.id);
-                    console.log("Novo artigo adicionado com ID:", newDocRef.id);
+                     // *** MODIFICAÇÃO AQUI: Atualize a mensagem de log ***
+                    console.log("Novo artigo adicionado na coleção 'articlesdoc' com ID:", newDocRef.id);
                     formTitle.textContent = 'Editar Artigo'; // Muda o título para edição
+                    // Opcional: Limpar o formulário ou manter os dados para continuar editando?
+                    // Se quiser limpar, adicione articleForm.reset(); aqui.
                 }
-                
+
                 // Redirecionar de volta para a lista de artigos ou fechar o editor
                 // Se estiver em um iframe, envia mensagem para a janela pai
                 if (window.parent !== window && window.parent.postMessage) {
+                    // Assumindo que a página pai tem um listener para 'refreshArticlesList'
                     window.parent.postMessage({ type: 'refreshArticlesList' }, window.location.origin);
                 } else {
                     // Fallback para ambiente de desenvolvimento fora do iframe
                     alert("Artigo salvo! (Em ambiente de desenvolvimento sem iframe)");
-                    // window.location.href = './gerenciarartigos.html'; // Redireciona para a página de listagem se não for iframe
+                    // Opcional: Redirecionar para a página de listagem
+                    // window.location.href = './gerenciar-artigos.html'; // Ajuste o caminho se necessário
                 }
 
             } catch (error) {
                 displayError("Erro ao salvar artigo: " + error.message);
-                console.error("Erro ao salvar artigo:", error);
+                 // *** MODIFICAÇÃO AQUI: Atualize a mensagem de erro no console ***
+                console.error("Erro ao salvar artigo na coleção 'articlesdoc':", error);
             } finally {
                 saveArticleBtn.disabled = false; // Reabilita o botão
             }
@@ -312,11 +331,13 @@
 
             cancelBtn.addEventListener('click', () => {
                 // Lógica para cancelar e voltar
-                if (window.parent !== window && window.parent.postMessage) {
-                    window.parent.postMessage({ type: 'refreshArticlesList' }, window.location.origin);
-                } else {
-                    window.history.back(); // Volta na história do navegador
-                }
+                 if (window.parent !== window && window.parent.postMessage) {
+                     // Assumindo que a página pai tem um listener para 'refreshArticlesList' ou similar para voltar
+                     window.parent.postMessage({ type: 'refreshArticlesList' }, window.location.origin);
+                 } else {
+                    // Fallback para ambiente de desenvolvimento fora do iframe
+                     window.history.back(); // Volta na história do navegador
+                 }
             });
 
             // Garante que todos os componentes MDL na página sejam inicializados
