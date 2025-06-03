@@ -89,6 +89,12 @@
             </div>
 
             <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="text" id="teacher-google-uid-manual">
+                <label class="mdl-textfield__label" for="teacher-google-uid-manual">UID Google Manual (Opcional)</label>
+                <span class="mdl-textfield__help">Se preenchido, irá sobrescrever o UID do usuário logado.</span>
+            </div>
+
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                 <input class="mdl-textfield__input" type="password" id="teacher-sub-password" minlength="4" maxlength="6" required>
                 <label class="mdl-textfield__label" for="teacher-sub-password">Sub Senha (4 a 6 dígitos) *</label>
                 <span class="mdl-textfield__help">Usada para alterações administrativas.</span>
@@ -142,6 +148,7 @@
         const teacherCpfInput = document.getElementById('teacher-cpf');
         const teacherRgInput = document.getElementById('teacher-rg');
         const teacherSubPasswordInput = document.getElementById('teacher-sub-password');
+        const teacherGoogleUidManualInput = document.getElementById('teacher-google-uid-manual'); // Nova referência para o campo UID Manual
 
         function displayError(message) {
             errorDisplay.textContent = `Erro: ${message}`;
@@ -185,6 +192,7 @@
                     teacherLastNameInput.value = data.lastName || '';
                     teacherCpfInput.value = data.cpf || '';
                     teacherRgInput.value = data.rg || '';
+                    teacherGoogleUidManualInput.value = data.googleUid || ''; // Carrega a UID Google Manual se existir
                     // A sub-senha não deve ser carregada por segurança.
                     // O campo ficará em branco para ser preenchido novamente se necessário.
 
@@ -249,12 +257,12 @@
                 return;
             }
 
-
             errorDisplay.style.display = 'none'; // Esconde erros anteriores
             saveTeacherBtn.disabled = true; // Desabilita o botão para evitar cliques múltiplos
 
             const teacherData = {
                 // UID do Firebase Authentication do usuário logado (Google)
+                // Será sobrescrito pela UID manual se preenchida
                 googleUid: currentUser.uid,
                 firstName: teacherFirstNameInput.value.trim(),
                 lastName: teacherLastNameInput.value.trim(),
@@ -263,6 +271,11 @@
                 // subPassword será adicionada/atualizada apenas se o campo for preenchido
                 lastModified: firebase.firestore.FieldValue.serverTimestamp()
             };
+
+            // Se o campo UID Google Manual for preenchido, usa este valor
+            if (teacherGoogleUidManualInput.value.trim()) {
+                teacherData.googleUid = teacherGoogleUidManualInput.value.trim();
+            }
 
             // Adiciona a subPassword somente se for preenchida (para não sobrescrever na edição com valor vazio)
             if (teacherSubPasswordInput.value.trim()) {
