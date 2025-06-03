@@ -127,8 +127,8 @@
 
     <div class="search-container">
       <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-        <input class="mdl-textfield__input" type="text" id="search-summary">
-        <label class="mdl-textfield__label" for="search-summary">Buscar por Resumo...</label>
+        <input class="mdl-textfield__input" type="text" id="search-description">
+        <label class="mdl-textfield__label" for="search-description">Buscar por Descrição Curta...</label>
       </div>
       <button id="search-button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
         <i class="material-icons">search</i> Buscar
@@ -167,7 +167,8 @@
     const articlesListDiv = document.getElementById('articles-list');
     const loadingMessage = document.getElementById('loading-message');
     const errorDisplay = document.getElementById('error-display');
-    const searchSummaryInput = document.getElementById('search-summary');
+    // Alterado o ID do input de busca para 'search-description'
+    const searchDescriptionInput = document.getElementById('search-description'); 
     const searchButton = document.getElementById('search-button');
     const clearSearchButton = document.getElementById('clear-search-button');
 
@@ -187,10 +188,11 @@
         const trimmedSearchTerm = searchTerm.trim();
 
         if (trimmedSearchTerm) {
+          // Alterado o campo de busca de 'summary' para 'description'
           articlesRef = articlesRef
-            .where('summary', '>=', trimmedSearchTerm)
-            .where('summary', '<=', trimmedSearchTerm + '\uf8ff')
-            .orderBy('summary');
+            .where('description', '>=', trimmedSearchTerm)
+            .where('description', '<=', trimmedSearchTerm + '\uf8ff')
+            .orderBy('description'); // O orderBy também deve ser pelo campo de busca
         } else {
           articlesRef = articlesRef.orderBy('timestamp', 'desc');
         }
@@ -200,7 +202,7 @@
 
         if (snapshot.empty) {
           const emptyMessage = trimmedSearchTerm ?
-            `Nenhum artigo encontrado com o termo "${trimmedSearchTerm}" no resumo.` :
+            `Nenhum artigo encontrado com o termo "${trimmedSearchTerm}" na descrição curta.` :
             'Nenhum artigo (articlesdoc) publicado ainda.';
           articlesListDiv.innerHTML = `<p class="empty-state">${emptyMessage}</p>`;
           return;
@@ -272,7 +274,8 @@
       try {
         await firestore.collection('articlesdoc').doc(articleId).delete();
         alert('Artigo excluído com sucesso!');
-        loadArticles(searchSummaryInput.value.trim());
+        // Passa o valor do novo input de busca para recarregar
+        loadArticles(searchDescriptionInput.value.trim()); 
       } catch (error) {
         displayError(`Não foi possível excluir o artigo. ${error.message}`);
       }
@@ -297,19 +300,22 @@
         }
       });
 
+      // Atualiza o listener para usar o novo input de busca
       searchButton.addEventListener('click', () => {
-        loadArticles(searchSummaryInput.value.trim());
+        loadArticles(searchDescriptionInput.value.trim());
       });
 
-      searchSummaryInput.addEventListener('keypress', event => {
+      // Atualiza o listener para usar o novo input de busca
+      searchDescriptionInput.addEventListener('keypress', event => {
         if (event.key === 'Enter') {
           event.preventDefault();
-          loadArticles(searchSummaryInput.value.trim());
+          loadArticles(searchDescriptionInput.value.trim());
         }
       });
 
+      // Atualiza o listener para usar o novo input de busca
       clearSearchButton.addEventListener('click', () => {
-        searchSummaryInput.value = '';
+        searchDescriptionInput.value = '';
         loadArticles();
       });
 
