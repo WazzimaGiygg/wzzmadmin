@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -92,6 +91,11 @@
             background-color: #f0f0f0;
             color: #444;
         }
+        /* Ocupar todo o espaço disponível para o canvas do gráfico */
+        #views-chart-canvas {
+            width: 100% !important;
+            height: 300px !important; /* Defina uma altura fixa ou ajuste como preferir */
+        }
     </style>
 </head>
 <body>
@@ -128,10 +132,7 @@
 
             <div class="chart-container">
                 <h3>Visualizações de Página por Período</h3>
-                <p>Aqui você pode integrar um gráfico (ex: Chart.js ou Google Charts) que mostra a tendência de visualizações ao longo do tempo.</p>
-                <div id="views-chart" style="width: 100%; height: 300px; background-color: #f8f8f8; border: 1px dashed #ccc; display: flex; justify-content: center; align-items: center; color: #999;">
-                    [Espaço para Gráfico de Visualizações]
-                </div>
+                <canvas id="views-chart-canvas"></canvas>
             </div>
 
             <div class="data-table-container">
@@ -170,7 +171,84 @@
     </div>
 
     <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
     <script>
+        // Variável global para o gráfico, para poder destruí-lo e recriá-lo
+        let viewsChart = null; 
+
+        // Função para simular dados de visualizações diárias (para o gráfico)
+        function simulateDailyViews(days = 7) {
+            const labels = [];
+            const data = [];
+            const today = new Date();
+
+            for (let i = days - 1; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(today.getDate() - i);
+                labels.push(date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }));
+                // Simula visualizações com uma variação aleatória
+                data.push(Math.floor(Math.random() * 500) + 100); 
+            }
+            return { labels, data };
+        }
+
+        // Função para desenhar o gráfico
+        function drawViewsChart() {
+            const ctx = document.getElementById('views-chart-canvas').getContext('2d');
+
+            // Destrói o gráfico existente se houver um, para evitar duplicatas ao recarregar
+            if (viewsChart) {
+                viewsChart.destroy();
+            }
+
+            const { labels, data } = simulateDailyViews(7); // Simula dados para os últimos 7 dias
+
+            viewsChart = new Chart(ctx, {
+                type: 'line', // Tipo de gráfico: linha
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Visualizações Diárias',
+                        data: data,
+                        backgroundColor: 'rgba(63, 81, 181, 0.2)', // Cor primária do MDL com transparência
+                        borderColor: 'rgba(63, 81, 181, 1)',
+                        borderWidth: 2,
+                        tension: 0.3, // Suaviza a linha do gráfico
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // Permite que o gráfico use a altura definida no CSS
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                        },
+                        title: {
+                            display: false, // O título já está no H3
+                            text: 'Visualizações de Página por Dia'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Número de Visualizações'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Data'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
         // Função para carregar as estatísticas do Firebase Firestore
         async function loadStatistics() {
             try {
@@ -178,13 +256,27 @@
                 const firestore = parent.firebase.firestore();
 
                 // Exemplo: Obter o total de artigos
-                const articlesSnapshot = await firestore.collection('articles').get();
+                // Usando 'articlesdoc' que é o nome da sua coleção de artigos
+                const articlesSnapshot = await firestore.collection('articlesdoc').get();
                 document.getElementById('total-articles').textContent = articlesSnapshot.size;
 
                 // Exemplo: Obter o total de usuários (poderia filtrar por 'active' se houver um campo)
-                const usersSnapshot = await firestore.collection('users').get();
+                const usersSnapshot = await firestore.collection('users').get(); // Supondo que você tenha uma coleção 'users'
+                
                 // Para "Usuários Ativos", você precisaria de uma lógica mais avançada para filtrar por data do lastLoginAt
-                document.getElementById('active-users').textContent = usersSnapshot.size; // Por enquanto, mostra todos
+                // Por enquanto, vamos contar usuários com lastLoginAt nos últimos 30 dias
+                const thirtyDaysAgo = new Date();
+                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                
+                let activeUsersCount = 0;
+                usersSnapshot.forEach(doc => {
+                    const user = doc.data();
+                    if (user.lastLoginAt && new Date(user.lastLoginAt.toDate()) >= thirtyDaysAgo) {
+                        activeUsersCount++;
+                    }
+                });
+                document.getElementById('active-users').textContent = activeUsersCount;
+
 
                 // Exemplo: Visualizações (isso geralmente vem de uma ferramenta de analytics,
                 // ou você teria uma coleção 'views' no Firestore que incrementa a cada acesso)
@@ -195,8 +287,9 @@
                 // Exemplo: Artigos Mais Populares (carregar os 5 artigos com mais visualizações)
                 const popularArticlesTableBody = document.getElementById('popular-articles-table-body');
                 popularArticlesTableBody.innerHTML = ''; // Limpa o "Carregando..."
-                const popularArticlesSnapshot = await firestore.collection('articles')
-                    .orderBy('views', 'desc') // Supondo um campo 'views' no seu artigo
+                // Supondo um campo 'views' e 'publishedAt' no seu artigo
+                const popularArticlesSnapshot = await firestore.collection('articlesdoc') 
+                    .orderBy('views', 'desc') 
                     .limit(5)
                     .get();
 
@@ -208,7 +301,7 @@
                         const row = popularArticlesTableBody.insertRow();
                         row.insertCell().textContent = article.title || 'Sem Título';
                         row.insertCell().textContent = article.views || 0;
-                        row.insertCell().textContent = article.publishedAt ? new Date(article.publishedAt.toDate()).toLocaleDateString() : 'N/A';
+                        row.insertCell().textContent = article.timestamp ? new Date(article.timestamp.toDate()).toLocaleDateString() : 'N/A'; // Usando 'timestamp' como data de publicação
                     });
                 }
 
@@ -226,11 +319,14 @@
                     recentLoginsSnapshot.forEach(doc => {
                         const user = doc.data();
                         const row = recentLoginsTableBody.insertRow();
-                        row.insertCell().textContent = user.name || 'Sem Nome';
+                        row.insertCell().textContent = user.name || user.email || 'Sem Nome'; // Tenta mostrar nome ou email
                         row.insertCell().textContent = user.email || 'N/A';
                         row.insertCell().textContent = user.lastLoginAt ? new Date(user.lastLoginAt.toDate()).toLocaleString() : 'N/A';
                     });
                 }
+
+                // Desenha o gráfico após carregar as outras estatísticas
+                drawViewsChart();
 
             } catch (error) {
                 console.error("Erro ao carregar estatísticas:", error);
@@ -241,6 +337,13 @@
                 document.getElementById('total-views').textContent = 'Erro';
                 document.getElementById('popular-articles-table-body').innerHTML = '<tr><td colspan="3">Erro ao carregar dados.</td></tr>';
                 document.getElementById('recent-logins-table-body').innerHTML = '<tr><td colspan="3">Erro ao carregar dados.</td></tr>';
+                
+                // Limpa o espaço do gráfico em caso de erro
+                const chartContainer = document.getElementById('views-chart-canvas');
+                if (chartContainer) {
+                    const parentDiv = chartContainer.parentElement;
+                    parentDiv.innerHTML = '<p style="text-align: center; color: #d32f2f;">Erro ao carregar o gráfico.</p>';
+                }
             }
         }
 
