@@ -91,10 +91,10 @@
             background-color: #f0f0f0;
             color: #444;
         }
-        /* Ocupar todo o espaço disponível para o canvas do gráfico */
-        #views-chart-canvas {
-            width: 100% !important;
-            height: 300px !important; /* Defina uma altura fixa ou ajuste como preferir */
+        /* Defina a altura e largura para o container do Google Chart */
+        #views-chart {
+            width: 100%; 
+            height: 300px;
         }
     </style>
 </head>
@@ -132,7 +132,8 @@
 
             <div class="chart-container">
                 <h3>Visualizações de Página por Período</h3>
-                <canvas id="views-chart-canvas"></canvas>
+                <div id="views-chart">
+                    </div>
             </div>
 
             <div class="data-table-container">
@@ -171,100 +172,76 @@
     </div>
 
     <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
+    
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    
     <script>
-        // Variável global para o gráfico, para poder destruí-lo e recriá-lo
-        let viewsChart = null; 
+        // Carrega a API do Google Charts
+        google.charts.load('current', {'packages':['corechart']});
+        
+        // Define um callback para ser executado quando o Google Charts terminar de carregar
+        // Assim, garantimos que drawViewsChart só será chamada após o carregamento da biblioteca.
+        google.charts.setOnLoadCallback(loadStatistics); // Alterei para chamar loadStatistics diretamente
 
         // Função para simular dados de visualizações diárias (para o gráfico)
         function simulateDailyViews(days = 7) {
-            const labels = [];
-            const data = [];
+            const dataTable = new google.visualization.DataTable();
+            dataTable.addColumn('string', 'Data');
+            dataTable.addColumn('number', 'Visualizações');
+
             const today = new Date();
+            const rows = [];
 
             for (let i = days - 1; i >= 0; i--) {
                 const date = new Date(today);
                 date.setDate(today.getDate() - i);
-                labels.push(date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }));
-                // Simula visualizações com uma variação aleatória
-                data.push(Math.floor(Math.random() * 500) + 100); 
+                const formattedDate = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                const views = Math.floor(Math.random() * 500) + 100; // Simula visualizações
+                rows.push([formattedDate, views]);
             }
-            return { labels, data };
+            dataTable.addRows(rows);
+            return dataTable;
         }
 
         // Função para desenhar o gráfico
         function drawViewsChart() {
-            const ctx = document.getElementById('views-chart-canvas').getContext('2d');
+            const data = simulateDailyViews(7); // Simula dados para os últimos 7 dias
 
-            // Destrói o gráfico existente se houver um, para evitar duplicatas ao recarregar
-            if (viewsChart) {
-                viewsChart.destroy();
-            }
-
-            const { labels, data } = simulateDailyViews(7); // Simula dados para os últimos 7 dias
-
-            viewsChart = new Chart(ctx, {
-                type: 'line', // Tipo de gráfico: linha
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Visualizações Diárias',
-                        data: data,
-                        backgroundColor: 'rgba(63, 81, 181, 0.2)', // Cor primária do MDL com transparência
-                        borderColor: 'rgba(63, 81, 181, 1)',
-                        borderWidth: 2,
-                        tension: 0.3, // Suaviza a linha do gráfico
-                        fill: true
-                    }]
+            const options = {
+                title: 'Visualizações de Página por Período',
+                curveType: 'function',
+                legend: { position: 'bottom' },
+                colors: ['#3f51b5'], // Cor primária do Material Design
+                chartArea: { width: '80%', height: '70%' }, // Ajusta a área do gráfico
+                hAxis: {
+                    title: 'Data'
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false, // Permite que o gráfico use a altura definida no CSS
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                        },
-                        title: {
-                            display: false, // O título já está no H3
-                            text: 'Visualizações de Página por Dia'
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Número de Visualizações'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Data'
-                            }
-                        }
-                    }
+                vAxis: {
+                    title: 'Número de Visualizações',
+                    minValue: 0
                 }
-            });
+            };
+
+            const chart = new google.visualization.LineChart(document.getElementById('views-chart'));
+            chart.draw(data, options);
         }
 
         // Função para carregar as estatísticas do Firebase Firestore
         async function loadStatistics() {
             try {
                 // Acessa o Firebase Firestore do documento pai (index.html)
+                // Se esta página for carregada diretamente e não dentro de um iframe,
+                // parent.firebase.firestore() não funcionará. Você precisaria inicializar
+                // o Firebase aqui também. Assumo que está em um iframe como antes.
                 const firestore = parent.firebase.firestore();
 
                 // Exemplo: Obter o total de artigos
-                // Usando 'articlesdoc' que é o nome da sua coleção de artigos
                 const articlesSnapshot = await firestore.collection('articlesdoc').get();
                 document.getElementById('total-articles').textContent = articlesSnapshot.size;
 
                 // Exemplo: Obter o total de usuários (poderia filtrar por 'active' se houver um campo)
                 const usersSnapshot = await firestore.collection('users').get(); // Supondo que você tenha uma coleção 'users'
                 
-                // Para "Usuários Ativos", você precisaria de uma lógica mais avançada para filtrar por data do lastLoginAt
-                // Por enquanto, vamos contar usuários com lastLoginAt nos últimos 30 dias
                 const thirtyDaysAgo = new Date();
                 thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
                 
@@ -277,17 +254,13 @@
                 });
                 document.getElementById('active-users').textContent = activeUsersCount;
 
+                // Exemplo: Visualizações (simuladas)
+                document.getElementById('today-views').textContent = Math.floor(Math.random() * 500) + 100;
+                document.getElementById('total-views').textContent = Math.floor(Math.random() * 10000) + 5000;
 
-                // Exemplo: Visualizações (isso geralmente vem de uma ferramenta de analytics,
-                // ou você teria uma coleção 'views' no Firestore que incrementa a cada acesso)
-                // Vamos simular valores por enquanto
-                document.getElementById('today-views').textContent = Math.floor(Math.random() * 500) + 100; // Valor aleatório
-                document.getElementById('total-views').textContent = Math.floor(Math.random() * 10000) + 5000; // Valor aleatório
-
-                // Exemplo: Artigos Mais Populares (carregar os 5 artigos com mais visualizações)
+                // Exemplo: Artigos Mais Populares
                 const popularArticlesTableBody = document.getElementById('popular-articles-table-body');
-                popularArticlesTableBody.innerHTML = ''; // Limpa o "Carregando..."
-                // Supondo um campo 'views' e 'publishedAt' no seu artigo
+                popularArticlesTableBody.innerHTML = '';
                 const popularArticlesSnapshot = await firestore.collection('articlesdoc') 
                     .orderBy('views', 'desc') 
                     .limit(5)
@@ -301,13 +274,13 @@
                         const row = popularArticlesTableBody.insertRow();
                         row.insertCell().textContent = article.title || 'Sem Título';
                         row.insertCell().textContent = article.views || 0;
-                        row.insertCell().textContent = article.timestamp ? new Date(article.timestamp.toDate()).toLocaleDateString() : 'N/A'; // Usando 'timestamp' como data de publicação
+                        row.insertCell().textContent = article.timestamp ? new Date(article.timestamp.toDate()).toLocaleDateString() : 'N/A';
                     });
                 }
 
-                // Exemplo: Últimos Logins de Usuários (os 5 usuários com o lastLoginAt mais recente)
+                // Exemplo: Últimos Logins de Usuários
                 const recentLoginsTableBody = document.getElementById('recent-logins-table-body');
-                recentLoginsTableBody.innerHTML = ''; // Limpa o "Carregando..."
+                recentLoginsTableBody.innerHTML = '';
                 const recentLoginsSnapshot = await firestore.collection('users')
                     .orderBy('lastLoginAt', 'desc')
                     .limit(5)
@@ -319,7 +292,7 @@
                     recentLoginsSnapshot.forEach(doc => {
                         const user = doc.data();
                         const row = recentLoginsTableBody.insertRow();
-                        row.insertCell().textContent = user.name || user.email || 'Sem Nome'; // Tenta mostrar nome ou email
+                        row.insertCell().textContent = user.name || user.email || 'Sem Nome';
                         row.insertCell().textContent = user.email || 'N/A';
                         row.insertCell().textContent = user.lastLoginAt ? new Date(user.lastLoginAt.toDate()).toLocaleString() : 'N/A';
                     });
@@ -339,21 +312,21 @@
                 document.getElementById('recent-logins-table-body').innerHTML = '<tr><td colspan="3">Erro ao carregar dados.</td></tr>';
                 
                 // Limpa o espaço do gráfico em caso de erro
-                const chartContainer = document.getElementById('views-chart-canvas');
+                const chartContainer = document.getElementById('views-chart');
                 if (chartContainer) {
-                    const parentDiv = chartContainer.parentElement;
-                    parentDiv.innerHTML = '<p style="text-align: center; color: #d32f2f;">Erro ao carregar o gráfico.</p>';
+                    chartContainer.innerHTML = '<p style="text-align: center; color: #d32f2f;">Erro ao carregar o gráfico.</p>';
                 }
             }
         }
 
-        // Chama a função para carregar as estatísticas quando a página for carregada
-        document.addEventListener('DOMContentLoaded', () => {
-            if (window.componentHandler) {
-                window.componentHandler.upgradeDom();
-            }
-            loadStatistics();
-        });
+        // Não é necessário o DOMContentLoaded listener aqui, pois google.charts.setOnLoadCallback já cuida do carregamento
+        // e chama loadStatistics.
+        // document.addEventListener('DOMContentLoaded', () => {
+        //     if (window.componentHandler) {
+        //         window.componentHandler.upgradeDom();
+        //     }
+        //     // loadStatistics(); // Removido daqui
+        // });
     </script>
 </body>
 </html>
