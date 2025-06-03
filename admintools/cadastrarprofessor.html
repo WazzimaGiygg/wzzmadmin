@@ -152,7 +152,7 @@
         auth.onAuthStateChanged(user => {
             if (user) {
                 currentUser = user;
-                console.log("Usuário logado:", currentUser.uid);
+                console.log("Usuário logado:", currentUser.uid, "Email:", currentUser.email); // Adicionado email para depuração
                 // Verifica se há um ID de professor na URL para modo de edição
                 const urlParams = new URLSearchParams(window.location.search);
                 const id = urlParams.get('id');
@@ -254,7 +254,8 @@
             saveTeacherBtn.disabled = true; // Desabilita o botão para evitar cliques múltiplos
 
             const teacherData = {
-                userId: currentUser.uid, // ID do usuário logado (quem criou ou editou)
+                // UID do Firebase Authentication do usuário logado (Google)
+                googleUid: currentUser.uid,
                 firstName: teacherFirstNameInput.value.trim(),
                 lastName: teacherLastNameInput.value.trim(),
                 cpf: teacherCpfInput.value.trim(),
