@@ -20,17 +20,10 @@
             padding: 30px;
             border-radius: 8px;
             box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12);
-            margin-bottom: 40px; /* Adiciona espaço na parte inferior */
         }
         h1 {
             color: #3f51b5;
             margin-bottom: 25px;
-            text-align: center;
-        }
-        h2 {
-            color: #3f51b5;
-            margin-top: 40px;
-            margin-bottom: 20px;
             text-align: center;
         }
         .mdl-textfield {
@@ -73,7 +66,7 @@
     <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
 
     <div class="container">
-        <h1 id="form-title">Adicionar Novo Artigo - Beta</h1>
+        <h1 id="form-title">Adicionar Novo Artigo</h1>
 
         <div id="error-display" class="error-message"></div>
 
@@ -124,6 +117,17 @@
                 <span class="mdl-textfield__help">Ex: Livro X, Site Y, Artigo Z</span>
             </div>
 
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="email" id="teacher-email-assign">
+                <label class="mdl-textfield__label" for="teacher-email-assign">E-mail do Professor para associar</label>
+                <span class="mdl-textfield__help">Insira o e-mail de um professor existente.</span>
+            </div>
+
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="password" id="teacher-subpassword-assign">
+                <label class="mdl-textfield__label" for="teacher-subpassword-assign">Subsenha do Professor</label>
+                <span class="mdl-textfield__help">A subsenha do professor para confirmar a associação.</span>
+            </div>
             <div class="actions">
                 <button type="submit" id="save-article-btn"
                         class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
@@ -132,41 +136,6 @@
                 <button type="button" id="cancel-btn"
                         class="mdl-button mdl-js-button mdl-button--raised">
                     Cancelar
-                </button>
-            </div>
-        </form>
-    </div>
-
-    <div class="container">
-        <h2>Cadastrar Novo Professor</h2>
-        <div id="teacher-error-display" class="error-message"></div>
-        <form id="teacher-form">
-            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                <input class="mdl-textfield__input" type="text" id="teacher-name" required>
-                <label class="mdl-textfield__label" for="teacher-name">Nome do Professor *</label>
-            </div>
-            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                <input class="mdl-textfield__input" type="email" id="teacher-email" required>
-                <label class="mdl-textfield__label" for="teacher-email">E-mail do Professor *</label>
-            </div>
-            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                <input class="mdl-textfield__input" type="password" id="teacher-password" required>
-                <label class="mdl-textfield__label" for="teacher-password">Senha para Login *</label>
-            </div>
-            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                <input class="mdl-textfield__input" type="password" id="teacher-subpassword">
-                <label class="mdl-textfield__label" for="teacher-subpassword">Subsenha do Professor</label>
-                <span class="mdl-textfield__help">Uma senha adicional para funções específicas.</span>
-            </div>
-
-            <div class="actions">
-                <button type="submit" id="save-teacher-btn"
-                        class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent">
-                    Cadastrar Professor
-                </button>
-                <button type="button" id="clear-teacher-btn"
-                        class="mdl-button mdl-js-button mdl-button--raised">
-                    Limpar Formulário
                 </button>
             </div>
         </form>
@@ -198,7 +167,7 @@
 
         const formTitle = document.getElementById('form-title');
         const articleForm = document.getElementById('article-form');
-        const errorDisplay = document.getElementById('error-display'); // Para erros de artigo
+        const errorDisplay = document.getElementById('error-display');
         const saveArticleBtn = document.getElementById('save-article-btn');
         const cancelBtn = document.getElementById('cancel-btn');
 
@@ -212,19 +181,13 @@
         const articleConclusionInput = document.getElementById('article-conclusion');
         const articleSourcesInput = document.getElementById('article-sources');
 
-        // Novos elementos para o formulário do professor
-        const teacherForm = document.getElementById('teacher-form');
-        const teacherErrorDisplay = document.getElementById('teacher-error-display'); // Para erros de professor
-        const saveTeacherBtn = document.getElementById('save-teacher-btn');
-        const clearTeacherBtn = document.getElementById('clear-teacher-btn');
-        const teacherNameInput = document.getElementById('teacher-name');
-        const teacherEmailInput = document.getElementById('teacher-email');
-        const teacherPasswordInput = document.getElementById('teacher-password');
-        const teacherSubpasswordInput = document.getElementById('teacher-subpassword');
+        // NOVOS INPUTS
+        const teacherEmailAssignInput = document.getElementById('teacher-email-assign');
+        const teacherSubpasswordAssignInput = document.getElementById('teacher-subpassword-assign');
 
-        function displayError(message, targetErrorDisplay = errorDisplay) {
-            targetErrorDisplay.textContent = `Erro: ${message}`;
-            targetErrorDisplay.style.display = 'block';
+        function displayError(message) {
+            errorDisplay.textContent = `Erro: ${message}`;
+            errorDisplay.style.display = 'block';
         }
 
         // Listener para o estado de autenticação
@@ -232,18 +195,17 @@
             if (user) {
                 currentUser = user;
                 console.log("Usuário logado:", currentUser.uid);
-                // Verifica se há um ID de artigo na URL para modo de edição
                 const urlParams = new URLSearchParams(window.location.search);
                 const id = urlParams.get('id');
                 if (id) {
                     currentArticleId = id;
                     formTitle.textContent = 'Editar Artigo';
-                    loadArticleData(id); // Carrega os dados do artigo para edição
+                    loadArticleData(id);
                 }
             } else {
                 currentUser = null;
                 console.warn("Nenhum usuário logado. Redirecionando para login?");
-                alert("Você precisa estar logado para adicionar ou editar artigos ou professores.");
+                alert("Você precisa estar logado para adicionar ou editar artigos.");
                 if (window.parent !== window && window.parent.postMessage) {
                     window.parent.postMessage({ type: 'navigateIframe', url: './login.html' }, window.location.origin);
                 } else {
@@ -269,6 +231,11 @@
                     articleDiscussionInput.value = data.discussion || '';
                     articleConclusionInput.value = data.conclusion || '';
                     articleSourcesInput.value = (data.sources && Array.isArray(data.sources)) ? data.sources.join(', ') : '';
+                    
+                    // Preencher campos de professor e subsenha (se existirem no artigo)
+                    teacherEmailAssignInput.value = data.assignedTeacherEmail || '';
+                    // NUNCA preencher a subsenha por segurança, mesmo que o campo exista.
+                    // teacherSubpasswordAssignInput.value = data.assignedTeacherSubpassword || ''; 
 
                     if (window.componentHandler) {
                         articleForm.querySelectorAll('.mdl-textfield').forEach(textfield => {
@@ -307,7 +274,7 @@
             saveArticleBtn.disabled = true;
 
             const articleData = {
-                userId: currentUser.uid,
+                userId: currentUser.uid, // ID do usuário logado (quem criou ou editou)
                 title: articleTitleInput.value.trim(),
                 description: articleDescriptionInput.value.trim(),
                 summary: articleSummaryInput.value.trim(),
@@ -320,14 +287,64 @@
                 lastModified: firebase.firestore.FieldValue.serverTimestamp()
             };
 
+            const teacherEmail = teacherEmailAssignInput.value.trim();
+            const teacherSubpassword = teacherSubpasswordAssignInput.value.trim();
+
+            // Lógica para verificar e associar o professor
+            if (teacherEmail && teacherSubpassword) {
+                try {
+                    // Consulta o professor na coleção 'useteacher' pelo email
+                    const teacherQuerySnapshot = await firestore.collection('useteacher')
+                        .where('email', '==', teacherEmail)
+                        .limit(1)
+                        .get();
+
+                    if (teacherQuerySnapshot.empty) {
+                        displayError("Professor com este e-mail não encontrado na base de dados.");
+                        saveArticleBtn.disabled = false;
+                        return;
+                    }
+
+                    const teacherDoc = teacherQuerySnapshot.docs[0];
+                    const teacherDataFromDB = teacherDoc.data();
+
+                    // Verifica a subsenha
+                    if (teacherDataFromDB.subpassword !== teacherSubpassword) {
+                        displayError("Subsenha do professor incorreta.");
+                        saveArticleBtn.disabled = false;
+                        return;
+                    }
+
+                    // Se a subsenha estiver correta, associa o professor ao artigo
+                    articleData.assignedTeacherUid = teacherDataFromDB.uid;
+                    articleData.assignedTeacherEmail = teacherDataFromDB.email;
+                    articleData.assignedTeacherName = teacherDataFromDB.name; // Opcional: salva o nome também
+                    console.log("Professor validado e associado ao artigo:", teacherDataFromDB.email);
+
+                } catch (error) {
+                    displayError("Erro ao verificar o professor: " + error.message);
+                    console.error("Erro ao verificar o professor para associação:", error);
+                    saveArticleBtn.disabled = false;
+                    return;
+                }
+            } else if (teacherEmail || teacherSubpassword) {
+                // Se um dos campos for preenchido mas não o outro
+                displayError("Preencha o E-mail e a Subsenha do professor para associá-lo.");
+                saveArticleBtn.disabled = false;
+                return;
+            }
+            // Se nenhum campo de professor for preenchido, o artigo é salvo sem um professor associado explicitamente.
+
             try {
                 const articlesCollectionRef = firestore.collection('articlesdoc');
 
                 if (currentArticleId) {
+                    // Atualizar artigo existente
                     await articlesCollectionRef.doc(currentArticleId).update(articleData);
                     alert("Artigo atualizado com sucesso!");
                     console.log("Artigo atualizado na coleção 'articlesdoc':", currentArticleId);
                 } else {
+                    // Criar novo artigo
                     articleData.timestamp = firebase.firestore.FieldValue.serverTimestamp();
                     const newDocRef = await articlesCollectionRef.add(articleData);
                     currentArticleId = newDocRef.id;
@@ -350,97 +367,15 @@
             }
         }
 
-        // --- Nova Função para Cadastrar Professor ---
-        async function saveTeacher(event) {
-            event.preventDefault();
-
-            if (!currentUser) {
-                displayError("Você precisa estar logado para cadastrar um professor.", teacherErrorDisplay);
-                return;
-            }
-
-            const name = teacherNameInput.value.trim();
-            const email = teacherEmailInput.value.trim();
-            const password = teacherPasswordInput.value.trim(); // Senha para o Firebase Auth
-            const subpassword = teacherSubpasswordInput.value.trim(); // Subsenha para o Firestore
-
-            if (!name || !email || !password) {
-                displayError("Nome, E-mail e Senha para Login do Professor são obrigatórios.", teacherErrorDisplay);
-                return;
-            }
-
-            teacherErrorDisplay.style.display = 'none';
-            saveTeacherBtn.disabled = true;
-
-            try {
-                // 1. Criar usuário no Firebase Authentication
-                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                const uid = userCredential.user.uid;
-                console.log("Usuário de autenticação criado:", uid);
-
-                // 2. Salvar dados do professor no Firestore na coleção 'useteacher'
-                const teacherData = {
-                    uid: uid, // UID do Firebase Auth
-                    name: name,
-                    email: email,
-                    // Não armazene a senha de login aqui no Firestore, a não ser que seja um hash seguro.
-                    // A 'subpassword' pode ser armazenada se for um código secundário.
-                    subpassword: subpassword, // Armazenando a subsenha conforme solicitado
-                    role: 'teacher', // Define o papel do usuário
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                };
-
-                // O nome da coleção é 'useteacher' (corrigido de 'usetetcher')
-                await firestore.collection('useteacher').doc(uid).set(teacherData);
-                console.log("Dados do professor salvos no Firestore com UID:", uid);
-
-                alert("Professor cadastrado com sucesso! E-mail: " + email);
-                teacherForm.reset(); // Limpa o formulário após o sucesso
-
-                // Atualiza o MDL para limpar os campos
-                if (window.componentHandler) {
-                    teacherForm.querySelectorAll('.mdl-textfield').forEach(textfield => {
-                        if (textfield.MaterialTextfield) {
-                            textfield.MaterialTextfield.checkDirty();
-                            textfield.MaterialTextfield.checkValidity();
-                            textfield.MaterialTextfield.change(); // Força a atualização do estado
-                        }
-                    });
-                }
-
-            } catch (error) {
-                displayError("Erro ao cadastrar professor: " + error.message, teacherErrorDisplay);
-                console.error("Erro ao cadastrar professor:", error);
-            } finally {
-                saveTeacherBtn.disabled = false;
-            }
-        }
-
         // --- Event Listeners ---
         document.addEventListener('DOMContentLoaded', () => {
             articleForm.addEventListener('submit', saveArticle);
-            teacherForm.addEventListener('submit', saveTeacher); // Novo listener para o formulário do professor
 
             cancelBtn.addEventListener('click', () => {
                 if (window.parent !== window && window.parent.postMessage) {
                     window.parent.postMessage({ type: 'refreshArticlesList' }, window.location.origin);
                 } else {
                     window.history.back();
-                }
-            });
-
-            clearTeacherBtn.addEventListener('click', () => {
-                teacherForm.reset();
-                teacherErrorDisplay.style.display = 'none'; // Esconde erros ao limpar
-                 // Atualiza o MDL para limpar os campos
-                 if (window.componentHandler) {
-                    teacherForm.querySelectorAll('.mdl-textfield').forEach(textfield => {
-                        if (textfield.MaterialTextfield) {
-                            textfield.MaterialTextfield.checkDirty();
-                            textfield.MaterialTextfield.checkValidity();
-                            textfield.MaterialTextfield.change(); // Força a atualização do estado
-                        }
-                    });
                 }
             });
 
