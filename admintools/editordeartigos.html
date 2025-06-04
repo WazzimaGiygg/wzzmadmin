@@ -118,11 +118,10 @@
             </div>
 
             <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                <input class="mdl-textfield__input" type="email" id="teacher-email-assign">
-                <label class="mdl-textfield__label" for="teacher-email-assign">E-mail do Professor para associar</label>
-                <span class="mdl-textfield__help">Insira o e-mail de um professor existente.</span>
+                <input class="mdl-textfield__input" type="text" id="teacher-uid-assign">
+                <label class="mdl-textfield__label" for="teacher-uid-assign">UID do Professor para associar</label>
+                <span class="mdl-textfield__help">Insira a UID de um professor existente.</span>
             </div>
-
             <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                 <input class="mdl-textfield__input" type="password" id="teacher-subpassword-assign">
                 <label class="mdl-textfield__label" for="teacher-subpassword-assign">Subsenha do Professor</label>
@@ -181,8 +180,8 @@
         const articleConclusionInput = document.getElementById('article-conclusion');
         const articleSourcesInput = document.getElementById('article-sources');
 
-        // NOVOS INPUTS
-        const teacherEmailAssignInput = document.getElementById('teacher-email-assign');
+        // NOVOS INPUTS (ID DO CAMPO ATUALIZADO PARA teacher-uid-assign)
+        const teacherUidAssignInput = document.getElementById('teacher-uid-assign');
         const teacherSubpasswordAssignInput = document.getElementById('teacher-subpassword-assign');
 
         function displayError(message) {
@@ -231,11 +230,11 @@
                     articleDiscussionInput.value = data.discussion || '';
                     articleConclusionInput.value = data.conclusion || '';
                     articleSourcesInput.value = (data.sources && Array.isArray(data.sources)) ? data.sources.join(', ') : '';
-                    
-                    // Preencher campos de professor e subsenha (se existirem no artigo)
-                    teacherEmailAssignInput.value = data.assignedTeacherEmail || '';
+
+                    // Preencher campos de professor (agora usa assignedTeacherUid)
+                    teacherUidAssignInput.value = data.assignedTeacherUid || '';
                     // NUNCA preencher a subsenha por segurança, mesmo que o campo exista.
-                    // teacherSubpasswordAssignInput.value = data.assignedTeacherSubpassword || ''; 
+                    // teacherSubpasswordAssignInput.value = data.assignedTeacherSubpassword || '';
 
                     if (window.componentHandler) {
                         articleForm.querySelectorAll('.mdl-textfield').forEach(textfield => {
@@ -287,25 +286,23 @@
                 lastModified: firebase.firestore.FieldValue.serverTimestamp()
             };
 
-            const teacherEmail = teacherEmailAssignInput.value.trim();
+            // CAPTURA A UID DO PROFESSOR DO NOVO CAMPO
+            const teacherUid = teacherUidAssignInput.value.trim();
             const teacherSubpassword = teacherSubpasswordAssignInput.value.trim();
 
             // Lógica para verificar e associar o professor
-            if (teacherEmail && teacherSubpassword) {
+            if (teacherUid && teacherSubpassword) {
                 try {
-                    // Consulta o professor na coleção 'useteacher' pelo email
-                    const teacherQuerySnapshot = await firestore.collection('useteacher')
-                        .where('email', '==', teacherEmail)
-                        .limit(1)
-                        .get();
+                    // Consulta o professor na coleção 'useteacher' PELO UID DO DOCUMENTO
+                    const teacherDocRef = firestore.collection('useteacher').doc(teacherUid);
+                    const teacherDoc = await teacherDocRef.get();
 
-                    if (teacherQuerySnapshot.empty) {
-                        displayError("Professor com este e-mail não encontrado na base de dados.");
+                    if (!teacherDoc.exists) {
+                        displayError("Professor com esta UID não encontrado na base de dados.");
                         saveArticleBtn.disabled = false;
                         return;
                     }
 
-                    const teacherDoc = teacherQuerySnapshot.docs[0];
                     const teacherDataFromDB = teacherDoc.data();
 
                     // Verifica a subsenha
@@ -316,10 +313,10 @@
                     }
 
                     // Se a subsenha estiver correta, associa o professor ao artigo
-                    articleData.assignedTeacherUid = teacherDataFromDB.uid;
-                    articleData.assignedTeacherEmail = teacherDataFromDB.email;
-                    articleData.assignedTeacherName = teacherDataFromDB.name; // Opcional: salva o nome também
-                    console.log("Professor validado e associado ao artigo:", teacherDataFromDB.email);
+                    articleData.assignedTeacherUid = teacherDoc.id; // Salva o UID real do documento
+                    articleData.assignedTeacherEmail = teacherDataFromDB.email || ''; // Pode salvar o email também
+                    articleData.assignedTeacherName = teacherDataFromDB.name || ''; // Opcional: salva o nome também
+                    console.log("Professor validado e associado ao artigo:", teacherDataFromDB.email || teacherDoc.id);
 
                 } catch (error) {
                     displayError("Erro ao verificar o professor: " + error.message);
@@ -327,9 +324,9 @@
                     saveArticleBtn.disabled = false;
                     return;
                 }
-            } else if (teacherEmail || teacherSubpassword) {
+            } else if (teacherUid || teacherSubpassword) {
                 // Se um dos campos for preenchido mas não o outro
-                displayError("Preencha o E-mail e a Subsenha do professor para associá-lo.");
+                displayError("Preencha a UID e a Subsenha do professor para associá-lo.");
                 saveArticleBtn.disabled = false;
                 return;
             }
