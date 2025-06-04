@@ -20,24 +20,31 @@
             padding: 30px;
             border-radius: 8px;
             box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12);
+            margin-bottom: 40px; /* Adiciona espaço na parte inferior */
         }
         h1 {
             color: #3f51b5;
             margin-bottom: 25px;
             text-align: center;
         }
+        h2 {
+            color: #3f51b5;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
         .mdl-textfield {
             width: 100%;
-            margin-bottom: 20px; /* Adiciona espaço entre os campos */
+            margin-bottom: 20px;
         }
         .mdl-textfield__input {
             width: 100%;
-            box-sizing: border-box; /* Garante que padding e border não aumentem a largura */
+            box-sizing: border-box;
         }
         textarea.mdl-textfield__input {
-            height: 120px; /* Altura padrão para textareas */
-            min-height: 80px; /* Altura mínima para textareas */
-            resize: vertical; /* Permite redimensionamento vertical */
+            height: 120px;
+            min-height: 80px;
+            resize: vertical;
         }
         .mdl-button {
             margin-right: 10px;
@@ -130,6 +137,41 @@
         </form>
     </div>
 
+    <div class="container">
+        <h2>Cadastrar Novo Professor</h2>
+        <div id="teacher-error-display" class="error-message"></div>
+        <form id="teacher-form">
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="text" id="teacher-name" required>
+                <label class="mdl-textfield__label" for="teacher-name">Nome do Professor *</label>
+            </div>
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="email" id="teacher-email" required>
+                <label class="mdl-textfield__label" for="teacher-email">E-mail do Professor *</label>
+            </div>
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="password" id="teacher-password" required>
+                <label class="mdl-textfield__label" for="teacher-password">Senha para Login *</label>
+            </div>
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="password" id="teacher-subpassword">
+                <label class="mdl-textfield__label" for="teacher-subpassword">Subsenha do Professor</label>
+                <span class="mdl-textfield__help">Uma senha adicional para funções específicas.</span>
+            </div>
+
+            <div class="actions">
+                <button type="submit" id="save-teacher-btn"
+                        class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent">
+                    Cadastrar Professor
+                </button>
+                <button type="button" id="clear-teacher-btn"
+                        class="mdl-button mdl-js-button mdl-button--raised">
+                    Limpar Formulário
+                </button>
+            </div>
+        </form>
+    </div>
+
     <script>
         // --- Configuração do Firebase com suas chaves e dados originais ---
         const firebaseConfig = {
@@ -156,7 +198,7 @@
 
         const formTitle = document.getElementById('form-title');
         const articleForm = document.getElementById('article-form');
-        const errorDisplay = document.getElementById('error-display');
+        const errorDisplay = document.getElementById('error-display'); // Para erros de artigo
         const saveArticleBtn = document.getElementById('save-article-btn');
         const cancelBtn = document.getElementById('cancel-btn');
 
@@ -170,9 +212,19 @@
         const articleConclusionInput = document.getElementById('article-conclusion');
         const articleSourcesInput = document.getElementById('article-sources');
 
-        function displayError(message) {
-            errorDisplay.textContent = `Erro: ${message}`;
-            errorDisplay.style.display = 'block';
+        // Novos elementos para o formulário do professor
+        const teacherForm = document.getElementById('teacher-form');
+        const teacherErrorDisplay = document.getElementById('teacher-error-display'); // Para erros de professor
+        const saveTeacherBtn = document.getElementById('save-teacher-btn');
+        const clearTeacherBtn = document.getElementById('clear-teacher-btn');
+        const teacherNameInput = document.getElementById('teacher-name');
+        const teacherEmailInput = document.getElementById('teacher-email');
+        const teacherPasswordInput = document.getElementById('teacher-password');
+        const teacherSubpasswordInput = document.getElementById('teacher-subpassword');
+
+        function displayError(message, targetErrorDisplay = errorDisplay) {
+            targetErrorDisplay.textContent = `Erro: ${message}`;
+            targetErrorDisplay.style.display = 'block';
         }
 
         // Listener para o estado de autenticação
@@ -191,13 +243,10 @@
             } else {
                 currentUser = null;
                 console.warn("Nenhum usuário logado. Redirecionando para login?");
-                // Como a criação e edição agora requerem login, pode ser bom redirecionar
-                alert("Você precisa estar logado para adicionar ou editar artigos.");
+                alert("Você precisa estar logado para adicionar ou editar artigos ou professores.");
                 if (window.parent !== window && window.parent.postMessage) {
-                    // Assumindo que a página de login está em './login.html'
                     window.parent.postMessage({ type: 'navigateIframe', url: './login.html' }, window.location.origin);
                 } else {
-                     // Fallback para ambiente de desenvolvimento fora do iframe
                     window.location.href = './login.html';
                 }
             }
@@ -206,7 +255,6 @@
         // Carrega dados do artigo para edição
         async function loadArticleData(articleId) {
             try {
-                // *** MODIFICAÇÃO AQUI: Mude o caminho da coleção para 'articlesdoc' ***
                 const docRef = firestore.collection('articlesdoc').doc(articleId);
                 const doc = await docRef.get();
 
@@ -222,14 +270,12 @@
                     articleConclusionInput.value = data.conclusion || '';
                     articleSourcesInput.value = (data.sources && Array.isArray(data.sources)) ? data.sources.join(', ') : '';
 
-                    // Atualiza o MDL para os campos pré-preenchidos
                     if (window.componentHandler) {
                         articleForm.querySelectorAll('.mdl-textfield').forEach(textfield => {
-                            // Verifica se o componente foi inicializado antes de chamar os métodos
-                             if (textfield.MaterialTextfield) {
+                            if (textfield.MaterialTextfield) {
                                 textfield.MaterialTextfield.checkDirty();
                                 textfield.MaterialTextfield.checkValidity();
-                             }
+                            }
                         });
                     }
                 } else {
@@ -238,33 +284,30 @@
                 }
             } catch (error) {
                 displayError("Erro ao carregar dados do artigo: " + error.message);
-                // *** MODIFICAÇÃO AQUI: Atualize a mensagem de erro no console ***
                 console.error("Erro ao carregar dados do artigo da coleção 'articlesdoc':", error);
             }
         }
 
         // Função para salvar (adicionar ou atualizar) o artigo
         async function saveArticle(event) {
-            event.preventDefault(); // Impede o envio padrão do formulário
+            event.preventDefault();
 
-            // Esta verificação já está no listener de autenticação, mas é bom ter aqui também
             if (!currentUser) {
                 displayError("Você precisa estar logado para salvar artigos.");
                 return;
             }
 
-            // Validação básica
             if (!articleTitleInput.value.trim()) {
                 displayError("O Título do Artigo é obrigatório.");
                 articleTitleInput.focus();
                 return;
             }
 
-            errorDisplay.style.display = 'none'; // Esconde erros anteriores
-            saveArticleBtn.disabled = true; // Desabilita o botão para evitar cliques múltiplos
+            errorDisplay.style.display = 'none';
+            saveArticleBtn.disabled = true;
 
             const articleData = {
-                userId: currentUser.uid, // ID do usuário logado (quem criou ou editou)
+                userId: currentUser.uid,
                 title: articleTitleInput.value.trim(),
                 description: articleDescriptionInput.value.trim(),
                 summary: articleSummaryInput.value.trim(),
@@ -273,74 +316,134 @@
                 methodology: articleMethodologyInput.value.trim(),
                 discussion: articleDiscussionInput.value.trim(),
                 conclusion: articleConclusionInput.value.trim(),
-                // Transforma a string de fontes em um array, removendo vazios
                 sources: articleSourcesInput.value.split(',').map(s => s.trim()).filter(s => s),
-                // timestamp: firebase.firestore.FieldValue.serverTimestamp(), // Definido apenas na criação
-                lastModified: firebase.firestore.FieldValue.serverTimestamp() // Sempre atualizado na modificação
+                lastModified: firebase.firestore.FieldValue.serverTimestamp()
             };
 
             try {
-                // *** MODIFICAÇÃO AQUI: Mude o caminho da coleção para 'articlesdoc' ***
                 const articlesCollectionRef = firestore.collection('articlesdoc');
 
                 if (currentArticleId) {
-                    // Atualizar artigo existente
-                    // Note: As regras de segurança devem garantir que apenas admins podem fazer isso.
                     await articlesCollectionRef.doc(currentArticleId).update(articleData);
                     alert("Artigo atualizado com sucesso!");
-                    // *** MODIFICAÇÃO AQUI: Atualize a mensagem de log ***
                     console.log("Artigo atualizado na coleção 'articlesdoc':", currentArticleId);
                 } else {
-                    // Criar novo artigo
-                    // Note: As regras de segurança devem garantir que apenas usuários logados podem fazer isso.
-                    articleData.timestamp = firebase.firestore.FieldValue.serverTimestamp(); // Adiciona timestamp na criação
+                    articleData.timestamp = firebase.firestore.FieldValue.serverTimestamp();
                     const newDocRef = await articlesCollectionRef.add(articleData);
-                    currentArticleId = newDocRef.id; // Define o ID para futuras edições sem recarregar
+                    currentArticleId = newDocRef.id;
                     alert("Artigo adicionado com sucesso! ID: " + newDocRef.id);
-                     // *** MODIFICAÇÃO AQUI: Atualize a mensagem de log ***
                     console.log("Novo artigo adicionado na coleção 'articlesdoc' com ID:", newDocRef.id);
-                    formTitle.textContent = 'Editar Artigo'; // Muda o título para edição
-                    // Opcional: Limpar o formulário ou manter os dados para continuar editando?
-                    // Se quiser limpar, adicione articleForm.reset(); aqui.
+                    formTitle.textContent = 'Editar Artigo';
                 }
 
-                // Redirecionar de volta para a lista de artigos ou fechar o editor
-                // Se estiver em um iframe, envia mensagem para a janela pai
                 if (window.parent !== window && window.parent.postMessage) {
-                    // Assumindo que a página pai tem um listener para 'refreshArticlesList'
                     window.parent.postMessage({ type: 'refreshArticlesList' }, window.location.origin);
                 } else {
-                    // Fallback para ambiente de desenvolvimento fora do iframe
                     alert("Artigo salvo! (Em ambiente de desenvolvimento sem iframe)");
-                    // Opcional: Redirecionar para a página de listagem
-                    // window.location.href = './gerenciar-artigos.html'; // Ajuste o caminho se necessário
                 }
 
             } catch (error) {
                 displayError("Erro ao salvar artigo: " + error.message);
-                 // *** MODIFICAÇÃO AQUI: Atualize a mensagem de erro no console ***
                 console.error("Erro ao salvar artigo na coleção 'articlesdoc':", error);
             } finally {
-                saveArticleBtn.disabled = false; // Reabilita o botão
+                saveArticleBtn.disabled = false;
+            }
+        }
+
+        // --- Nova Função para Cadastrar Professor ---
+        async function saveTeacher(event) {
+            event.preventDefault();
+
+            if (!currentUser) {
+                displayError("Você precisa estar logado para cadastrar um professor.", teacherErrorDisplay);
+                return;
+            }
+
+            const name = teacherNameInput.value.trim();
+            const email = teacherEmailInput.value.trim();
+            const password = teacherPasswordInput.value.trim(); // Senha para o Firebase Auth
+            const subpassword = teacherSubpasswordInput.value.trim(); // Subsenha para o Firestore
+
+            if (!name || !email || !password) {
+                displayError("Nome, E-mail e Senha para Login do Professor são obrigatórios.", teacherErrorDisplay);
+                return;
+            }
+
+            teacherErrorDisplay.style.display = 'none';
+            saveTeacherBtn.disabled = true;
+
+            try {
+                // 1. Criar usuário no Firebase Authentication
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                const uid = userCredential.user.uid;
+                console.log("Usuário de autenticação criado:", uid);
+
+                // 2. Salvar dados do professor no Firestore na coleção 'useteacher'
+                const teacherData = {
+                    uid: uid, // UID do Firebase Auth
+                    name: name,
+                    email: email,
+                    // Não armazene a senha de login aqui no Firestore, a não ser que seja um hash seguro.
+                    // A 'subpassword' pode ser armazenada se for um código secundário.
+                    subpassword: subpassword, // Armazenando a subsenha conforme solicitado
+                    role: 'teacher', // Define o papel do usuário
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                // O nome da coleção é 'useteacher' (corrigido de 'usetetcher')
+                await firestore.collection('useteacher').doc(uid).set(teacherData);
+                console.log("Dados do professor salvos no Firestore com UID:", uid);
+
+                alert("Professor cadastrado com sucesso! E-mail: " + email);
+                teacherForm.reset(); // Limpa o formulário após o sucesso
+
+                // Atualiza o MDL para limpar os campos
+                if (window.componentHandler) {
+                    teacherForm.querySelectorAll('.mdl-textfield').forEach(textfield => {
+                        if (textfield.MaterialTextfield) {
+                            textfield.MaterialTextfield.checkDirty();
+                            textfield.MaterialTextfield.checkValidity();
+                            textfield.MaterialTextfield.change(); // Força a atualização do estado
+                        }
+                    });
+                }
+
+            } catch (error) {
+                displayError("Erro ao cadastrar professor: " + error.message, teacherErrorDisplay);
+                console.error("Erro ao cadastrar professor:", error);
+            } finally {
+                saveTeacherBtn.disabled = false;
             }
         }
 
         // --- Event Listeners ---
         document.addEventListener('DOMContentLoaded', () => {
             articleForm.addEventListener('submit', saveArticle);
+            teacherForm.addEventListener('submit', saveTeacher); // Novo listener para o formulário do professor
 
             cancelBtn.addEventListener('click', () => {
-                // Lógica para cancelar e voltar
-                 if (window.parent !== window && window.parent.postMessage) {
-                     // Assumindo que a página pai tem um listener para 'refreshArticlesList' ou similar para voltar
-                     window.parent.postMessage({ type: 'refreshArticlesList' }, window.location.origin);
-                 } else {
-                    // Fallback para ambiente de desenvolvimento fora do iframe
-                     window.history.back(); // Volta na história do navegador
-                 }
+                if (window.parent !== window && window.parent.postMessage) {
+                    window.parent.postMessage({ type: 'refreshArticlesList' }, window.location.origin);
+                } else {
+                    window.history.back();
+                }
             });
 
-            // Garante que todos os componentes MDL na página sejam inicializados
+            clearTeacherBtn.addEventListener('click', () => {
+                teacherForm.reset();
+                teacherErrorDisplay.style.display = 'none'; // Esconde erros ao limpar
+                 // Atualiza o MDL para limpar os campos
+                 if (window.componentHandler) {
+                    teacherForm.querySelectorAll('.mdl-textfield').forEach(textfield => {
+                        if (textfield.MaterialTextfield) {
+                            textfield.MaterialTextfield.checkDirty();
+                            textfield.MaterialTextfield.checkValidity();
+                            textfield.MaterialTextfield.change(); // Força a atualização do estado
+                        }
+                    });
+                }
+            });
+
             if (window.componentHandler) {
                 window.componentHandler.upgradeDom();
             }
