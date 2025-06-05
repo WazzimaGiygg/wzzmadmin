@@ -70,6 +70,9 @@
             background-color: #FFC107; /* Amarelo */
             color: #333;
         }
+        .user-status.banned {
+            background-color: #f44336; /* Vermelho */
+        }
         .modal {
             display: none; /* Hidden by default */
             position: fixed; /* Stay in place */
@@ -124,7 +127,7 @@
             <h2 class="mdl-card__title-text">Gerenciar Usuários</h2>
         </div>
         <div class="mdl-card__supporting-text">
-            <p>Visualize e gerencie os perfis de usuários cadastrados, alterando suas permissões.</p>
+            <p>Visualize e gerencie os perfis de usuários cadastrados, alterando suas permissões e status de banimento.</p>
 
             <div class="mdl-textfield mdl-js-textfield mdl-textfield--expandable mdl-textfield--floating-label mdl-textfield--align-right">
                 <label class="mdl-button mdl-js-button mdl-button--icon" for="search-user">
@@ -132,7 +135,7 @@
                 </label>
                 <div class="mdl-textfield__expandable-holder">
                     <input class="mdl-textfield__input" type="text" id="search-user" onkeyup="filterUsers()">
-                    <label class="mdl-textfield__label" for="search-user">Buscar usuário por nome ou e-mail</label>
+                    <label class="mdl-textfield__label" for="search-user">Buscar usuário por nome, e-mail ou UID</label>
                 </div>
             </div>
 
@@ -141,13 +144,13 @@
                     <tr>
                         <th>Nome</th>
                         <th>E-mail</th>
-                        <th>Último Login</th>
+                        <th>UID Google</th> <th>Último Login</th>
                         <th>Status</th>
                         <th>Ações</th>
                     </tr>
                 </thead>
                 <tbody id="users-table-body">
-                    <tr><td colspan="5">Carregando usuários...</td></tr>
+                    <tr><td colspan="6">Carregando usuários...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -167,9 +170,18 @@
                     <input class="mdl-textfield__input" type="email" id="edit-user-email" readonly>
                     <label class="mdl-textfield__label" for="edit-user-email">E-mail</label>
                 </div>
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input class="mdl-textfield__input" type="text" id="edit-user-google-uid" readonly>
+                    <label class="mdl-textfield__label" for="edit-user-google-uid">UID Google</label>
+                </div>
+
                 <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="edit-user-is-admin">
                     <input type="checkbox" id="edit-user-is-admin" class="mdl-switch__input">
                     <span class="mdl-switch__label">Administrador</span>
+                </label>
+                <br> <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="edit-user-is-ban">
+                    <input type="checkbox" id="edit-user-is-ban" class="mdl-switch__input">
+                    <span class="mdl-switch__label">Banido</span>
                 </label>
 
                 <div class="mdl-dialog__actions">
@@ -187,7 +199,7 @@
         // Função para carregar os usuários do Firebase Firestore
         async function loadUsers() {
             const usersTableBody = document.getElementById('users-table-body');
-            usersTableBody.innerHTML = '<tr><td colspan="5">Carregando usuários...</td></tr>'; // Mensagem de carregamento
+            usersTableBody.innerHTML = '<tr><td colspan="6">Carregando usuários...</td></tr>'; // Mensagem de carregamento
 
             try {
                 // Acessa o Firebase Firestore do documento pai (index.html)
@@ -198,12 +210,12 @@
                 usersTableBody.innerHTML = ''; // Limpa a mensagem de carregamento
 
                 if (usersSnapshot.empty) {
-                    usersTableBody.innerHTML = '<tr><td colspan="5">Nenhum usuário encontrado.</td></tr>';
+                    usersTableBody.innerHTML = '<tr><td colspan="6">Nenhum usuário encontrado.</td></tr>';
                     return;
                 }
 
                 usersSnapshot.forEach(doc => {
-                    const user = doc.data();
+                    const user = { uid: doc.id, ...doc.data() }; // Adiciona o UID do documento aos dados do usuário
                     allUsersData.push(user); // Adiciona ao array para filtro
                 });
 
@@ -211,7 +223,7 @@
 
             } catch (error) {
                 console.error("Erro ao carregar usuários:", error);
-                usersTableBody.innerHTML = '<tr><td colspan="5">Erro ao carregar usuários.</td></tr>';
+                usersTableBody.innerHTML = '<tr><td colspan="6">Erro ao carregar usuários.</td></tr>';
                 // Adapte o tratamento de erro conforme necessário
             }
         }
@@ -222,7 +234,7 @@
             usersTableBody.innerHTML = ''; // Limpa a tabela antes de preencher
 
             if (usersToDisplay.length === 0) {
-                usersTableBody.innerHTML = '<tr><td colspan="5">Nenhum usuário encontrado com os critérios de busca.</td></tr>';
+                usersTableBody.innerHTML = '<tr><td colspan="6">Nenhum usuário encontrado com os critérios de busca.</td></tr>';
                 return;
             }
 
@@ -231,12 +243,18 @@
 
                 row.insertCell().textContent = user.name || 'Nome Indisponível';
                 row.insertCell().textContent = user.email || 'E-mail Indisponível';
+                row.insertCell().textContent = user.uid || 'UID Indisponível'; // Exibe a UID do Google
+
                 row.insertCell().textContent = user.lastLoginAt ? new Date(user.lastLoginAt.toDate()).toLocaleString() : 'Nunca logou';
 
                 const statusCell = row.insertCell();
                 const statusSpan = document.createElement('span');
                 statusSpan.classList.add('user-status');
-                if (user.isAdmin) {
+
+                if (user.isBan) {
+                    statusSpan.classList.add('banned');
+                    statusSpan.textContent = 'Banido';
+                } else if (user.isAdmin) {
                     statusSpan.classList.add('admin');
                     statusSpan.textContent = 'Admin';
                 } else {
@@ -275,7 +293,8 @@
             const searchTerm = document.getElementById('search-user').value.toLowerCase();
             const filtered = allUsersData.filter(user =>
                 (user.name && user.name.toLowerCase().includes(searchTerm)) ||
-                (user.email && user.email.toLowerCase().includes(searchTerm))
+                (user.email && user.email.toLowerCase().includes(searchTerm)) ||
+                (user.uid && user.uid.toLowerCase().includes(searchTerm)) // Adiciona filtro por UID
             );
             displayUsers(filtered);
         }
@@ -285,22 +304,34 @@
         const editUserUid = document.getElementById('edit-user-uid');
         const editUserName = document.getElementById('edit-user-name');
         const editUserEmail = document.getElementById('edit-user-email');
+        const editUserGoogleUid = document.getElementById('edit-user-google-uid'); // Novo campo para UID do Google
         const editUserIsAdmin = document.getElementById('edit-user-is-admin');
+        const editUserIsBan = document.getElementById('edit-user-is-ban'); // Novo campo para isBan
 
         function openEditModal(user) {
             editUserUid.value = user.uid;
             editUserName.value = user.name || 'Nome Indisponível';
             editUserEmail.value = user.email || 'E-mail Indisponível';
+            editUserGoogleUid.value = user.uid || 'UID Indisponível'; // Preenche a UID do Google no modal
             editUserIsAdmin.checked = user.isAdmin === true; // Garante que é um booleano
+            editUserIsBan.checked = user.isBan === true; // Garante que é um booleano
 
-            // Atualiza o switch do MDL para refletir o estado do checkbox
+            // Atualiza os switches do MDL para refletir o estado dos checkboxes
             if (window.componentHandler) {
-                const switchElement = document.querySelector('#edit-user-is-admin').closest('.mdl-switch');
-                if (switchElement) {
+                const adminSwitchElement = document.querySelector('#edit-user-is-admin').closest('.mdl-switch');
+                if (adminSwitchElement) {
                     if (editUserIsAdmin.checked) {
-                        switchElement.classList.add('is-checked');
+                        adminSwitchElement.classList.add('is-checked');
                     } else {
-                        switchElement.classList.remove('is-checked');
+                        adminSwitchElement.classList.remove('is-checked');
+                    }
+                }
+                const banSwitchElement = document.querySelector('#edit-user-is-ban').closest('.mdl-switch');
+                if (banSwitchElement) {
+                    if (editUserIsBan.checked) {
+                        banSwitchElement.classList.add('is-checked');
+                    } else {
+                        banSwitchElement.classList.remove('is-checked');
                     }
                 }
                 window.componentHandler.upgradeDom(); // Re-processa MDL para campos de texto readonly
@@ -317,6 +348,7 @@
         async function saveUserChanges() {
             const uid = editUserUid.value;
             const isAdmin = editUserIsAdmin.checked;
+            const isBan = editUserIsBan.checked; // Pega o valor de isBan
 
             if (!uid) {
                 alert('UID do usuário não encontrado para salvar.');
@@ -326,9 +358,10 @@
             try {
                 const firestore = parent.firebase.firestore();
                 await firestore.collection('users').doc(uid).update({
-                    isAdmin: isAdmin
+                    isAdmin: isAdmin,
+                    isBan: isBan // Salva o status de banimento
                 });
-                alert('Permissões do usuário atualizadas com sucesso!');
+                alert('Permissões e status do usuário atualizados com sucesso!');
                 closeModal();
                 loadUsers(); // Recarrega a lista de usuários para mostrar a mudança
             } catch (error) {
