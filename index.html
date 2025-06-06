@@ -3,421 +3,588 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerenciar Usuários - WZZM Admin</title>
+    <title>WZZM Admin</title>
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
     <style>
         body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f5f5f5;
+            margin: 0;
+            background-color: #f5f5f5; /* Cor de fundo suave */
+        }
+        .container {
             padding: 20px;
+            max-width: 1200px; /* Limita a largura do conteúdo */
+            margin: auto; /* Centraliza o conteúdo */
+        }
+        .mdl-layout__content {
+            padding: 20px; /* Adiciona padding ao conteúdo principal do MDL */
+        }
+        h1, h2, h3 {
             color: #333;
+            margin-bottom: 15px;
         }
-        .mdl-card {
-            width: 100%;
-            max-width: 1200px;
-            margin: 20px auto;
+        p {
+            color: #555;
+            line-height: 1.6;
+        }
+        .section {
+            margin-bottom: 30px;
             padding: 20px;
-            box-sizing: border-box;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12);
         }
-        .mdl-card__title {
-            color: #fff;
-            background-color: #3f51b5;
-            padding: 16px;
-            font-size: 24px;
-            line-height: 1.2;
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
         }
-        .mdl-card__supporting-text {
-            padding: 40px;
+        /* Estilos para os botões MDL */
+        .mdl-button.mdl-button--raised {
+            height: auto; /* Permite que o botão se ajuste ao conteúdo */
+            padding: 15px 10px; /* Ajusta o padding para um visual maior */
+            white-space: normal; /* Permite que o texto quebre linha */
+            line-height: 1.4; /* Espaçamento da linha do texto */
+            text-align: center;
+            font-size: 1rem; /* Tamanho da fonte */
+        }
+
+        /* Estilos para o rodapé */
+        footer {
+            margin-top: 40px;
+            padding: 20px;
+            text-align: center;
+            color: #777;
+            background-color: #f0f0f0;
+            border-top: 1px solid #eee;
+        }
+        footer a {
+            color: #3f51b5; /* Cor do link do MDL */
+            text-decoration: none;
+        }
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Estilo para o banner */
+        .banner-container {
+            clear: both;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .banner-container img {
+            max-width: 100%;
+            height: auto;
+            border: 0;
+            display: block;
+            margin: 0 auto; /* Centraliza a imagem */
+        }
+        .mdl-layout__header-row #user-info {
+            color: white; /* Garante que o texto seja visível no cabeçalho */
+            margin-right: 16px;
+        }
+        .mdl-layout__drawer .mdl-navigation__link {
+            color: #424242; /* Cor padrão dos links do drawer */
+        }
+
+        /* Novos estilos para o conteúdo inserido */
+        .note {
+            background-color: #fff3cd;
+            border-left: 6px solid #ffeeba;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+            font-weight: bold;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 40px;
+            margin-bottom: 30px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
         }
         th, td {
-            padding: 12px;
-            border: 1px solid #ddd;
+            padding: 10px;
+            border: 1px solid #ccc;
             text-align: left;
-            vertical-align: middle; /* Alinha o conteúdo verticalmente */
+            vertical-align: top;
         }
         th {
-            background-color: #f0f0f0;
-            color: #444;
-            font-weight: bold;
-        }
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        .action-buttons button {
-            margin-right: 8px;
-        }
-        .user-status {
-            font-weight: bold;
-            padding: 4px 8px;
-            border-radius: 4px;
-            color: white;
-            display: inline-block;
-        }
-        .user-status.admin {
-            background-color: #4CAF50; /* Verde */
-        }
-        .user-status.regular {
-            background-color: #2196F3; /* Azul */
-        }
-        .user-status.pending {
-            background-color: #FFC107; /* Amarelo */
+            background-color: #e9ecef;
             color: #333;
         }
-        .user-status.banned {
-            background-color: #f44336; /* Vermelho */
+        .report {
+            background-color: #ffffff;
+            padding: 20px;
+            border-left: 5px solid #17a2b8;
+            margin-bottom: 30px;
         }
-        .modal {
-            display: none; /* Hidden by default */
-            position: fixed; /* Stay in place */
-            z-index: 1000; /* Sit on top */
-            left: 0;
-            top: 0;
-            width: 100%; /* Full width */
-            height: 100%; /* Full height */
-            overflow: auto; /* Enable scroll if needed */
-            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
-            padding-top: 60px;
+        /* Estilos para a mensagem de login */
+        #login-required {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.2em;
+            color: #555;
+            display: none; /* Inicialmente escondido, será mostrado pelo JS se não estiver logado */
         }
-        .modal-content {
-            background-color: #fefefe;
-            margin: 5% auto; /* 5% from the top and centered */
-            padding: 30px;
-            border: 1px solid #888;
-            width: 100%; /* Could be more or less, depending on screen size */
-            max-width: 500px;
-            border-radius: 2px;
-            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
-            position: relative;
-        }
-        .close-button {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-        }
-        .close-button:hover,
-        .close-button:focus {
-            color: black;
-            text-decoration: none;
+        #login-required button {
+            padding: 12px 25px;
+            font-size: 1em;
+            background-color: #4285f4; /* Cor do Google */
+            color: white;
+            border: none;
+            border-radius: 5px;
             cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.3s ease;
         }
-        .modal-content h3 {
-            margin-top: 0;
-            margin-bottom: 20px;
-            color: #3f51b5;
+        #login-required button:hover {
+            background-color: #357ae8;
         }
-        /* Ajuste para campos de texto no modal */
-        #editUserForm .mdl-textfield {
-            width: 100%; /* Faz com que os campos ocupem a largura total */
-            box-sizing: border-box; /* Inclui padding e borda na largura total */
+        /* Esconde o conteúdo principal quando não logado OU não admin */
+        #main-content-display {
+            display: none; /* Inicialmente escondido, será mostrado pelo JS se estiver logado E for admin */
         }
-        #editUserForm .mdl-textfield__input {
-            width: 100%; /* Garante que o input também se expanda */
+        /* Mensagem de acesso negado para não-admins */
+        #access-denied-admin {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.2em;
+            color: #d32f2f; /* Cor de erro/alerta */
+            display: none;
         }
-        /* Fim do ajuste */
-        .mdl-dialog__actions {
-            display: flex;
-            justify-content: flex-end;
-            padding-top: 20px;
+
+        /* Estilos para o iframe */
+        #content-iframe {
+            width: 100%;
+            height: 800px; /* Ajuste a altura conforme necessário */
+            border: 1px solid #ccc;
+            background-color: #fff;
+            display: none; /* Escondido por padrão, mostrado quando um link é clicado */
         }
     </style>
 </head>
 <body>
-    <div class="mdl-card mdl-shadow--8dp">
-        <div class="mdl-card__title">
-            <h2 class="mdl-card__title-text">Gerenciar Usuários</h2>
-        </div>
-        <div class="mdl-card__supporting-text">
-            <p>Visualize e gerencie os perfis de usuários cadastrados, alterando suas permissões e status de banimento.</p>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-analytics-compat.js"></script>
+    <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
 
-            <div class="mdl-textfield mdl-js-textfield mdl-textfield--expandable mdl-textfield--floating-label mdl-textfield--align-right">
-                <label class="mdl-button mdl-js-button mdl-button--icon" for="search-user">
-                    <i class="material-icons">search</i>
-                </label>
-                <div class="mdl-textfield__expandable-holder">
-                    <input class="mdl-textfield__input" type="text" id="search-user" onkeyup="filterUsers()">
-                    <label class="mdl-textfield__label" for="search-user">Buscar usuário por nome, e-mail ou UID</label>
+    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+        <header class="mdl-layout__header">
+            <div class="mdl-layout__header-row">
+                <span class="mdl-layout-title">WZZM Admin</span>
+                <div class="mdl-layout-spacer"></div>
+                <div id="user-info" class="mdl-typography--body-1-force-preferred-font-color-contrast"></div>
+                <button id="login-google" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" style="display: none;">
+                    <i class="material-icons">account_circle</i> Login com Google
+                </button>
+                <button id="logout-button" class="mdl-button mdl-js-button mdl-button--accent" style="display: none;">
+                    <i class="material-icons">exit_to_app</i> Sair
+                </button>
+            </div>
+        </header>
+
+        <div class="mdl-layout__drawer">
+            <span class="mdl-layout-title">Menu Principal</span>
+            <nav class="mdl-navigation" id="main-navigation">
+                <a class="mdl-navigation__link" href="./index.html" data-target-iframe="false">Página Inicial</a>
+                <a class="mdl-navigation__link" href="./admintools/editordeartigos.html" data-target-iframe="true">Adicionar Artigo</a>
+                <a class="mdl-navigation__link" href="./register-material.html" data-target-iframe="true">Registrar Matéria</a>
+                <a class="mdl-navigation__link" href="conhecawazzimagiygg.html" data-target-iframe="true">Conheça WazzimaGiygg</a>
+                <a class="mdl-navigation__link" href="./admintools/cadastrarprofessor.html" data-target-iframe="true">Cadastrar Professor</a> 
+                <a class="mdl-navigation__link" href="./admintools/adicionarouremoverartigos.html" data-target-iframe="true">Adicionar e Remover Artigos</a> 
+                <a class="mdl-navigation__link" href="./admintools/editorfirebase.html" data-target-iframe="true">Editor Firebase</a> 
+            </nav>
+        </div>
+
+        <main class="mdl-layout__content">
+            <div id="login-required" class="container section">
+                <h2>Acesso Restrito</h2>
+                <p>Para acessar o painel de administração, por favor, faça login com sua conta Google.</p>
+                <button id="google-sign-in-button-main" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                    <i class="material-icons">account_circle</i> Entrar com Google
+                </button>
+                <p id="login-status-message" style="margin-top: 10px;"></p>
+            </div>
+
+            <div id="access-denied-admin" class="container section">
+                <h2>Acesso Negado</h2>
+                <p>Você não tem permissão para acessar esta área. Somente administradores podem visualizar este conteúdo.</p>
+                <p>Se você acredita que isso é um erro, entre em contato com o suporte.</p>
+            </div>
+
+            <div id="main-content-display" class="container">
+                <div class="banner-container">
+                    <a href="https://wzzm.org" target="_blank" rel="noopener noreferrer">
+                        <img src="/images/wzzm-banner.gif" alt="WZZM Banner">
+                    </a>
+                </div>
+
+                <h1>Painel Administrativo WZZM</h1>
+                <p>Bem-vindo(a) ao painel de administração da WZZM. Aqui você pode gerenciar conteúdos, relatórios e configurações do site.</p>
+
+                <div class="note">
+                    <p><strong>Atenção:</strong> Esta é uma área restrita. Qualquer modificação aqui impacta diretamente o site principal.</p>
+                </div>
+
+                <div class="section">
+                    <h2>Resumo Administrativo</h2>
+                    <p>Visão geral rápida das atividades recentes.</p>
+                    <div class="grid">
+                        <a class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
+                           href="./admintools/gerenciar-artigos.html" data-target-iframe="true">
+                            <i class="material-icons">article</i> Gerenciar Artigos
+                        </a>
+                        <a class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
+                           href="./admintools/gerenciar-usuarios.html" data-target-iframe="true">
+                            <i class="material-icons">person_add</i> Gerenciar Usuários
+                        </a>
+                        <a class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
+                           href="./admintools/configuracoes.html" data-target-iframe="true">
+                            <i class="material-icons">build</i> Configurações do Site
+                        </a>
+                        <a class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
+                           href="./admintools/estatisticas.html" data-target-iframe="true">
+                            <i class="material-icons">show_chart</i> Ver Estatísticas
+                        </a>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>Atividade Recente</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Hora</th>
+                                <th>Descrição da Atividade</th>
+                                <th>Detalhes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>24/05/2025</td>
+                                <td>10:30</td>
+                                <td>Relatório de Desempenho do Site</td>
+                                <td><a href="/relatorios/24_05_2025/" data-target-iframe="true">Ver relatório completo</a></td>
+                            </tr>
+                            <tr>
+                                <td>23/05/2025</td>
+                                <td>14:00</td>
+                                <td>Nova matéria adicionada: "Tecnologia na Educação"</td>
+                                <td>Verificar detalhes em: <a href="/relatorios/23_05_2025/" data-target-iframe="true">admin.wzzm.org/relatorios/23_05_2025/</a></td>
+                            </tr>
+                            <tr>
+                                <td>22/05/2025</td>
+                                <td>09:15</td>
+                                <td>Atualização de segurança aplicada</td>
+                                <td>Verificar detalhes em: <a href="/relatorios/22_05_2025/" data-target-iframe="true">admin.wzzm.org/relatorios/22_05_2025/</a></td>
+                            </tr>
+                            <tr>
+                                <td>21/05/2025</td>
+                                <td>15:47</td>
+                                <td>Modernização do site escolar.wzzm.org</td>
+                                <td>
+                                    UP90[2005-2025] Série EX8<br>
+                                    <a href="https://escolar.wzzm.org/" target="_blank" rel="noopener noreferrer">https://escolar.wzzm.org/</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>Nome</th>
-                        <th>E-mail</th>
-                        <th>UID</th>
-                        <th>Último Login</th>
-                        <th>Status</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="users-table-body">
-                    <tr><td colspan="6">Carregando usuários...</td></tr>
-                </tbody>
-            </table>
-        </div>
+            <iframe id="content-iframe"></iframe>
+
+            <footer class="mdl-mini-footer">
+                <div class="mdl-mini-footer__left-section">
+                    <div class="mdl-logo">WZZM Escolar © 2025</div>
+                    <ul class="mdl-mini-footer__link-list">
+                        <li class="mdl-navigation__link"><a href="./Privacidade/" data-target-iframe="true">Privacidade</a></li>
+                        <li class="mdl-navigation__link"><a href="./Termos/" data-target-iframe="true">Termos</a></li>
+                    </ul>
+                </div>
+                <div class="mdl-mini-footer__right-section">
+                    <p>Feito com auxílio do site: <a href="https://html-online.com/" target="_blank" rel="noopener noreferrer">html-online.com</a></p>
+                    <p>Editor: Collei "Grigori" Ludwig</p>
+                    <p style="text-align: center;">Site administrador pela <a href="http://wzzm.org" target="_blank" rel="noopener noreferrer">Wiki Zone Zero Mod</a></p>
+                </div>
+            </footer>
+        </main>
     </div>
 
-    <div id="editUserModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button" onclick="closeModal()">&times;</span>
-            <h3>Editar Usuário</h3>
-            <form id="editUserForm">
-                <input type="hidden" id="edit-user-uid">
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    <input class="mdl-textfield__input" type="text" id="edit-user-name" readonly>
-                    <label class="mdl-textfield__label" for="edit-user-name">Nome</label>
-                </div>
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    <input class="mdl-textfield__input" type="email" id="edit-user-email" readonly>
-                    <label class="mdl-textfield__label" for="edit-user-email">E-mail</label>
-                </div>
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    <input class="mdl-textfield__input" type="text" id="edit-user-display-uid" readonly>
-                    <label class="mdl-textfield__label" for="edit-user-display-uid">UID do Usuário</label>
-                </div>
-
-                <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="edit-user-is-admin">
-                    <input type="checkbox" id="edit-user-is-admin" class="mdl-switch__input">
-                    <span class="mdl-switch__label">Administrador</span>
-                </label>
-                <br>
-                <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="edit-user-is-ban">
-                    <input type="checkbox" id="edit-user-is-ban" class="mdl-switch__input">
-                    <span class="mdl-switch__label">Banido</span>
-                </label>
-
-                <div class="mdl-dialog__actions">
-                    <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" onclick="saveUserChanges()">Salvar</button>
-                    <button type="button" class="mdl-button mdl-js-button" onclick="closeModal()">Cancelar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
     <script>
-        let allUsersData = []; // Para armazenar todos os usuários e facilitar a busca/filtro
+        // --- Configuração do Firebase ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0", // SUAS CREDENCIAIS DO FIREBASE AQUI
+            authDomain: "wzzm-ce3fc.firebaseapp.com",
+            projectId: "wzzm-ce3fc",
+            storageBucket: "wzzm-ce3fc.appspot.com",
+            messagingSenderId: "249427877153",
+            appId: "1:249427877153:web:0e4297294794a5aadeb260",
+            measurementId: "G-PLKNZNFCQ8"
+        };
 
-        // Função para carregar os usuários do Firebase Firestore
-        async function loadUsers() {
-            const usersTableBody = document.getElementById('users-table-body');
-            usersTableBody.innerHTML = '<tr><td colspan="6">Carregando usuários...</td></tr>'; // Mensagem de carregamento
+        // Inicialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const firestore = firebase.firestore();
 
-            try {
-                // Acessa o Firebase Firestore do documento pai (index.html)
-                // É crucial que a página pai inicialize o Firebase corretamente.
-                const firestore = parent.firebase.firestore(); 
-                const usersSnapshot = await firestore.collection('users').orderBy('name').get(); // Ordena por nome
+        // Elementos da UI
+        const loginGoogleButton = document.getElementById('login-google');
+        const logoutButton = document.getElementById('logout-button');
+        const userInfo = document.getElementById('user-info');
 
-                allUsersData = []; // Limpa os dados anteriores
-                usersTableBody.innerHTML = ''; // Limpa a mensagem de carregamento
+        const loginRequiredDiv = document.getElementById('login-required');
+        const mainContentDisplay = document.getElementById('main-content-display');
+        const googleSignInButtonMain = document.getElementById('google-sign-in-button-main');
+        const loginStatusMessage = document.getElementById('login-status-message');
+        const accessDeniedAdminMessage = document.getElementById('access-denied-admin');
 
-                if (usersSnapshot.empty) {
-                    usersTableBody.innerHTML = '<tr><td colspan="6">Nenhum usuário encontrado.</td></tr>';
-                    return;
+        const contentIframe = document.getElementById('content-iframe');
+
+        // --- Função para criar/atualizar o perfil do usuário no Firestore ---
+        async function createUserProfileDocument(user) {
+            if (!user) return;
+
+            const userRef = firestore.collection('users').doc(user.uid);
+            const docSnapshot = await userRef.get();
+
+            if (!docSnapshot.exists) {
+                const { displayName, email, photoURL } = user;
+                const createdAt = firebase.firestore.FieldValue.serverTimestamp();
+
+                try {
+                    await userRef.set({
+                        uid: user.uid,
+                        name: displayName,
+                        email: email,
+                        profilePictureUrl: photoURL,
+                        createdAt: createdAt,
+                        lastLoginAt: createdAt,
+                        isAdmin: false // Define isAdmin como false por padrão para novos usuários
+                    });
+                    console.log("Novo perfil de usuário criado no Firestore!");
+                } catch (error) {
+                    console.error("Erro ao criar perfil de usuário no Firestore:", error);
                 }
-
-                usersSnapshot.forEach(doc => {
-                    const user = { uid: doc.id, ...doc.data() }; // Adiciona o UID do documento aos dados do usuário
-                    allUsersData.push(user); // Adiciona ao array para filtro
-                });
-
-                displayUsers(allUsersData); // Exibe todos os usuários inicialmente
-            } catch (error) {
-                console.error("Erro ao carregar usuários:", error);
-                usersTableBody.innerHTML = '<tr><td colspan="6">Erro ao carregar usuários. Verifique as regras de segurança do Firestore e a inicialização do Firebase na página pai.</td></tr>';
-                // Adapte o tratamento de erro conforme necessário
+            } else {
+                try {
+                    await userRef.update({
+                        lastLoginAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    console.log("Perfil de usuário atualizado no Firestore (lastLoginAt).");
+                } catch (error) {
+                    console.error("Erro ao atualizar perfil de usuário no Firestore:", error);
+                }
             }
         }
 
-        // Função para exibir os usuários na tabela (pode ser filtrada)
-        function displayUsers(usersToDisplay) {
-            const usersTableBody = document.getElementById('users-table-body');
-            usersTableBody.innerHTML = ''; // Limpa a tabela antes de preencher
+        // Listener de estado de autenticação (Firebase)
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                // Usuário logado
+                userInfo.textContent = `Olá, ${user.displayName || user.email}!`;
+                loginGoogleButton.style.display = 'none';
+                logoutButton.style.display = 'inline-block';
 
-            if (usersToDisplay.length === 0) {
-                usersTableBody.innerHTML = '<tr><td colspan="6">Nenhum usuário encontrado com os critérios de busca.</td></tr>';
-                return;
+                await createUserProfileDocument(user);
+
+                // --- VERIFICAR PERMISSÃO DE ADMINISTRADOR ---
+                try {
+                    const userProfileRef = firestore.collection('users').doc(user.uid);
+                    const doc = await userProfileRef.get();
+                    if (doc.exists && doc.data() && doc.data().isAdmin === true) {
+                        // É administrador: mostra o conteúdo principal, esconde mensagens de login/acesso negado
+                        loginRequiredDiv.style.display = 'none';
+                        accessDeniedAdminMessage.style.display = 'none';
+                        mainContentDisplay.style.display = 'block';
+                        contentIframe.style.display = 'none'; // Garante que o iframe esteja escondido por padrão
+                    } else {
+                        // Não é administrador: esconde o conteúdo principal, mostra mensagem de acesso negado
+                        loginRequiredDiv.style.display = 'none';
+                        mainContentDisplay.style.display = 'none';
+                        contentIframe.style.display = 'none';
+                        G
+                        accessDeniedAdminMessage.style.display = 'block';
+                        userInfo.textContent = `Olá, ${user.displayName || user.email} (Não Admin)!`;
+                    }
+                } catch (error) {
+                    console.error("Erro ao verificar permissões de administrador:", error);
+                    loginRequiredDiv.style.display = 'none';
+                    mainContentDisplay.style.display = 'none';
+                    contentIframe.style.display = 'none';
+                    accessDeniedAdminMessage.style.display = 'block';
+                    userInfo.textContent = `Olá, ${user.displayName || user.email} (Erro na verificação)!`;
+                }
+
+            } else {
+                // Usuário não logado
+                userInfo.textContent = '';
+                loginGoogleButton.style.display = 'inline-block';
+                logoutButton.style.display = 'none';
+
+                // Esconde o conteúdo principal e mostra a mensagem de login
+                loginRequiredDiv.style.display = 'block';
+                mainContentDisplay.style.display = 'none';
+                contentIframe.style.display = 'none';
+                accessDeniedAdminMessage.style.display = 'none';
+            }
+        });
+
+        // Login Google (para o botão no cabeçalho)
+        loginGoogleButton.addEventListener('click', async () => {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            try {
+                await auth.signInWithPopup(provider);
+            } catch (error) {
+                console.error("Erro ao fazer login com Google:", error);
+                alert(`Erro ao fazer login com Google: ${error.message}`);
+            }
+        });
+
+        // Login Google (para o botão na área de conteúdo restrito)
+        if (googleSignInButtonMain) {
+            googleSignInButtonMain.addEventListener('click', async () => {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                loginStatusMessage.textContent = 'Redirecionando para a página de login do Google...';
+                try {
+                    await auth.signInWithRedirect(provider);
+                } catch (error) {
+                    console.error("Erro ao iniciar login com Google:", error);
+                    loginStatusMessage.textContent = `Erro ao fazer login: ${error.message}`;
+                }
+            });
+        }
+
+
+        // Lidar com o resultado do signInWithRedirect (quando o usuário retorna da página de login)
+        auth.getRedirectResult().then(async (result) => {
+            if (result.user) {
+                console.log("Login com sucesso após redirecionamento!");
+            } else {
+                console.log("Nenhum usuário retornado do redirecionamento (possivelmente cancelado ou sem operação).");
+            }
+        }).catch((error) => {
+            console.error("Erro ao obter resultado do redirecionamento:", error);
+            if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+                loginStatusMessage.textContent = 'Login cancelado pelo usuário.';
+            } else if (error.code === 'auth/account-exists-with-different-credential') {
+                loginStatusMessage.textContent = 'Uma conta já existe com este e-mail usando outra forma de login. Tente fazer login com o método original.';
+            } else if (error.code === 'auth/operation-not-allowed') {
+                loginStatusMessage.textContent = 'Login com Google não está habilitado no Firebase. Verifique suas configurações.';
+            } else {
+                loginStatusMessage.textContent = `Falha no login: ${error.message}`;
+            }
+        });
+
+        // Logout
+        logoutButton.addEventListener('click', () => {
+            auth.signOut().then(() => {
+                console.log("Usuário deslogado.");
+            }).catch((error) => {
+                console.error("Erro ao fazer logout:", error);
+                alert(`Erro ao fazer logout: ${error.message}`);
+            });
+        });
+
+        // --- Lógica para abrir links no iframe ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Garante que o MDL esteja pronto para processar os componentes
+            if (window.componentHandler) {
+                window.componentHandler.upgradeDom();
             }
 
-            usersToDisplay.forEach(user => {
-                const row = usersTableBody.insertRow();
+            // Seleciona todos os links que devem abrir no iframe
+            const iframeLinks = document.querySelectorAll('a[data-target-iframe="true"]');
 
-                row.insertCell().textContent = user.name || 'Nome Indisponível';
-                row.insertCell().textContent = user.email || 'E-mail Indisponível';
-                row.insertCell().textContent = user.uid || 'UID Indisponível'; // Exibe a UID
-                row.insertCell().textContent = user.lastLoginAt ? new Date(user.lastLoginAt.toDate()).toLocaleString() : 'Nunca logou';
+            iframeLinks.forEach(link => {
+                link.addEventListener('click', function(event) {
+                    event.preventDefault(); // Impede o comportamento padrão do link
 
-                const statusCell = row.insertCell();
-                const statusSpan = document.createElement('span');
-                statusSpan.classList.add('user-status');
+                    const url = this.href; // Obtém a URL do link clicado
 
-                if (user.isBan) {
-                    statusSpan.classList.add('banned');
-                    statusSpan.textContent = 'Banido';
-                } else if (user.isAdmin) {
-                    statusSpan.classList.add('admin');
-                    statusSpan.textContent = 'Admin';
-                } else {
-                    statusSpan.classList.add('regular');
-                    statusSpan.textContent = 'Normal';
-                }
-                statusCell.appendChild(statusSpan);
+                    // Esconde o conteúdo principal da página e mostra o iframe
+                    if (mainContentDisplay) {
+                        mainContentDisplay.style.display = 'none';
+                    }
+                    if (loginRequiredDiv) { // Certifica-se de esconder a tela de login se ela estiver visível
+                        loginRequiredDiv.style.display = 'none';
+                    }
+                    if (accessDeniedAdminMessage) { // Esconde a mensagem de acesso negado
+                        accessDeniedAdminMessage.style.display = 'none';
+                    }
 
-                const actionsCell = row.insertCell();
-                const editButton = document.createElement('button');
-                editButton.classList.add('mdl-button', 'mdl-js-button', 'mdl-button--icon', 'mdl-js-ripple-effect');
-                editButton.innerHTML = '<i class="material-icons">edit</i>';
-                editButton.title = 'Editar Permissões';
-                editButton.onclick = () => openEditModal(user);
-                actionsCell.appendChild(editButton);
 
-                // Botão para deletar usuário (opcional, requer regras de segurança e confirmação)
-                // Com as regras atuais, apenas um Admin poderia deletar o documento no Firestore
-                // Mas, para deletar o usuário do AUTHENTICATION, uma Cloud Function é necessária.
-                /*
-                const deleteButton = document.createElement('button');
-                deleteButton.classList.add('mdl-button', 'mdl-js-button', 'mdl-button--icon', 'mdl-js-ripple-effect', 'mdl-color-text--red');
-                deleteButton.innerHTML = '<i class="material-icons">delete</i>';
-                deleteButton.title = 'Deletar Usuário';
-                deleteButton.onclick = () => confirmAndDeleteUser(user.uid, user.email);
-                actionsCell.appendChild(deleteButton);
-                */
+                    if (contentIframe) {
+                        contentIframe.style.display = 'block'; // Mostra o iframe
+                        contentIframe.src = url; // Define a URL do iframe
+                    } else {
+                        console.error("Iframe com ID 'content-iframe' não encontrado.");
+                        window.open(url, '_self'); // Fallback: abre o link na mesma janela
+                    }
+
+                    // Fechar o drawer do MDL se estiver aberto
+                    const layout = document.querySelector('.mdl-layout');
+                    if (layout && layout.MaterialLayout && layout.MaterialLayout.drawer_ && layout.MaterialLayout.drawer_.classList.contains('is-visible')) {
+                        layout.MaterialLayout.toggleDrawer();
+                    }
+                });
             });
 
-            // Atualiza os componentes MDL após adicionar linhas dinamicamente
-            if (window.componentHandler) {
-                window.componentHandler.upgradeDom();
-            }
-        }
-
-        // Função para filtrar usuários
-        function filterUsers() {
-            const searchTerm = document.getElementById('search-user').value.toLowerCase();
-            const filtered = allUsersData.filter(user =>
-                (user.name && user.name.toLowerCase().includes(searchTerm)) ||
-                (user.email && user.email.toLowerCase().includes(searchTerm)) ||
-                (user.uid && user.uid.toLowerCase().includes(searchTerm)) // Adiciona filtro por UID
-            );
-            displayUsers(filtered);
-        }
-
-        // --- Lógica do Modal de Edição ---
-        const editUserModal = document.getElementById('editUserModal');
-        const editUserUid = document.getElementById('edit-user-uid');
-        const editUserName = document.getElementById('edit-user-name');
-        const editUserEmail = document.getElementById('edit-user-email');
-        const editUserDisplayUid = document.getElementById('edit-user-display-uid');
-        const editUserIsAdmin = document.getElementById('edit-user-is-admin');
-        const editUserIsBan = document.getElementById('edit-user-is-ban');
-
-        function openEditModal(user) {
-            editUserUid.value = user.uid;
-            editUserName.value = user.name || 'Nome Indisponível';
-            editUserEmail.value = user.email || 'E-mail Indisponível';
-            editUserDisplayUid.value = user.uid || 'UID Indisponível';
-            editUserIsAdmin.checked = user.isAdmin === true; // Garante que é um booleano
-            editUserIsBan.checked = user.isBan === true; // Garante que é um booleano
-
-            // Atualiza os switches do MDL para refletir o estado dos checkboxes
-            if (window.componentHandler) {
-                const updateSwitchState = (checkboxId, isChecked) => {
-                    const checkboxElement = document.getElementById(checkboxId);
-                    const switchElement = checkboxElement.closest('.mdl-switch');
-                    if (switchElement) {
-                        if (isChecked) {
-                            switchElement.classList.add('is-checked');
-                        } else {
-                            switchElement.classList.remove('is-checked');
+            // Lógica para quando o usuário clicar no "Página Inicial" no menu lateral
+            const homeLink = document.querySelector('.mdl-navigation__link[href="./index.html"]');
+            if (homeLink) {
+                homeLink.addEventListener('click', function(event) {
+                    // Impede o comportamento padrão SOMENTE se o link não for destinado a abrir no iframe
+                    if (this.dataset.targetIframe !== 'true') {
+                        event.preventDefault();
+                        if (contentIframe) {
+                            contentIframe.style.display = 'none';
+                            contentIframe.src = 'about:blank'; // Limpa o iframe
+                        }
+                        // Re-evaluar qual conteúdo mostrar com base no estado de autenticação
+                        auth.onAuthStateChanged(user => {
+                            if (user) {
+                                firestore.collection('users').doc(user.uid).get().then(doc => {
+                                    if (doc.exists && doc.data() && doc.data().isAdmin === true) {
+                                        mainContentDisplay.style.display = 'block';
+                                        loginRequiredDiv.style.display = 'none';
+                                        accessDeniedAdminMessage.style.display = 'none';
+                                    } else {
+                                        mainContentDisplay.style.display = 'none';
+                                        loginRequiredDiv.style.display = 'none';
+                                        accessDeniedAdminMessage.style.display = 'block';
+                                    }
+                                }).catch(error => {
+                                    console.error("Erro ao verificar permissões ao voltar para Home:", error);
+                                    mainContentDisplay.style.display = 'none';
+                                    loginRequiredDiv.style.display = 'none';
+                                    accessDeniedAdminMessage.style.display = 'block';
+                                });
+                            } else {
+                                loginRequiredDiv.style.display = 'block';
+                                mainContentDisplay.style.display = 'none';
+                                accessDeniedAdminMessage.style.display = 'none';
+                            }
+                        });
+                        const layout = document.querySelector('.mdl-layout');
+                        if (layout && layout.MaterialLayout && layout.MaterialLayout.drawer_ && layout.MaterialLayout.drawer_.classList.contains('is-visible')) {
+                            layout.MaterialLayout.toggleDrawer();
                         }
                     }
+                });
+            }
+
+            // Opcional: Adicionar um listener para o iframe quando ele carrega (para fins de depuração)
+            if (contentIframe) {
+                contentIframe.onload = function() {
+                    console.log("Iframe carregado:", contentIframe.src);
                 };
-
-                updateSwitchState('edit-user-is-admin', editUserIsAdmin.checked);
-                updateSwitchState('edit-user-is-ban', editUserIsBan.checked);
-                
-                // Força o upgrade de todos os componentes MDL no DOM do modal
-                window.componentHandler.upgradeElements(editUserModal);
             }
-
-            editUserModal.style.display = 'block';
-        }
-
-        function closeModal() {
-            editUserModal.style.display = 'none';
-        }
-
-        // Salvar alterações do usuário
-        async function saveUserChanges() {
-            const uid = editUserUid.value;
-            const isAdmin = editUserIsAdmin.checked;
-            const isBan = editUserIsBan.checked;
-
-            if (!uid) {
-                alert('UID do usuário não encontrado para salvar.');
-                return;
-            }
-
-            try {
-                const firestore = parent.firebase.firestore();
-                
-                // Cria um objeto JavaScript puro com os dados a serem atualizados
-                // Esta é a parte crítica para resolver o erro "custom Object object"
-                const updateData = {
-                    isAdmin: isAdmin,
-                    isBan: isBan
-                };
-
-                await firestore.collection('users').doc(uid).update(updateData);
-
-                alert('Permissões e status do usuário atualizados com sucesso!');
-                closeModal();
-                loadUsers(); // Recarrega a lista de usuários para mostrar a mudança
-            } catch (error) {
-                console.error("Erro ao salvar alterações do usuário:", error);
-                alert(`Erro ao salvar alterações: ${error.message}`);
-            }
-        }
-
-        // Função para confirmar e deletar usuário (opcional e desabilitada por segurança)
-        /*
-        async function confirmAndDeleteUser(uid, email) {
-            if (confirm(`Tem certeza que deseja deletar o usuário ${email}? Esta ação é irreversível!`)) {
-                try {
-                    // Para deletar usuários do Authentication (Firebase Auth), você DEVE usar uma Cloud Function.
-                    // Não é seguro nem possível diretamente do lado do cliente por questões de segurança e permissões.
-                    // Exemplo de como chamaria uma Cloud Function (hipotética):
-                    // const deleteUserFunction = parent.firebase.functions().httpsCallable('deleteUser');
-                    // await deleteUserFunction({ uid: uid });
-
-                    // Para o Firestore, você pode deletar o documento do perfil:
-                    const firestore = parent.firebase.firestore();
-                    await firestore.collection('users').doc(uid).delete();
-                    alert('Usuário e seu perfil no Firestore deletados com sucesso!');
-                    loadUsers(); // Recarrega a lista
-                } catch (error) {
-                    console.error("Erro ao deletar usuário:", error);
-                    alert(`Erro ao deletar usuário: ${error.message}. Verifique as regras de segurança ou se o usuário está autenticado para esta operação.`);
-                }
-            }
-        }
-        */
-
-        // Chama a função para carregar os usuários quando a página for carregada
-        document.addEventListener('DOMContentLoaded', () => {
-            // Garante que todos os componentes MDL estáticos sejam atualizados na carga inicial
-            if (window.componentHandler) {
-                window.componentHandler.upgradeDom();
-            }
-            loadUsers();
         });
     </script>
 </body>
