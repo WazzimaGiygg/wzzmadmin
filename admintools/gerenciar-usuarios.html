@@ -180,7 +180,8 @@
                     <label class="mdl-textfield__label" for="edit-user-email">E-mail</label>
                 </div>
                 <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    <input class="mdl-textfield__input" type="text" id="edit-user-display-uid" readonly> <label class="mdl-textfield__label" for="edit-user-display-uid">UID do Usuário</label>
+                    <input class="mdl-textfield__input" type="text" id="edit-user-display-uid" readonly>
+                    <label class="mdl-textfield__label" for="edit-user-display-uid">UID do Usuário</label>
                 </div>
 
                 <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="edit-user-is-admin">
@@ -232,7 +233,7 @@
                 displayUsers(allUsersData); // Exibe todos os usuários inicialmente
             } catch (error) {
                 console.error("Erro ao carregar usuários:", error);
-                usersTableBody.innerHTML = '<tr><td colspan="6">Erro ao carregar usuários. Verifique as regras de segurança do Firestore.</td></tr>';
+                usersTableBody.innerHTML = '<tr><td colspan="6">Erro ao carregar usuários. Verifique as regras de segurança do Firestore e a inicialização do Firebase na página pai.</td></tr>';
                 // Adapte o tratamento de erro conforme necessário
             }
         }
@@ -314,21 +315,20 @@
         const editUserUid = document.getElementById('edit-user-uid');
         const editUserName = document.getElementById('edit-user-name');
         const editUserEmail = document.getElementById('edit-user-email');
-        const editUserDisplayUid = document.getElementById('edit-user-display-uid'); // Renomeado para evitar conflito
+        const editUserDisplayUid = document.getElementById('edit-user-display-uid');
         const editUserIsAdmin = document.getElementById('edit-user-is-admin');
-        const editUserIsBan = document.getElementById('edit-user-is-ban'); // Novo campo para isBan
+        const editUserIsBan = document.getElementById('edit-user-is-ban');
 
         function openEditModal(user) {
             editUserUid.value = user.uid;
             editUserName.value = user.name || 'Nome Indisponível';
             editUserEmail.value = user.email || 'E-mail Indisponível';
-            editUserDisplayUid.value = user.uid || 'UID Indisponível'; // Preenche a UID no modal
+            editUserDisplayUid.value = user.uid || 'UID Indisponível';
             editUserIsAdmin.checked = user.isAdmin === true; // Garante que é um booleano
             editUserIsBan.checked = user.isBan === true; // Garante que é um booleano
 
             // Atualiza os switches do MDL para refletir o estado dos checkboxes
             if (window.componentHandler) {
-                // Força a atualização do estado visual dos switches
                 const updateSwitchState = (checkboxId, isChecked) => {
                     const checkboxElement = document.getElementById(checkboxId);
                     const switchElement = checkboxElement.closest('.mdl-switch');
@@ -344,7 +344,8 @@
                 updateSwitchState('edit-user-is-admin', editUserIsAdmin.checked);
                 updateSwitchState('edit-user-is-ban', editUserIsBan.checked);
                 
-                window.componentHandler.upgradeDom(); // Re-processa MDL para campos de texto readonly
+                // Força o upgrade de todos os componentes MDL no DOM do modal
+                window.componentHandler.upgradeElements(editUserModal);
             }
 
             editUserModal.style.display = 'block';
@@ -358,7 +359,7 @@
         async function saveUserChanges() {
             const uid = editUserUid.value;
             const isAdmin = editUserIsAdmin.checked;
-            const isBan = editUserIsBan.checked; // Pega o valor de isBan
+            const isBan = editUserIsBan.checked;
 
             if (!uid) {
                 alert('UID do usuário não encontrado para salvar.');
@@ -368,13 +369,14 @@
             try {
                 const firestore = parent.firebase.firestore();
                 
-                // Crie um objeto JavaScript puro com os dados a serem atualizados
+                // Cria um objeto JavaScript puro com os dados a serem atualizados
+                // Esta é a parte crítica para resolver o erro "custom Object object"
                 const updateData = {
                     isAdmin: isAdmin,
                     isBan: isBan
                 };
 
-                await firestore.collection('users').doc(uid).update(updateData); // Use o objeto puro aqui
+                await firestore.collection('users').doc(uid).update(updateData);
 
                 alert('Permissões e status do usuário atualizados com sucesso!');
                 closeModal();
@@ -385,13 +387,13 @@
             }
         }
 
-        // Função para confirmar e deletar usuário (opcional)
+        // Função para confirmar e deletar usuário (opcional e desabilitada por segurança)
         /*
         async function confirmAndDeleteUser(uid, email) {
             if (confirm(`Tem certeza que deseja deletar o usuário ${email}? Esta ação é irreversível!`)) {
                 try {
-                    // Para deletar usuários do Authentication, você precisaria de uma Cloud Function no Firebase
-                    // pois não é possível deletar usuários do Authentication diretamente do cliente por questões de segurança.
+                    // Para deletar usuários do Authentication (Firebase Auth), você DEVE usar uma Cloud Function.
+                    // Não é seguro nem possível diretamente do lado do cliente por questões de segurança e permissões.
                     // Exemplo de como chamaria uma Cloud Function (hipotética):
                     // const deleteUserFunction = parent.firebase.functions().httpsCallable('deleteUser');
                     // await deleteUserFunction({ uid: uid });
@@ -411,6 +413,7 @@
 
         // Chama a função para carregar os usuários quando a página for carregada
         document.addEventListener('DOMContentLoaded', () => {
+            // Garante que todos os componentes MDL estáticos sejam atualizados na carga inicial
             if (window.componentHandler) {
                 window.componentHandler.upgradeDom();
             }
