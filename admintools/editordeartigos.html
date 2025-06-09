@@ -28,16 +28,16 @@
         }
         .mdl-textfield {
             width: 100%;
-            margin-bottom: 20px; /* Adiciona espaço entre os campos */
+            margin-bottom: 20px;
         }
         .mdl-textfield__input {
             width: 100%;
-            box-sizing: border-box; /* Garante que padding e border não aumentem a largura */
+            box-sizing: border-box;
         }
         textarea.mdl-textfield__input {
-            height: 120px; /* Altura padrão para textareas */
-            min-height: 80px; /* Altura mínima para textareas */
-            resize: vertical; /* Permite redimensionamento vertical */
+            height: 120px;
+            min-height: 80px;
+            resize: vertical;
         }
         .mdl-button {
             margin-right: 10px;
@@ -56,6 +56,20 @@
             margin-top: 20px;
             display: none;
         }
+        .info-message {
+            text-align: center;
+            padding: 15px;
+            color: #3f51b5;
+            background-color: #e8eaf6;
+            border: 1px solid #3f51b5;
+            border-radius: 5px;
+            margin-top: 20px;
+            display: none;
+        }
+        .form-disabled {
+            pointer-events: none; /* Disables interaction */
+            opacity: 0.6; /* Makes the form appear disabled */
+        }
     </style>
 </head>
 <body>
@@ -69,6 +83,7 @@
         <h1 id="form-title">Adicionar Novo Artigo</h1>
 
         <div id="error-display" class="error-message"></div>
+        <div id="info-display" class="info-message"></div>
 
         <form id="article-form">
             <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
@@ -153,10 +168,12 @@
 
         let currentUser = null; // Para armazenar o usuário logado
         let currentArticleId = null; // Para armazenar o ID do artigo em edição
+        let isUserAuthorized = false; // Flag para verificar a autorização do usuário
 
         const formTitle = document.getElementById('form-title');
         const articleForm = document.getElementById('article-form');
         const errorDisplay = document.getElementById('error-display');
+        const infoDisplay = document.getElementById('info-display'); // Novo elemento para mensagens informativas
         const saveArticleBtn = document.getElementById('save-article-btn');
         const cancelBtn = document.getElementById('cancel-btn');
 
@@ -173,6 +190,57 @@
         function displayError(message) {
             errorDisplay.textContent = `Erro: ${message}`;
             errorDisplay.style.display = 'block';
+            infoDisplay.style.display = 'none'; // Esconde mensagens informativas
+        }
+
+        function displayInfo(message) {
+            infoDisplay.textContent = message;
+            infoDisplay.style.display = 'block';
+            errorDisplay.style.display = 'none'; // Esconde mensagens de erro
+        }
+
+        function setFormEnabled(enabled) {
+            if (enabled) {
+                articleForm.classList.remove('form-disabled');
+                saveArticleBtn.disabled = false;
+            } else {
+                articleForm.classList.add('form-disabled');
+                saveArticleBtn.disabled = true;
+            }
+        }
+
+        // Função para verificar se o usuário é admin ou professor
+        async function checkUserAuthorization(uid) {
+            try {
+                // Tenta buscar o documento do usuário na coleção 'userteacher'
+                const userDoc = await firestore.collection('userteacher').doc(uid).get();
+
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    // Verifica se o campo 'isAdmin' é true ou se o campo 'isTeacher' é true
+                    if (userData.isAdmin === true || userData.isTeacher === true) {
+                        isUserAuthorized = true;
+                        displayInfo("Você está autorizado a adicionar/editar artigos.");
+                        setFormEnabled(true);
+                        console.log("Usuário é admin ou professor.");
+                    } else {
+                        isUserAuthorized = false;
+                        displayError("Você não tem permissão para adicionar ou editar artigos. Apenas administradores e professores podem.");
+                        setFormEnabled(false);
+                        console.warn("Usuário não é admin nem professor.");
+                    }
+                } else {
+                    isUserAuthorized = false;
+                    displayError("Seu perfil não está registrado como administrador ou professor.");
+                    setFormEnabled(false);
+                    console.warn("Documento do usuário não encontrado na coleção 'userteacher'.");
+                }
+            } catch (error) {
+                isUserAuthorized = false;
+                displayError("Erro ao verificar permissões do usuário: " + error.message);
+                setFormEnabled(false);
+                console.error("Erro ao buscar dados do usuário em 'userteacher':", error);
+            }
         }
 
         // Listener para o estado de autenticação
@@ -180,6 +248,9 @@
             if (user) {
                 currentUser = user;
                 console.log("Usuário logado:", currentUser.uid);
+                // Após o usuário logar, verifica suas permissões
+                checkUserAuthorization(currentUser.uid);
+
                 // Verifica se há um ID de artigo na URL para modo de edição
                 const urlParams = new URLSearchParams(window.location.search);
                 const id = urlParams.get('id');
@@ -190,14 +261,14 @@
                 }
             } else {
                 currentUser = null;
-                console.warn("Nenhum usuário logado. Redirecionando para login?");
-                // Como a criação e edição agora requerem login, pode ser bom redirecionar
-                alert("Você precisa estar logado para adicionar ou editar artigos.");
+                isUserAuthorized = false; // Garante que a flag seja falsa se não houver usuário logado
+                setFormEnabled(false);
+                console.warn("Nenhum usuário logado. Redirecionando para login...");
+                displayError("Você precisa estar logado para adicionar ou editar artigos.");
+                // Redireciona para a página de login
                 if (window.parent !== window && window.parent.postMessage) {
-                    // Assumindo que a página de login está em './login.html'
                     window.parent.postMessage({ type: 'navigateIframe', url: './login.html' }, window.location.origin);
                 } else {
-                     // Fallback para ambiente de desenvolvimento fora do iframe
                     window.location.href = './login.html';
                 }
             }
@@ -206,7 +277,6 @@
         // Carrega dados do artigo para edição
         async function loadArticleData(articleId) {
             try {
-                // *** MODIFICAÇÃO AQUI: Mude o caminho da coleção para 'articlesdoc' ***
                 const docRef = firestore.collection('articlesdoc').doc(articleId);
                 const doc = await docRef.get();
 
@@ -222,14 +292,12 @@
                     articleConclusionInput.value = data.conclusion || '';
                     articleSourcesInput.value = (data.sources && Array.isArray(data.sources)) ? data.sources.join(', ') : '';
 
-                    // Atualiza o MDL para os campos pré-preenchidos
                     if (window.componentHandler) {
                         articleForm.querySelectorAll('.mdl-textfield').forEach(textfield => {
-                            // Verifica se o componente foi inicializado antes de chamar os métodos
-                             if (textfield.MaterialTextfield) {
+                            if (textfield.MaterialTextfield) {
                                 textfield.MaterialTextfield.checkDirty();
                                 textfield.MaterialTextfield.checkValidity();
-                             }
+                            }
                         });
                     }
                 } else {
@@ -238,33 +306,32 @@
                 }
             } catch (error) {
                 displayError("Erro ao carregar dados do artigo: " + error.message);
-                // *** MODIFICAÇÃO AQUI: Atualize a mensagem de erro no console ***
                 console.error("Erro ao carregar dados do artigo da coleção 'articlesdoc':", error);
             }
         }
 
         // Função para salvar (adicionar ou atualizar) o artigo
         async function saveArticle(event) {
-            event.preventDefault(); // Impede o envio padrão do formulário
+            event.preventDefault();
 
-            // Esta verificação já está no listener de autenticação, mas é bom ter aqui também
-            if (!currentUser) {
-                displayError("Você precisa estar logado para salvar artigos.");
+            // Verifica novamente a autorização antes de tentar salvar
+            if (!currentUser || !isUserAuthorized) {
+                displayError("Você não tem permissão para salvar artigos.");
                 return;
             }
 
-            // Validação básica
             if (!articleTitleInput.value.trim()) {
                 displayError("O Título do Artigo é obrigatório.");
                 articleTitleInput.focus();
                 return;
             }
 
-            errorDisplay.style.display = 'none'; // Esconde erros anteriores
-            saveArticleBtn.disabled = true; // Desabilita o botão para evitar cliques múltiplos
+            errorDisplay.style.display = 'none';
+            infoDisplay.style.display = 'none'; // Esconde mensagens informativas antes de salvar
+            saveArticleBtn.disabled = true;
 
             const articleData = {
-                userId: currentUser.uid, // ID do usuário logado (quem criou ou editou)
+                userId: currentUser.uid,
                 title: articleTitleInput.value.trim(),
                 description: articleDescriptionInput.value.trim(),
                 summary: articleSummaryInput.value.trim(),
@@ -273,55 +340,37 @@
                 methodology: articleMethodologyInput.value.trim(),
                 discussion: articleDiscussionInput.value.trim(),
                 conclusion: articleConclusionInput.value.trim(),
-                // Transforma a string de fontes em um array, removendo vazios
                 sources: articleSourcesInput.value.split(',').map(s => s.trim()).filter(s => s),
-                // timestamp: firebase.firestore.FieldValue.serverTimestamp(), // Definido apenas na criação
-                lastModified: firebase.firestore.FieldValue.serverTimestamp() // Sempre atualizado na modificação
+                lastModified: firebase.firestore.FieldValue.serverTimestamp()
             };
 
             try {
-                // *** MODIFICAÇÃO AQUI: Mude o caminho da coleção para 'articlesdoc' ***
                 const articlesCollectionRef = firestore.collection('articlesdoc');
 
                 if (currentArticleId) {
-                    // Atualizar artigo existente
-                    // Note: As regras de segurança devem garantir que apenas admins podem fazer isso.
                     await articlesCollectionRef.doc(currentArticleId).update(articleData);
                     alert("Artigo atualizado com sucesso!");
-                    // *** MODIFICAÇÃO AQUI: Atualize a mensagem de log ***
                     console.log("Artigo atualizado na coleção 'articlesdoc':", currentArticleId);
                 } else {
-                    // Criar novo artigo
-                    // Note: As regras de segurança devem garantir que apenas usuários logados podem fazer isso.
-                    articleData.timestamp = firebase.firestore.FieldValue.serverTimestamp(); // Adiciona timestamp na criação
+                    articleData.timestamp = firebase.firestore.FieldValue.serverTimestamp();
                     const newDocRef = await articlesCollectionRef.add(articleData);
-                    currentArticleId = newDocRef.id; // Define o ID para futuras edições sem recarregar
+                    currentArticleId = newDocRef.id;
                     alert("Artigo adicionado com sucesso! ID: " + newDocRef.id);
-                     // *** MODIFICAÇÃO AQUI: Atualize a mensagem de log ***
                     console.log("Novo artigo adicionado na coleção 'articlesdoc' com ID:", newDocRef.id);
-                    formTitle.textContent = 'Editar Artigo'; // Muda o título para edição
-                    // Opcional: Limpar o formulário ou manter os dados para continuar editando?
-                    // Se quiser limpar, adicione articleForm.reset(); aqui.
+                    formTitle.textContent = 'Editar Artigo';
                 }
 
-                // Redirecionar de volta para a lista de artigos ou fechar o editor
-                // Se estiver em um iframe, envia mensagem para a janela pai
                 if (window.parent !== window && window.parent.postMessage) {
-                    // Assumindo que a página pai tem um listener para 'refreshArticlesList'
                     window.parent.postMessage({ type: 'refreshArticlesList' }, window.location.origin);
                 } else {
-                    // Fallback para ambiente de desenvolvimento fora do iframe
                     alert("Artigo salvo! (Em ambiente de desenvolvimento sem iframe)");
-                    // Opcional: Redirecionar para a página de listagem
-                    // window.location.href = './gerenciar-artigos.html'; // Ajuste o caminho se necessário
                 }
 
             } catch (error) {
                 displayError("Erro ao salvar artigo: " + error.message);
-                 // *** MODIFICAÇÃO AQUI: Atualize a mensagem de erro no console ***
                 console.error("Erro ao salvar artigo na coleção 'articlesdoc':", error);
             } finally {
-                saveArticleBtn.disabled = false; // Reabilita o botão
+                saveArticleBtn.disabled = false;
             }
         }
 
@@ -330,20 +379,20 @@
             articleForm.addEventListener('submit', saveArticle);
 
             cancelBtn.addEventListener('click', () => {
-                // Lógica para cancelar e voltar
-                 if (window.parent !== window && window.parent.postMessage) {
-                     // Assumindo que a página pai tem um listener para 'refreshArticlesList' ou similar para voltar
-                     window.parent.postMessage({ type: 'refreshArticlesList' }, window.location.origin);
-                 } else {
-                    // Fallback para ambiente de desenvolvimento fora do iframe
-                     window.history.back(); // Volta na história do navegador
-                 }
+                if (window.parent !== window && window.parent.postMessage) {
+                    window.parent.postMessage({ type: 'refreshArticlesList' }, window.location.origin);
+                } else {
+                    window.history.back();
+                }
             });
 
-            // Garante que todos os componentes MDL na página sejam inicializados
             if (window.componentHandler) {
                 window.componentHandler.upgradeDom();
             }
+
+            // Inicialmente desabilita o formulário até a verificação de permissão
+            setFormEnabled(false);
+            displayInfo("Verificando suas permissões...");
         });
     </script>
 </body>
