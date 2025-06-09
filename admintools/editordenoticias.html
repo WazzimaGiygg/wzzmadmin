@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adicionar/Editar Notícia - WZZM Admin</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+    <style>
+        body {
+            font-family: 'Roboto', 'Helvetica', Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12);
+        }
+        h1 {
+            color: #3f51b5;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        .mdl-textfield {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .mdl-textfield__input {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        textarea.mdl-textfield__input {
+            height: 120px;
+            min-height: 80px;
+            resize: vertical;
+        }
+        .mdl-button {
+            margin-right: 10px;
+        }
+        .actions {
+            text-align: right;
+            margin-top: 30px;
+        }
+        .error-message {
+            text-align: center;
+            padding: 15px;
+            color: #d32f2f;
+            background-color: #ffebee;
+            border: 1px solid #d32f2f;
+            border-radius: 5px;
+            margin-top: 20px;
+            display: none;
+        }
+        /* Estilos adicionais para o selectfield do MDL */
+        .mdl-selectfield {
+            position: relative;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+        .mdl-selectfield select {
+            width: 100%;
+            padding: 10px 0;
+            border: none;
+            border-bottom: 1px solid rgba(0,0,0,.12);
+            background: transparent;
+            font-size: 16px;
+            color: rgba(0,0,0,.87);
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+        .mdl-selectfield label {
+            color: rgba(0,0,0,.26);
+            font-size: 16px;
+            left: 0;
+            top: 10px;
+            position: absolute;
+            pointer-events: none;
+            transition: 0.2s ease all;
+            transform-origin: left top;
+        }
+        .mdl-selectfield select:focus + label,
+        .mdl-selectfield select:not([value=""]) + label {
+            color: #3f51b5;
+            top: -15px;
+            font-size: 12px;
+            transform: scale(0.75);
+        }
+        .mdl-selectfield .mdl-textfield__error {
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            font-size: 12px;
+            color: #d32f2f;
+            display: none;
+        }
+        .mdl-selectfield select:invalid ~ .mdl-textfield__error {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-analytics-compat.js"></script>
+    <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+
+    <div class="container">
+        <h1 id="form-title">Adicionar Nova Notícia</h1>
+
+        <div id="error-display" class="error-message"></div>
+
+        <form id="news-form">
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="text" id="news-title" required>
+                <label class="mdl-textfield__label" for="news-title">Título da Notícia *</label>
+            </div>
+
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <textarea class="mdl-textfield__input" type="text" rows="3" id="news-description" required></textarea>
+                <label class="mdl-textfield__label" for="news-description">Descrição *</label>
+            </div>
+
+                            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="text" id="news-author-uid" readonly>
+                <label class="mdl-textfield__label" for="news-author-uid">UID de Quem Fez</label>
+            </div>
+
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="url" id="news-external-link">
+                <label class="mdl-textfield__label" for="news-external-link">Link Externo</label>
+                <span class="mdl-textfield__help">Ex: https://www.exemplo.com.br/noticia</span>
+            </div>
+
+            <div class="actions">
+                <button type="submit" id="save-news-btn"
+                        class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                    Salvar Notícia
+                </button>
+                <button type="button" id="cancel-btn"
+                        class="mdl-button mdl-js-button mdl-button--raised">
+                    Cancelar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // --- Configuração do Firebase com suas chaves e dados originais ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0",
+            authDomain: "wzzm-ce3fc.firebaseapp.com",
+            projectId: "wzzm-ce3fc",
+            storageBucket: "wzzm-ce3fc.appspot.com",
+            messagingSenderId: "249427877153",
+            appId: "1:249427877153:web:0e4297294794a5aadeb260",
+            measurementId: "G-PLKNZNFCQ8"
+        };
+
+        let app;
+        try {
+            app = firebase.app();
+        } catch (e) {
+            app = firebase.initializeApp(firebaseConfig);
+        }
+        const firestore = firebase.firestore();
+        const auth = firebase.auth();
+
+        let currentUser = null;
+        let currentNewsId = null; // Alterado para newsId
+
+        const formTitle = document.getElementById('form-title');
+        const newsForm = document.getElementById('news-form'); // Alterado para news-form
+        const errorDisplay = document.getElementById('error-display');
+        const saveNewsBtn = document.getElementById('save-news-btn'); // Alterado para save-news-btn
+        const cancelBtn = document.getElementById('cancel-btn');
+
+        // Novos campos para Notícia
+        const newsTitleInput = document.getElementById('news-title');
+        const newsDescriptionInput = document.getElementById('news-description');
+        const newsAuthorUidInput = document.getElementById('news-author-uid'); // Campo para exibir o UID
+        const newsExternalLinkInput = document.getElementById('news-external-link');
+
+
+        function displayError(message) {
+            errorDisplay.textContent = `Erro: ${message}`;
+            errorDisplay.style.display = 'block';
+        }
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                console.log("Usuário logado:", currentUser.uid);
+                **newsAuthorUidInput.value = currentUser.uid; // Preenche o campo UID automaticamente**
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const id = urlParams.get('id');
+                if (id) {
+                    currentNewsId = id; // Alterado para newsId
+                    formTitle.textContent = 'Editar Notícia';
+                    loadNewsData(id); // Alterado para loadNewsData
+                }
+            } else {
+                currentUser = null;
+                console.warn("Nenhum usuário logado. Redirecionando para login?");
+                alert("Você precisa estar logado para adicionar ou editar notícias.");
+                if (window.parent !== window && window.parent.postMessage) {
+                    window.parent.postMessage({ type: 'navigateIframe', url: './login.html' }, window.location.origin);
+                } else {
+                    window.location.href = './login.html';
+                }
+            }
+        });
+
+        // Carrega dados da notícia para edição
+        async function loadNewsData(newsId) { // Alterado para loadNewsData
+            try {
+                **const docRef = firestore.collection('wikizero').doc(newsId);** // COLEÇÃO ALTERADA AQUI
+                const doc = await docRef.get();
+
+                if (doc.exists) {
+                    const data = doc.data();
+                    newsTitleInput.value = data.title || '';
+                    newsDescriptionInput.value = data.description || '';
+                    newsAuthorUidInput.value = data.authorUid || ''; // Preenche o UID
+                    newsExternalLinkInput.value = data.externalLink || ''; // Preenche o link externo
+
+                    if (window.componentHandler) {
+                        newsForm.querySelectorAll('.mdl-textfield').forEach(textfield => { // Alterado para newsForm
+                             if (textfield.MaterialTextfield) {
+                                textfield.MaterialTextfield.checkDirty();
+                                textfield.MaterialTextfield.checkValidity();
+                             }
+                        });
+                    }
+                } else {
+                    displayError("Notícia não encontrada.");
+                    console.error("Notícia com ID", newsId, "não encontrada na coleção 'wikizero'.");
+                }
+            } catch (error) {
+                displayError("Erro ao carregar dados da notícia: " + error.message);
+                console.error("Erro ao carregar dados da notícia da coleção 'wikizero':", error);
+            }
+        }
+
+        // Função para salvar (adicionar ou atualizar) a notícia
+        async function saveNews(event) { // Alterado para saveNews
+            event.preventDefault();
+
+            if (!currentUser) {
+                displayError("Você precisa estar logado para salvar notícias.");
+                return;
+            }
+
+            // Validação básica
+            if (!newsTitleInput.value.trim()) {
+                displayError("O Título da Notícia é obrigatório.");
+                newsTitleInput.focus();
+                return;
+            }
+            if (!newsDescriptionInput.value.trim()) {
+                displayError("A Descrição é obrigatória.");
+                newsDescriptionInput.focus();
+                return;
+            }
+
+            errorDisplay.style.display = 'none';
+            saveNewsBtn.disabled = true; // Alterado para saveNewsBtn
+
+            const newsData = {
+                title: newsTitleInput.value.trim(),
+                description: newsDescriptionInput.value.trim(),
+                authorUid: currentUser.uid, // UID de quem fez
+                externalLink: newsExternalLinkInput.value.trim(), // Link externo
+                lastModified: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            try {
+                **const wikizeroCollectionRef = firestore.collection('wikizero');** // COLEÇÃO ALTERADA AQUI
+
+                if (currentNewsId) { // Alterado para newsId
+                    // Atualizar notícia existente
+                    **await wikizeroCollectionRef.doc(currentNewsId).update(newsData);** // Alterado para newsId
+                    alert("Notícia atualizada com sucesso!");
+                    console.log("Notícia atualizada na coleção 'wikizero':", currentNewsId);
+                } else {
+                    // Criar nova notícia
+                    newsData.timestamp = firebase.firestore.FieldValue.serverTimestamp();
+                    **const newDocRef = await wikizeroCollectionRef.add(newsData);**
+                    currentNewsId = newDocRef.id; // Alterado para newsId
+                    alert("Notícia adicionada com sucesso! ID: " + newDocRef.id);
+                    console.log("Nova notícia adicionada na coleção 'wikizero' com ID:", newDocRef.id);
+                    formTitle.textContent = 'Editar Notícia';
+                }
+
+                if (window.parent !== window && window.parent.postMessage) {
+                    window.parent.postMessage({ type: 'refreshNewsList' }, window.location.origin); // Mensagem alterada
+                } else {
+                    alert("Notícia salva! (Em ambiente de desenvolvimento sem iframe)");
+                }
+
+            } catch (error) {
+                displayError("Erro ao salvar notícia: " + error.message);
+                console.error("Erro ao salvar notícia na coleção 'wikizero':", error);
+            } finally {
+                saveNewsBtn.disabled = false; // Alterado para saveNewsBtn
+            }
+        }
+
+        // --- Event Listeners ---
+        document.addEventListener('DOMContentLoaded', () => {
+            newsForm.addEventListener('submit', saveNews); // Alterado para newsForm, saveNews
+
+            cancelBtn.addEventListener('click', () => {
+                 if (window.parent !== window && window.parent.postMessage) {
+                     window.parent.postMessage({ type: 'refreshNewsList' }, window.location.origin); // Mensagem alterada
+                 } else {
+                     window.history.back();
+                 }
+            });
+
+            if (window.componentHandler) {
+                window.componentHandler.upgradeDom();
+            }
+        });
+    </script>
+</body>
+</html>
