@@ -56,6 +56,53 @@
             margin-top: 20px;
             display: none;
         }
+        /* Estilos adicionais para o selectfield do MDL */
+        .mdl-selectfield {
+            position: relative;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+        .mdl-selectfield select {
+            width: 100%;
+            padding: 10px 0;
+            border: none;
+            border-bottom: 1px solid rgba(0,0,0,.12);
+            background: transparent;
+            font-size: 16px;
+            color: rgba(0,0,0,.87);
+            cursor: pointer;
+            appearance: none; /* Remove a seta padrão do select */
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+        .mdl-selectfield label {
+            color: rgba(0,0,0,.26);
+            font-size: 16px;
+            left: 0;
+            top: 10px;
+            position: absolute;
+            pointer-events: none;
+            transition: 0.2s ease all;
+            transform-origin: left top;
+        }
+        .mdl-selectfield select:focus + label,
+        .mdl-selectfield select:not([value=""]) + label {
+            color: #3f51b5;
+            top: -15px;
+            font-size: 12px;
+            transform: scale(0.75);
+        }
+        .mdl-selectfield .mdl-textfield__error {
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            font-size: 12px;
+            color: #d32f2f;
+            display: none;
+        }
+        .mdl-selectfield select:invalid ~ .mdl-textfield__error {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -117,6 +164,31 @@
                 <span class="mdl-textfield__help">Ex: Livro X, Site Y, Artigo Z</span>
             </div>
 
+            <div class="mdl-selectfield mdl-js-selectfield mdl-textfield--floating-label">
+                <select id="article-language" class="mdl-textfield__input" required>
+                    <option value="" disabled selected>Selecione o Idioma</option>
+                    <option value="pt-BR">Português (Brasil)</option>
+                    <option value="en-US">English (United States)</option>
+                    </select>
+                <label for="article-language" class="mdl-textfield__label">Idioma *</label>
+                <span class="mdl-textfield__error">Por favor, selecione um idioma.</span>
+            </div>
+
+            <div class="mdl-selectfield mdl-js-selectfield mdl-textfield--floating-label">
+                <select id="article-type" class="mdl-textfield__input" required>
+                    <option value="" disabled selected>Selecione o Tipo de Artigo</option>
+                    <option value="cientifico">Científico</option>
+                    <option value="revisao">Revisão Bibliográfica</option>
+                    <option value="noticia">Notícia</option>
+                    <option value="editorial">Editorial</option>
+                    <option value="opiniao">Opinião</option>
+                    <option value="entrevista">Entrevista</option>
+                    <option value="tutorial">Tutorial</option>
+                    </select>
+                <label for="article-type" class="mdl-textfield__label">Tipo de Artigo *</label>
+                <span class="mdl-textfield__error">Por favor, selecione um tipo de artigo.</span>
+            </div>
+
             <div class="actions">
                 <button type="submit" id="save-article-btn"
                         class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
@@ -169,6 +241,10 @@
         const articleDiscussionInput = document.getElementById('article-discussion');
         const articleConclusionInput = document.getElementById('article-conclusion');
         const articleSourcesInput = document.getElementById('article-sources');
+        // Novos campos para idioma e tipo de artigo
+        const articleLanguageSelect = document.getElementById('article-language');
+        const articleTypeSelect = document.getElementById('article-type');
+
 
         function displayError(message) {
             errorDisplay.textContent = `Erro: ${message}`;
@@ -221,6 +297,10 @@
                     articleDiscussionInput.value = data.discussion || '';
                     articleConclusionInput.value = data.conclusion || '';
                     articleSourcesInput.value = (data.sources && Array.isArray(data.sources)) ? data.sources.join(', ') : '';
+                    // Carrega os valores para os novos campos
+                    articleLanguageSelect.value = data.language || '';
+                    articleTypeSelect.value = data.articleType || '';
+
 
                     // Atualiza o MDL para os campos pré-preenchidos
                     if (window.componentHandler) {
@@ -230,6 +310,13 @@
                                 textfield.MaterialTextfield.checkDirty();
                                 textfield.MaterialTextfield.checkValidity();
                              }
+                        });
+                        // Para os novos campos de seleção, precisamos garantir que o MDL os "upgrade"
+                        articleForm.querySelectorAll('.mdl-selectfield').forEach(selectfield => {
+                            if (selectfield.MaterialTextfield) { // O MDL trata selectfield como textfield para fins de "dirty"
+                                selectfield.MaterialTextfield.checkDirty();
+                                selectfield.MaterialTextfield.checkValidity();
+                            }
                         });
                     }
                 } else {
@@ -259,6 +346,16 @@
                 articleTitleInput.focus();
                 return;
             }
+            if (!articleLanguageSelect.value) {
+                displayError("O Idioma é obrigatório.");
+                articleLanguageSelect.focus();
+                return;
+            }
+            if (!articleTypeSelect.value) {
+                displayError("O Tipo de Artigo é obrigatório.");
+                articleTypeSelect.focus();
+                return;
+            }
 
             errorDisplay.style.display = 'none'; // Esconde erros anteriores
             saveArticleBtn.disabled = true; // Desabilita o botão para evitar cliques múltiplos
@@ -275,7 +372,8 @@
                 conclusion: articleConclusionInput.value.trim(),
                 // Transforma a string de fontes em um array, removendo vazios
                 sources: articleSourcesInput.value.split(',').map(s => s.trim()).filter(s => s),
-                // timestamp: firebase.firestore.FieldValue.serverTimestamp(), // Definido apenas na criação
+                language: articleLanguageSelect.value, // Novo campo
+                articleType: articleTypeSelect.value,   // Novo campo
                 lastModified: firebase.firestore.FieldValue.serverTimestamp() // Sempre atualizado na modificação
             };
 
