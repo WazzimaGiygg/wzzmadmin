@@ -159,6 +159,12 @@
             </div>
 
             <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="url" id="article-original-url">
+                <label class="mdl-textfield__label" for="article-original-url">URL do Artigo Original (PDF/HTML)</label>
+                <span class="mdl-textfield__help">Link para o artigo completo em PDF ou HTML externo.</span>
+            </div>
+
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                 <input class="mdl-textfield__input" type="text" id="article-sources">
                 <label class="mdl-textfield__label" for="article-sources">Fontes (separadas por vírgula)</label>
                 <span class="mdl-textfield__help">Ex: Livro X, Site Y, Artigo Z</span>
@@ -169,7 +175,7 @@
                     <option value="" disabled selected>Selecione o Idioma</option>
                     <option value="pt-BR">Português (Brasil)</option>
                     <option value="en-US">English (United States)</option>
-                    </select>
+                </select>
                 <label for="article-language" class="mdl-textfield__label">Idioma *</label>
                 <span class="mdl-textfield__error">Por favor, selecione um idioma.</span>
             </div>
@@ -184,7 +190,7 @@
                     <option value="opiniao">Opinião</option>
                     <option value="entrevista">Entrevista</option>
                     <option value="tutorial">Tutorial</option>
-                    </select>
+                </select>
                 <label for="article-type" class="mdl-textfield__label">Tipo de Artigo *</label>
                 <span class="mdl-textfield__error">Por favor, selecione um tipo de artigo.</span>
             </div>
@@ -241,9 +247,10 @@
         const articleDiscussionInput = document.getElementById('article-discussion');
         const articleConclusionInput = document.getElementById('article-conclusion');
         const articleSourcesInput = document.getElementById('article-sources');
-        // Novos campos para idioma e tipo de artigo
         const articleLanguageSelect = document.getElementById('article-language');
         const articleTypeSelect = document.getElementById('article-type');
+        // Nova referência para o campo de URL original
+        const articleOriginalUrlInput = document.getElementById('article-original-url');
 
 
         function displayError(message) {
@@ -256,7 +263,6 @@
             if (user) {
                 currentUser = user;
                 console.log("Usuário logado:", currentUser.uid);
-                // Verifica se há um ID de artigo na URL para modo de edição
                 const urlParams = new URLSearchParams(window.location.search);
                 const id = urlParams.get('id');
                 if (id) {
@@ -267,13 +273,10 @@
             } else {
                 currentUser = null;
                 console.warn("Nenhum usuário logado. Redirecionando para login?");
-                // Como a criação e edição agora requerem login, pode ser bom redirecionar
                 alert("Você precisa estar logado para adicionar ou editar artigos.");
                 if (window.parent !== window && window.parent.postMessage) {
-                    // Assumindo que a página de login está em './login.html'
                     window.parent.postMessage({ type: 'navigateIframe', url: './login.html' }, window.location.origin);
                 } else {
-                     // Fallback para ambiente de desenvolvimento fora do iframe
                     window.location.href = './login.html';
                 }
             }
@@ -282,7 +285,6 @@
         // Carrega dados do artigo para edição
         async function loadArticleData(articleId) {
             try {
-                // *** MODIFICAÇÃO AQUI: Mude o caminho da coleção para 'articlesdoc' ***
                 const docRef = firestore.collection('articlesdoc').doc(articleId);
                 const doc = await docRef.get();
 
@@ -297,23 +299,22 @@
                     articleDiscussionInput.value = data.discussion || '';
                     articleConclusionInput.value = data.conclusion || '';
                     articleSourcesInput.value = (data.sources && Array.isArray(data.sources)) ? data.sources.join(', ') : '';
-                    // Carrega os valores para os novos campos
                     articleLanguageSelect.value = data.language || '';
                     articleTypeSelect.value = data.articleType || '';
+                    // Carrega o valor para o novo campo de URL original
+                    articleOriginalUrlInput.value = data.originalUrl || '';
 
 
                     // Atualiza o MDL para os campos pré-preenchidos
                     if (window.componentHandler) {
                         articleForm.querySelectorAll('.mdl-textfield').forEach(textfield => {
-                            // Verifica se o componente foi inicializado antes de chamar os métodos
-                             if (textfield.MaterialTextfield) {
+                            if (textfield.MaterialTextfield) {
                                 textfield.MaterialTextfield.checkDirty();
                                 textfield.MaterialTextfield.checkValidity();
-                             }
+                            }
                         });
-                        // Para os novos campos de seleção, precisamos garantir que o MDL os "upgrade"
                         articleForm.querySelectorAll('.mdl-selectfield').forEach(selectfield => {
-                            if (selectfield.MaterialTextfield) { // O MDL trata selectfield como textfield para fins de "dirty"
+                            if (selectfield.MaterialTextfield) {
                                 selectfield.MaterialTextfield.checkDirty();
                                 selectfield.MaterialTextfield.checkValidity();
                             }
@@ -325,16 +326,14 @@
                 }
             } catch (error) {
                 displayError("Erro ao carregar dados do artigo: " + error.message);
-                // *** MODIFICAÇÃO AQUI: Atualize a mensagem de erro no console ***
                 console.error("Erro ao carregar dados do artigo da coleção 'articlesdoc':", error);
             }
         }
 
         // Função para salvar (adicionar ou atualizar) o artigo
         async function saveArticle(event) {
-            event.preventDefault(); // Impede o envio padrão do formulário
+            event.preventDefault(); 
 
-            // Esta verificação já está no listener de autenticação, mas é bom ter aqui também
             if (!currentUser) {
                 displayError("Você precisa estar logado para salvar artigos.");
                 return;
@@ -357,11 +356,11 @@
                 return;
             }
 
-            errorDisplay.style.display = 'none'; // Esconde erros anteriores
-            saveArticleBtn.disabled = true; // Desabilita o botão para evitar cliques múltiplos
+            errorDisplay.style.display = 'none'; 
+            saveArticleBtn.disabled = true; 
 
             const articleData = {
-                userId: currentUser.uid, // ID do usuário logado (quem criou ou editou)
+                userId: currentUser.uid, 
                 title: articleTitleInput.value.trim(),
                 description: articleDescriptionInput.value.trim(),
                 summary: articleSummaryInput.value.trim(),
@@ -370,56 +369,41 @@
                 methodology: articleMethodologyInput.value.trim(),
                 discussion: articleDiscussionInput.value.trim(),
                 conclusion: articleConclusionInput.value.trim(),
-                // Transforma a string de fontes em um array, removendo vazios
                 sources: articleSourcesInput.value.split(',').map(s => s.trim()).filter(s => s),
-                language: articleLanguageSelect.value, // Novo campo
-                articleType: articleTypeSelect.value,   // Novo campo
-                lastModified: firebase.firestore.FieldValue.serverTimestamp() // Sempre atualizado na modificação
+                language: articleLanguageSelect.value, 
+                articleType: articleTypeSelect.value,
+                // Novo campo para a URL do artigo original
+                originalUrl: articleOriginalUrlInput.value.trim(), 
+                lastModified: firebase.firestore.FieldValue.serverTimestamp() 
             };
 
             try {
-                // *** MODIFICAÇÃO AQUI: Mude o caminho da coleção para 'articlesdoc' ***
                 const articlesCollectionRef = firestore.collection('articlesdoc');
 
                 if (currentArticleId) {
-                    // Atualizar artigo existente
-                    // Note: As regras de segurança devem garantir que apenas admins podem fazer isso.
                     await articlesCollectionRef.doc(currentArticleId).update(articleData);
                     alert("Artigo atualizado com sucesso!");
-                    // *** MODIFICAÇÃO AQUI: Atualize a mensagem de log ***
                     console.log("Artigo atualizado na coleção 'articlesdoc':", currentArticleId);
                 } else {
-                    // Criar novo artigo
-                    // Note: As regras de segurança devem garantir que apenas usuários logados podem fazer isso.
-                    articleData.timestamp = firebase.firestore.FieldValue.serverTimestamp(); // Adiciona timestamp na criação
+                    articleData.timestamp = firebase.firestore.FieldValue.serverTimestamp(); 
                     const newDocRef = await articlesCollectionRef.add(articleData);
-                    currentArticleId = newDocRef.id; // Define o ID para futuras edições sem recarregar
+                    currentArticleId = newDocRef.id; 
                     alert("Artigo adicionado com sucesso! ID: " + newDocRef.id);
-                     // *** MODIFICAÇÃO AQUI: Atualize a mensagem de log ***
                     console.log("Novo artigo adicionado na coleção 'articlesdoc' com ID:", newDocRef.id);
-                    formTitle.textContent = 'Editar Artigo'; // Muda o título para edição
-                    // Opcional: Limpar o formulário ou manter os dados para continuar editando?
-                    // Se quiser limpar, adicione articleForm.reset(); aqui.
+                    formTitle.textContent = 'Editar Artigo'; 
                 }
 
-                // Redirecionar de volta para a lista de artigos ou fechar o editor
-                // Se estiver em um iframe, envia mensagem para a janela pai
                 if (window.parent !== window && window.parent.postMessage) {
-                    // Assumindo que a página pai tem um listener para 'refreshArticlesList'
                     window.parent.postMessage({ type: 'refreshArticlesList' }, window.location.origin);
                 } else {
-                    // Fallback para ambiente de desenvolvimento fora do iframe
                     alert("Artigo salvo! (Em ambiente de desenvolvimento sem iframe)");
-                    // Opcional: Redirecionar para a página de listagem
-                    // window.location.href = './gerenciar-artigos.html'; // Ajuste o caminho se necessário
                 }
 
             } catch (error) {
                 displayError("Erro ao salvar artigo: " + error.message);
-                 // *** MODIFICAÇÃO AQUI: Atualize a mensagem de erro no console ***
                 console.error("Erro ao salvar artigo na coleção 'articlesdoc':", error);
             } finally {
-                saveArticleBtn.disabled = false; // Reabilita o botão
+                saveArticleBtn.disabled = false; 
             }
         }
 
@@ -428,17 +412,13 @@
             articleForm.addEventListener('submit', saveArticle);
 
             cancelBtn.addEventListener('click', () => {
-                // Lógica para cancelar e voltar
-                 if (window.parent !== window && window.parent.postMessage) {
-                     // Assumindo que a página pai tem um listener para 'refreshArticlesList' ou similar para voltar
-                     window.parent.postMessage({ type: 'refreshArticlesList' }, window.location.origin);
-                 } else {
-                    // Fallback para ambiente de desenvolvimento fora do iframe
-                     window.history.back(); // Volta na história do navegador
-                 }
+                if (window.parent !== window && window.parent.postMessage) {
+                    window.parent.postMessage({ type: 'refreshArticlesList' }, window.location.origin);
+                } else {
+                    window.history.back(); 
+                }
             });
 
-            // Garante que todos os componentes MDL na página sejam inicializados
             if (window.componentHandler) {
                 window.componentHandler.upgradeDom();
             }
