@@ -197,11 +197,10 @@
         const logoutButton = document.getElementById('logout-button');
         const userInfo = document.getElementById('user-info');
         const adminPanelButton = document.getElementById('admin-panel-button');
-        const contentFrame = document.getElementById('contentFrame'); // MANTIDO e usado agora
+        const contentFrame = document.getElementById('contentFrame');
         const accessDeniedMessage = document.getElementById('access-denied-message');
         const bannedMessage = document.getElementById('banned-message');
         const navLinks = document.querySelectorAll('.mdl-navigation__link');
-        // const mainContentDisplay = document.getElementById('main-content-display'); // REMOVIDO - Não será mais necessário
 
         // Novos elementos da UI para a imagem de perfil e ícone do Google Apps
         const userProfilePic = document.getElementById('user-profile-pic');
@@ -214,7 +213,7 @@
 
         // Função para carregar a página no iframe
         function loadPageInIframe(pageUrl, requiresAuth = true) {
-            if (isCurrentUserBanned && pageUrl !== 'recepcao.html' && pageUrl !== './recepcao.html.html') {
+            if (isCurrentUserBanned && pageUrl !== 'recepcao.html' && pageUrl !== './recepcao.html') { // Corrigido ./recepcao.html.html para ./recepcao.html
                 // Se banido e tentando acessar página restrita, exibe a mensagem de banido
                 contentFrame.style.display = 'none';
                 accessDeniedMessage.style.display = 'none';
@@ -271,7 +270,7 @@
         // Função para habilitar/desabilitar links do menu lateral
         function setNavLinksEnabled(enabled) {
             navLinks.forEach(link => {
-                const isAlwaysEnabled = link.href.includes('recepcao.html') || link.href.includes('recepcao.html') || link.href.includes('POL%C3%8DTICAS%20GERAIS%20DO%20WIKI%20ZONE%20ZERO%20MOD.pdf');
+                const isAlwaysEnabled = link.href.includes('recepcao.html') || link.href.includes('POL%C3%8DTICAS%20GERAIS%20DO%20WIKI%20ZONE%20ZERO%20MOD.pdf'); // Corrigido a duplicação
 
                 if (isAlwaysEnabled) {
                     link.classList.remove('disabled');
@@ -331,6 +330,8 @@
                 loginGoogleButton.style.display = 'none';
                 loginGitHubButton.style.display = 'none';
                 logoutButton.style.display = 'inline-block'; // Exibir logout
+                // Remove listener para evitar duplicidade antes de adicionar
+                logoutButton.removeEventListener('click', handleLogout); 
                 logoutButton.addEventListener('click', handleLogout); // Adicionar listener de logout
 
                 if (user.photoURL) {
@@ -365,8 +366,6 @@
                             bannedMessage.style.display = 'block';
                         } else {
                             setNavLinksEnabled(true);
-                            // logoutButton.style.display = 'inline-block'; // Já definido acima
-                            // logoutButton.addEventListener('click', handleLogout); // Já definido acima
                             bannedMessage.style.display = 'none';
                             contentFrame.style.display = 'block'; // Garante que o iframe esteja visível
 
@@ -376,11 +375,11 @@
                                 adminPanelButton.style.display = 'none';
                             }
 
-                            // Carrega a página inicial no iframe se o usuário acabou de logar e não está banido
-                            // ou se a URL atual ainda é a recepção.
+                            // Carrega a página inicial de CONTEÚDO no iframe se o usuário acabou de logar
+                            // e a URL atual é a recepção, vazia ou index.html.
                             const currentPath = window.location.pathname.split('/').pop();
                             if (currentPath === 'recepcao.html' || currentPath === '' || currentPath === 'index.html') {
-                                loadPageInIframe('index.html', false); // Carrega a página inicial no iframe
+                                loadPageInIframe('recepcao.html', false); // *** LINHA CORRIGIDA AQUI ***
                             } else {
                                 // Se o usuário logou e já estava em uma página específica, mantém essa página no iframe
                                 loadPageInIframe(currentPath, currentPath.includes('admintools') || currentPath.includes('register-material.html') || currentPath.includes('conhecawazzimagiygg.html'));
@@ -390,8 +389,6 @@
                         // Perfil de usuário não encontrado, tratar como não banido por padrão
                         isCurrentUserBanned = false;
                         setNavLinksEnabled(true);
-                        // logoutButton.style.display = 'inline-block'; // Já definido acima
-                        // logoutButton.addEventListener('click', handleLogout); // Já definido acima
                         adminPanelButton.style.display = 'none';
                         bannedMessage.style.display = 'none';
                         loadPageInIframe('recepcao.html', false); // Carrega a recepção no iframe
@@ -401,8 +398,6 @@
                     adminPanelButton.style.display = 'none';
                     isCurrentUserBanned = false;
                     setNavLinksEnabled(true);
-                    // logoutButton.style.display = 'inline-block'; // Já definido acima
-                    // logoutButton.addEventListener('click', handleLogout); // Já definido acima
                     bannedMessage.style.display = 'none';
                     loadPageInIframe('recepcao.html', false); // Carrega a recepção no iframe em caso de erro
                 }
@@ -495,7 +490,7 @@
             }
             // A carga inicial do iframe será feita pelo onAuthStateChanged
             // Assim que o status de autenticação for verificado, a página correta será carregada no iframe.
-            // Para garantir que algo seja exibido enquanto o Firebase inicializa, você pode definir um src inicial no iframe diretamente no HTML, como 'index.html'.
+            // Para garantir que algo seja exibido enquanto o Firebase inicializa, você pode definir um src inicial no iframe diretamente no HTML, como 'recepcao.html'.
         });
     </script>
 </body>
