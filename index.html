@@ -8,15 +8,31 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
     <style>
-        .page-content {
-            padding: 20px;
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex; /* Usar flexbox para o layout principal */
+            flex-direction: column; /* Conteúdo em coluna: header, main, footer */
+            min-height: 100vh; /* Ocupa a altura total da viewport */
+            font-family: 'Roboto', 'Helvetica', Arial, sans-serif;
+            background-color: #f5f5f5;
         }
-        /* Remover o iframe, pois os links não carregarão mais dentro dele */
-        /* #contentFrame {
+
+        .mdl-layout__content {
+            flex-grow: 1; /* Faz o conteúdo principal crescer e ocupar o espaço restante */
+            display: flex; /* Permite que o iframe ou div de conteúdo ocupe o espaço */
+            flex-direction: column;
+            padding: 0; /* Remover padding padrão para o iframe ocupar tudo */
+        }
+
+        #contentFrame {
             width: 100%;
-            height: calc(100vh - 200px);
+            flex-grow: 1; /* Permite que o iframe ocupe o espaço disponível */
             border: none;
-        } */
+            margin: 0;
+            padding: 0;
+            display: block; /* Garante que o iframe se comporte como bloco */
+        }
 
         /* Estilos adicionais para os links do menu lateral quando desabilitados */
         .mdl-navigation__link.disabled {
@@ -35,20 +51,23 @@
             object-fit: cover; /* Garante que a imagem preencha o espaço sem distorcer */
         }
         #google-apps-button {
-            /* Ajustes para o botão de ícone */
-            min-width: 32px; /* Garante tamanho mínimo para o ícone */
+            min-width: 32px;
             height: 32px;
             padding: 0;
-            display: flex; /* Para centralizar o ícone */
+            display: flex;
             align-items: center;
             justify-content: center;
         }
         /* Estilos para o pop-up dos serviços Google */
         #google-apps-popup a.mdl-button {
-            margin-bottom: 4px; /* Espaçamento entre os botões de serviço */
-            justify-content: flex-start; /* Alinha o texto à esquerda */
-            display: block; /* Garante que cada botão ocupe sua própria linha */
-            width: 100%; /* Ocupa a largura total do pop-up */
+            margin-bottom: 4px;
+            justify-content: flex-start;
+            display: block;
+            width: 100%;
+        }
+        /* Esconder mensagens quando o iframe estiver visível */
+        #access-denied-message, #banned-message {
+            display: none;
         }
     </style>
 </head>
@@ -80,13 +99,13 @@
                         min-width: 180px;
                         border-radius: 4px;
                     ">
-                        <a href="https://mail.google.com/" class="mdl-button mdl-js-button mdl-button--flat">Gmail</a>
-                        <a href="https://drive.google.com/" class="mdl-button mdl-js-button mdl-button--flat">Drive</a>
-                        <a href="https://calendar.google.com/" class="mdl-button mdl-js-button mdl-button--flat">Agenda</a>
-                        <a href="https://photos.google.com/" class="mdl-button mdl-js-button mdl-button--flat">Fotos</a>
-                        <a href="https://www.youtube.com/" class="mdl-button mdl-js-button mdl-button--flat">YouTube</a>
+                        <a href="https://mail.google.com/" class="mdl-button mdl-js-button mdl-button--flat" target="_blank">Gmail</a>
+                        <a href="https://drive.google.com/" class="mdl-button mdl-js-button mdl-button--flat" target="_blank">Drive</a>
+                        <a href="https://calendar.google.com/" class="mdl-button mdl-js-button mdl-button--flat" target="_blank">Agenda</a>
+                        <a href="https://photos.google.com/" class="mdl-button mdl-js-button mdl-button--flat" target="_blank">Fotos</a>
+                        <a href="https://youtube.com/" class="mdl-button mdl-js-button mdl-button--flat" target="_blank">YouTube</a>
                         <hr style="border: 0; border-top: 1px solid #eee; margin: 8px 0;">
-                        <a href="https://myaccount.google.com/" class="mdl-button mdl-js-button mdl-button--flat">Minha Conta Google</a>
+                        <a href="https://myaccount.google.com/" class="mdl-button mdl-js-button mdl-button--flat" target="_blank">Minha Conta Google</a>
                     </div>
                     <div id="user-info-container" style="display: flex; align-items: center;">
                         <img id="user-profile-pic" src="" alt="Foto de Perfil" style="display: none;">
@@ -103,9 +122,9 @@
                 <a class="mdl-navigation__link" href="./admintools/editordeartigos.html">Adicionar Artigo</a>
                 <a class="mdl-navigation__link" href="./register-material.html">Registrar Matéria</a>
                 <a class="mdl-navigation__link" href="conhecawazzimagiygg.html">Conheça WazzimaGiygg</a>
-                <a class="mdl-navigation__link" href="./admintools/cadastrarprofessor.html">Cadastrar Professor</a> 
-                <a class="mdl-navigation__link" href="./admintools/adicionarouremoverartigos.html">Adicionar e Remover Artigos</a> 
-                <a class="mdl-navigation__link" href="./admintools/editordenoticias.html">Adicionar Noticia</a> admintools/
+                <a class="mdl-navigation__link" href="./admintools/cadastrarprofessor.html">Cadastrar Professor</a>
+                <a class="mdl-navigation__link" href="./admintools/adicionarouremoverartigos.html">Adicionar e Remover Artigos</a>
+                <a class="mdl-navigation__link" href="./admintools/editordenoticias.html">Adicionar Noticia</a>
                 <a class="mdl-navigation__link" href="./admintools/configuracoes.html">Configurações</a>
                 <a class="mdl-navigation__link" href="./admintools/estatisticas.html">Estatisticas</a>
                 <a class="mdl-navigation__link" href="./admintools/pageadmin.html">Pagina Administradora</a>
@@ -115,22 +134,12 @@
         </div>
 
         <main class="mdl-layout__content">
-            <div class="page-content">
-                <div class="separator" style="clear: both; text-align: center;">
-                    <a href="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEi1fx0b6zFkwQ-U45g3millPHUg03_Gmc-Q9xtmTY98HWYrqjJBmgQjr-HeNZdMCrFj3R7dQHOcyEfkmPVcEShF5-1gKJLMvkI-N60JKuq7XFigE67uVlp4Da0sMXBHJ6BFlZaG4MCEiimtNbLDv4Q6Z_MNk7Xuy9OmjBj-k0UD_IvnnDUXe-ZmynmypNnV/s2833/Wiki_Zone_Zero_Mod_Banner.webp" style="display: block; padding: 1em 0;">
-                        <img alt="" border="0" width="320" data-original-height="873" data-original-width="2833" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEi1fx0b6zFkwQ-U45g3millPHUg03_Gmc-Q9xtmTY98HWYrqjJBmgQjr-HeNZdMCrFj3R7dQHOcyEfkmPVcEShF5-1gKJLMvkI-N60JKuq7XFigE67uVlp4DaOswxBHJ6BFlZaG4MCEiimtNbLDv4Q6Z_MNk7Xuy9OmjBj-k0UD_IvnnDUXe-ZmynmypNnV/s320/Wiki_Zone_Zero_Mod_Banner.webp"/>
-                    </a>
-                </div>
-                <div id="main-content-display">
-                    <p>Carregando conteúdo...</p> 
-                </div>
-
-                <div id="access-denied-message" style="text-align: center; padding: 50px; font-size: 20px; color: #666; display: none;">
-                    Você precisa estar logado para acessar esta página.
-                </div>
-                <div id="banned-message" style="text-align: center; padding: 50px; font-size: 20px; color: red; display: none;">
-                    Sua conta foi banida. Você não pode usar os recursos do site.
-                </div>
+            <iframe id="contentFrame" src="./index.html"></iframe>
+            <div id="access-denied-message" style="text-align: center; padding: 50px; font-size: 20px; color: #666; display: none;">
+                Você precisa estar logado para acessar esta página.
+            </div>
+            <div id="banned-message" style="text-align: center; padding: 50px; font-size: 20px; color: red; display: none;">
+                Sua conta foi banida. Você não pode usar os recursos do site.
             </div>
         </main>
 
@@ -187,12 +196,12 @@
         const loginGitHubButton = document.getElementById('login-github');
         const logoutButton = document.getElementById('logout-button');
         const userInfo = document.getElementById('user-info');
-        const adminPanelButton = document.getElementById('admin-panel-button'); 
-        // const contentFrame = document.getElementById('contentFrame'); // REMOVIDO - Não usaremos mais iframe
+        const adminPanelButton = document.getElementById('admin-panel-button');
+        const contentFrame = document.getElementById('contentFrame'); // MANTIDO e usado agora
         const accessDeniedMessage = document.getElementById('access-denied-message');
-        const bannedMessage = document.getElementById('banned-message'); 
-        const navLinks = document.querySelectorAll('.mdl-navigation__link'); 
-        const mainContentDisplay = document.getElementById('main-content-display'); // NOVO ELEMENTO
+        const bannedMessage = document.getElementById('banned-message');
+        const navLinks = document.querySelectorAll('.mdl-navigation__link');
+        // const mainContentDisplay = document.getElementById('main-content-display'); // REMOVIDO - Não será mais necessário
 
         // Novos elementos da UI para a imagem de perfil e ícone do Google Apps
         const userProfilePic = document.getElementById('user-profile-pic');
@@ -203,61 +212,58 @@
         // Variável para armazenar o status de banimento do usuário
         let isCurrentUserBanned = false;
 
-        // Função para carregar a página (agora redireciona a janela)
-        function loadPage(page, requiresAuth = true) {
-            if (isCurrentUserBanned && page !== 'recepcao.html') {
-                // Se banido e tentando acessar página restrita
-                mainContentDisplay.style.display = 'none'; // Esconde conteúdo normal
+        // Função para carregar a página no iframe
+        function loadPageInIframe(pageUrl, requiresAuth = true) {
+            if (isCurrentUserBanned && pageUrl !== 'recepcao.html' && pageUrl !== './index.html') {
+                // Se banido e tentando acessar página restrita, exibe a mensagem de banido
+                contentFrame.style.display = 'none';
                 accessDeniedMessage.style.display = 'none';
-                bannedMessage.style.display = 'block'; 
-                // Se a página for um link externo ou um HTML que você não quer redirecionar a janela principal
-                // ou se a página de recepcao não precisar de carregamento externo, você pode mantê-la.
-                // Mas, se a ideia é sempre redirecionar a página, o loadPage fará isso.
-                return; 
+                bannedMessage.style.display = 'block';
+                return;
             }
 
             if (!requiresAuth || auth.currentUser) {
-                // Se não requer autenticação OU usuário logado, redireciona a página
-                window.location.href = page; // Redireciona a página principal
+                // Se não requer autenticação OU usuário logado, carrega no iframe
+                contentFrame.src = pageUrl;
+                contentFrame.style.display = 'block'; // Garante que o iframe esteja visível
+                accessDeniedMessage.style.display = 'none'; // Esconde mensagens de erro
+                bannedMessage.style.display = 'none';
             } else {
                 // Se requer autenticação e usuário não logado
-                mainContentDisplay.style.display = 'none'; // Esconde conteúdo normal
-                accessDeniedMessage.style.display = 'block';
-                bannedMessage.style.display = 'none'; 
+                contentFrame.style.display = 'none'; // Esconde o iframe
+                accessDeniedMessage.style.display = 'block'; // Exibe a mensagem de acesso negado
+                bannedMessage.style.display = 'none';
                 alert("Você precisa estar logado para acessar esta página.");
             }
         }
 
         // Adiciona event listeners aos links de navegação
         navLinks.forEach(link => {
-            // Remove o atributo data-target-iframe, pois não usaremos mais iframes para a maioria
-            if (link.hasAttribute('data-target-iframe')) {
-                link.removeAttribute('data-target-iframe');
-            }
-
-            // O link para o PDF ainda deve abrir em nova aba
-            if (link.href.includes('POL%C3%8DTICAS%20GERAIS%20DO%20WIKI%20ZONE%20ZERO%20MOD.pdf')) {
-                // Este link já tem target="_blank" no HTML, então não precisa de modificação
-                return; 
+            // O link para o PDF ainda deve abrir em nova aba, já está com target="_blank"
+            if (link.target === '_blank') {
+                return;
             }
 
             link.addEventListener('click', function(event) {
                 event.preventDefault(); // Impede o comportamento padrão do link
 
                 const pageUrl = this.href; // Pega o href do link
-                const requiresAuth = pageUrl.includes('admintools') || pageUrl.includes('register-material') || pageUrl.includes('conhecawazzimagiygg.html'); // Ajuste a lógica de requiresAuth conforme necessário
+                // Ajuste a lógica de requiresAuth. Se 'admintools' estiver no caminho, requer autenticação.
+                // Adapte para 'register-material' e 'conhecawazzimagiygg.html' se eles também exigem login.
+                const requiresAuth = pageUrl.includes('admintools') || pageUrl.includes('register-material.html') || pageUrl.includes('conhecawazzimagiygg.html');
 
                 if (this.classList.contains('disabled') && requiresAuth) {
-                    return; 
+                    return;
                 }
 
-                // Redireciona a página principal
-                window.location.href = pageUrl;
+                loadPageInIframe(pageUrl, requiresAuth); // Carrega a página no iframe
 
                 // Fecha o drawer do MDL
-                if (document.querySelector('.mdl-layout__drawer.is-visible')) {
-                    document.querySelector('.mdl-layout__obfuscator').classList.remove('is-visible');
-                    document.querySelector('.mdl-layout__drawer').classList.remove('is-visible');
+                const drawer = document.querySelector('.mdl-layout__drawer');
+                const obfuscator = document.querySelector('.mdl-layout__obfuscator');
+                if (drawer && drawer.classList.contains('is-visible')) {
+                    drawer.classList.remove('is-visible');
+                    obfuscator.classList.remove('is-visible');
                 }
             });
         });
@@ -265,10 +271,9 @@
         // Função para habilitar/desabilitar links do menu lateral
         function setNavLinksEnabled(enabled) {
             navLinks.forEach(link => {
-                // Links que não precisam de autenticação (recepcao.html e o PDF)
                 const isAlwaysEnabled = link.href.includes('index.html') || link.href.includes('recepcao.html') || link.href.includes('POL%C3%8DTICAS%20GERAIS%20DO%20WIKI%20ZONE%20ZERO%20MOD.pdf');
 
-                if (isAlwaysEnabled) { 
+                if (isAlwaysEnabled) {
                     link.classList.remove('disabled');
                     return;
                 }
@@ -290,7 +295,7 @@
 
             if (!docSnapshot.exists) {
                 const { displayName, email, photoURL } = user;
-                const createdAt = firebase.firestore.FieldValue.serverTimestamp(); 
+                const createdAt = firebase.firestore.FieldValue.serverTimestamp();
 
                 try {
                     await userRef.set({
@@ -299,9 +304,9 @@
                         email: email,
                         profilePictureUrl: photoURL,
                         createdAt: createdAt,
-                        lastLoginAt: createdAt, 
-                        isBan: false, 
-                        isAdmin: false, 
+                        lastLoginAt: createdAt,
+                        isBan: false,
+                        isAdmin: false,
                     });
                     console.log("Novo perfil de usuário criado no Firestore!");
                 } catch (error) {
@@ -325,12 +330,14 @@
                 userInfo.textContent = `Olá, ${user.displayName || user.email}!`;
                 loginGoogleButton.style.display = 'none';
                 loginGitHubButton.style.display = 'none';
-                
+                logoutButton.style.display = 'inline-block'; // Exibir logout
+                logoutButton.addEventListener('click', handleLogout); // Adicionar listener de logout
+
                 if (user.photoURL) {
                     userProfilePic.src = user.photoURL;
-                    userProfilePic.style.display = 'inline-block'; 
+                    userProfilePic.style.display = 'inline-block';
                 } else {
-                    userProfilePic.style.display = 'none'; 
+                    userProfilePic.style.display = 'none';
                 }
 
                 googleAppsButton.style.display = 'inline-block';
@@ -341,77 +348,63 @@
                 try {
                     const userProfileRef = firestore.collection('users').doc(user.uid);
                     const doc = await userProfileRef.get();
-                    
+
                     if (doc.exists && doc.data()) {
-                        isCurrentUserBanned = doc.data().isBan || false; 
-                        
+                        isCurrentUserBanned = doc.data().isBan || false;
+
                         if (isCurrentUserBanned) {
                             console.warn(`Usuário ${user.uid} está banido.`);
-                            setNavLinksEnabled(false); 
-                            logoutButton.style.display = 'none'; 
-                            logoutButton.removeEventListener('click', handleLogout); 
-                            adminPanelButton.style.display = 'none'; 
-                            // Em caso de banimento, redireciona para a recepcao (ou exibe a mensagem de banido)
-                            window.location.href = 'recepcao.html?banned=true'; 
+                            setNavLinksEnabled(false);
+                            logoutButton.style.display = 'none'; // Esconde botão de logout se banido
+                            logoutButton.removeEventListener('click', handleLogout); // Remove o listener
+                            adminPanelButton.style.display = 'none';
+                            // Carrega a página de recepção (ou uma página de banimento) no iframe
+                            loadPageInIframe('recepcao.html', false);
+                            contentFrame.style.display = 'none'; // Esconde o iframe
+                            accessDeniedMessage.style.display = 'none';
+                            bannedMessage.style.display = 'block';
                         } else {
-                            setNavLinksEnabled(true); 
-                            logoutButton.style.display = 'inline-block'; 
-                            logoutButton.addEventListener('click', handleLogout); 
-                            bannedMessage.style.display = 'none'; 
+                            setNavLinksEnabled(true);
+                            // logoutButton.style.display = 'inline-block'; // Já definido acima
+                            // logoutButton.addEventListener('click', handleLogout); // Já definido acima
+                            bannedMessage.style.display = 'none';
+                            contentFrame.style.display = 'block'; // Garante que o iframe esteja visível
 
-                            if (doc.data().isAdmin === true) { 
+                            if (doc.data().isAdmin === true) {
                                 adminPanelButton.style.display = 'inline-block';
                             } else {
                                 adminPanelButton.style.display = 'none';
                             }
 
-                            // Verifica se a URL atual é uma das páginas que exigem login.
-                            // Se o usuário está logado e não está em 'recepcao.html', mantém a página atual.
-                            // Caso contrário, redireciona para recepcao.html
+                            // Carrega a página inicial no iframe se o usuário acabou de logar e não está banido
+                            // ou se a URL atual ainda é a recepção.
                             const currentPath = window.location.pathname.split('/').pop();
-                            const authRequiredPages = [
-                                'editordeartigos.html', 
-                                'register-material.html', 
-                                'conhecawazzimagiygg.html', 
-                                'cadastrarprofessor.html', 
-                                'adicionarouremoverartigos.html', 
-                                'editordenoticias.html'
-                            ];
-
-                            if (authRequiredPages.includes(currentPath) && !isCurrentUserBanned) {
-                                // Se já está em uma página autenticada e não está banido, apenas exibe o conteúdo
-                                mainContentDisplay.style.display = 'block';
-                                accessDeniedMessage.style.display = 'none';
-                                bannedMessage.style.display = 'none';
-                            } else if (currentPath === 'recepcao.html' || currentPath === '' || currentPath === 'index.html') {
-                                // Se está na recepção ou página inicial, e logado, pode permanecer
-                                mainContentDisplay.style.display = 'block';
-                                accessDeniedMessage.style.display = 'none';
-                                bannedMessage.style.display = 'none';
+                            if (currentPath === 'recepcao.html' || currentPath === '' || currentPath === 'index.html') {
+                                loadPageInIframe('index.html', false); // Carrega a página inicial no iframe
                             } else {
-                                // Se logou e está em uma página não-autenticada ou banida, vai para a recepcao
-                                window.location.href = 'recepcao.html';
+                                // Se o usuário logou e já estava em uma página específica, mantém essa página no iframe
+                                loadPageInIframe(currentPath, currentPath.includes('admintools') || currentPath.includes('register-material.html') || currentPath.includes('conhecawazzimagiygg.html'));
                             }
                         }
                     } else {
                         // Perfil de usuário não encontrado, tratar como não banido por padrão
                         isCurrentUserBanned = false;
                         setNavLinksEnabled(true);
-                        logoutButton.style.display = 'inline-block';
-                        logoutButton.addEventListener('click', handleLogout);
+                        // logoutButton.style.display = 'inline-block'; // Já definido acima
+                        // logoutButton.addEventListener('click', handleLogout); // Já definido acima
                         adminPanelButton.style.display = 'none';
                         bannedMessage.style.display = 'none';
-                        window.location.href = 'recepcao.html'; // Redireciona para a recepcao
+                        loadPageInIframe('recepcao.html', false); // Carrega a recepção no iframe
                     }
                 } catch (error) {
                     console.error("Erro ao verificar perfil de usuário ou status de banimento:", error);
                     adminPanelButton.style.display = 'none';
-                    isCurrentUserBanned = false; 
+                    isCurrentUserBanned = false;
                     setNavLinksEnabled(true);
-                    logoutButton.style.display = 'inline-block';
-                    logoutButton.addEventListener('click', handleLogout);
+                    // logoutButton.style.display = 'inline-block'; // Já definido acima
+                    // logoutButton.addEventListener('click', handleLogout); // Já definido acima
                     bannedMessage.style.display = 'none';
-                    window.location.href = 'recepcao.html'; // Redireciona para a recepcao em caso de erro
+                    loadPageInIframe('recepcao.html', false); // Carrega a recepção no iframe em caso de erro
                 }
 
             } else { // Usuário não logado
@@ -419,30 +412,25 @@
                 loginGoogleButton.style.display = 'inline-block';
                 loginGitHubButton.style.display = 'inline-block';
                 logoutButton.style.display = 'none';
-                adminPanelButton.style.display = 'none'; 
-                isCurrentUserBanned = false; 
-                bannedMessage.style.display = 'none'; 
+                logoutButton.removeEventListener('click', handleLogout); // Remove listener para evitar duplicidade
+                adminPanelButton.style.display = 'none';
+                isCurrentUserBanned = false;
+                bannedMessage.style.display = 'none';
                 setNavLinksEnabled(false);
 
                 userProfilePic.style.display = 'none';
-                userProfilePic.src = ''; 
+                userProfilePic.src = '';
                 googleAppsButton.style.display = 'none';
-                userInfoContainer.style.display = 'none'; 
-                googleAppsPopup.style.display = 'none'; 
+                userInfoContainer.style.display = 'none';
+                googleAppsPopup.style.display = 'none';
 
-                // Se não logado, sempre vai para a recepcao
-                const currentPath = window.location.pathname.split('/').pop();
-                if (currentPath !== 'recepcao.html' && currentPath !== '' && currentPath !== 'index.html') {
-                     window.location.href = 'recepcao.html'; // Redireciona para a recepcao se não estiver nela
-                } else {
-                    mainContentDisplay.style.display = 'block'; // Exibe o conteúdo se já estiver na recepcao
-                    accessDeniedMessage.style.display = 'none';
-                }
+                // Se não logado, sempre carrega a recepcao no iframe
+                loadPageInIframe('recepcao.html', false);
             }
             // Para lidar com o parâmetro de banimento na URL
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('banned') === 'true') {
-                mainContentDisplay.style.display = 'none';
+                contentFrame.style.display = 'none';
                 accessDeniedMessage.style.display = 'none';
                 bannedMessage.style.display = 'block';
             }
@@ -452,8 +440,8 @@
         const handleLogout = () => {
             auth.signOut().then(() => {
                 console.log("Usuário deslogado.");
-                // Após o logout, redireciona para a página inicial (recepcao.html)
-                window.location.href = 'recepcao.html'; 
+                // Após o logout, carrega a página de recepção no iframe
+                loadPageInIframe('recepcao.html', false);
             }).catch((error) => {
                 console.error("Erro ao fazer logout:", error);
                 alert(`Erro ao fazer logout: ${error.message}`);
@@ -464,7 +452,7 @@
         loginGoogleButton.addEventListener('click', async () => {
             const provider = new firebase.auth.GoogleAuthProvider();
             try {
-                await auth.signInWithPopup(provider); 
+                await auth.signInWithPopup(provider);
             } catch (error) {
                 console.error("Erro ao fazer login com Google:", error);
                 alert(`Erro ao fazer login com Google: ${error.message}`);
@@ -475,7 +463,7 @@
         loginGitHubButton.addEventListener('click', async () => {
             const provider = new firebase.auth.GithubAuthProvider();
             try {
-                await auth.signInWithPopup(provider); 
+                await auth.signInWithPopup(provider);
             } catch (error) {
                 console.error("Erro ao fazer login com GitHub:", error);
                 alert(`Erro ao fazer login com GitHub: ${error.message}`);
@@ -493,8 +481,8 @@
         });
 
         document.addEventListener('click', (event) => {
-            if (googleAppsPopup.style.display === 'block' && 
-                !googleAppsButton.contains(event.target) && 
+            if (googleAppsPopup.style.display === 'block' &&
+                !googleAppsButton.contains(event.target) &&
                 !googleAppsPopup.contains(event.target)) {
                 googleAppsPopup.style.display = 'none';
             }
@@ -505,8 +493,9 @@
             if (componentHandler) {
                 componentHandler.upgradeDom();
             }
-            // Não precisamos mais chamar loadPage aqui, pois o onAuthStateChanged já faz o redirecionamento
-            // loadPage('recepcao.html', false); 
+            // A carga inicial do iframe será feita pelo onAuthStateChanged
+            // Assim que o status de autenticação for verificado, a página correta será carregada no iframe.
+            // Para garantir que algo seja exibido enquanto o Firebase inicializa, você pode definir um src inicial no iframe diretamente no HTML, como 'index.html'.
         });
     </script>
 </body>
