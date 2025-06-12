@@ -214,7 +214,7 @@
 
         // Função para carregar a página no iframe
         function loadPageInIframe(pageUrl, requiresAuth = true) {
-            if (isCurrentUserBanned && pageUrl !== 'recepcao.html' && pageUrl !== './index.html') {
+            if (isCurrentUserBanned && pageUrl !== 'recepcao.html' && pageUrl !== './recepcao.html.html') {
                 // Se banido e tentando acessar página restrita, exibe a mensagem de banido
                 contentFrame.style.display = 'none';
                 accessDeniedMessage.style.display = 'none';
@@ -271,7 +271,7 @@
         // Função para habilitar/desabilitar links do menu lateral
         function setNavLinksEnabled(enabled) {
             navLinks.forEach(link => {
-                const isAlwaysEnabled = link.href.includes('index.html') || link.href.includes('recepcao.html') || link.href.includes('POL%C3%8DTICAS%20GERAIS%20DO%20WIKI%20ZONE%20ZERO%20MOD.pdf');
+                const isAlwaysEnabled = link.href.includes('recepcao.html') || link.href.includes('recepcao.html') || link.href.includes('POL%C3%8DTICAS%20GERAIS%20DO%20WIKI%20ZONE%20ZERO%20MOD.pdf');
 
                 if (isAlwaysEnabled) {
                     link.classList.remove('disabled');
