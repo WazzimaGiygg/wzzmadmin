@@ -1,167 +1,51 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WZZM Admin</title>
-    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <title>Wiki Zone Zero Mod</title>
+    <link rel="icon" href="favicom.png" type="image/x-icon">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
     <style>
-        body {
-            margin: 0;
-            background-color: #f5f5f5; /* Cor de fundo suave */
-        }
-        .container {
+        .page-content {
             padding: 20px;
-            max-width: 1200px; /* Limita a largura do conteúdo */
-            margin: auto; /* Centraliza o conteúdo */
         }
-        .mdl-layout__content {
-            padding: 20px; /* Adiciona padding ao conteúdo principal do MDL */
-        }
-        h1, h2, h3 {
-            color: #333;
-            margin-bottom: 15px;
-        }
-        p {
-            color: #555;
-            line-height: 1.6;
-        }
-        .section {
-            margin-bottom: 30px;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12);
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-        /* Estilos para os botões MDL */
-        .mdl-button.mdl-button--raised {
-            height: auto; /* Permite que o botão se ajuste ao conteúdo */
-            padding: 15px 10px; /* Ajusta o padding para um visual maior */
-            white-space: normal; /* Permite que o texto quebre linha */
-            line-height: 1.4; /* Espaçamento da linha do texto */
-            text-align: center;
-            font-size: 1rem; /* Tamanho da fonte */
-        }
-
-        /* Estilos para o rodapé */
-        footer {
-            margin-top: 40px;
-            padding: 20px;
-            text-align: center;
-            color: #777;
-            background-color: #f0f0f0;
-            border-top: 1px solid #eee;
-        }
-        footer a {
-            color: #3f51b5; /* Cor do link do MDL */
-            text-decoration: none;
-        }
-        footer a:hover {
-            text-decoration: underline;
-        }
-
-        /* Estilo para o banner */
-        .banner-container {
-            clear: both;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .banner-container img {
-            max-width: 100%;
-            height: auto;
-            border: 0;
-            display: block;
-            margin: 0 auto; /* Centraliza a imagem */
-        }
-        .mdl-layout__header-row #user-info {
-            color: white; /* Garante que o texto seja visível no cabeçalho */
-            margin-right: 16px;
-        }
-        .mdl-layout__drawer .mdl-navigation__link {
-            color: #424242; /* Cor padrão dos links do drawer */
-        }
-
-        /* Novos estilos para o conteúdo inserido */
-        .note {
-            background-color: #fff3cd;
-            border-left: 6px solid #ffeeba;
-            padding: 10px 20px;
-            margin-bottom: 20px;
-            font-weight: bold;
-        }
-        table {
+        #contentFrame {
             width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 30px;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
-        }
-        th, td {
-            padding: 10px;
-            border: 1px solid #ccc;
-            text-align: left;
-            vertical-align: top;
-        }
-        th {
-            background-color: #e9ecef;
-            color: #333;
-        }
-        .report {
-            background-color: #ffffff;
-            padding: 20px;
-            border-left: 5px solid #17a2b8;
-            margin-bottom: 30px;
-        }
-        /* Estilos para a mensagem de login */
-        #login-required {
-            text-align: center;
-            padding: 50px;
-            font-size: 1.2em;
-            color: #555;
-            display: none; /* Inicialmente escondido, será mostrado pelo JS se não estiver logado */
-        }
-        #login-required button {
-            padding: 12px 25px;
-            font-size: 1em;
-            background-color: #4285f4; /* Cor do Google */
-            color: white;
+            height: calc(100vh - 200px);
             border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 20px;
-            transition: background-color 0.3s ease;
-        }
-        #login-required button:hover {
-            background-color: #357ae8;
-        }
-        /* Esconde o conteúdo principal quando não logado OU não admin */
-        #main-content-display {
-            display: none; /* Inicialmente escondido, será mostrado pelo JS se estiver logado E for admin */
-        }
-        /* Mensagem de acesso negado para não-admins */
-        #access-denied-admin {
-            text-align: center;
-            padding: 50px;
-            font-size: 1.2em;
-            color: #d32f2f; /* Cor de erro/alerta */
-            display: none;
         }
 
-        /* Estilos para o iframe */
-        #content-iframe {
-            width: 100%;
-            height: 800px; /* Ajuste a altura conforme necessário */
-            border: 1px solid #ccc;
-            background-color: #fff;
-            display: none; /* Escondido por padrão, mostrado quando um link é clicado */
+        /* Estilos adicionais para os links do menu lateral quando desabilitados */
+        .mdl-navigation__link.disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+            color: #777 !important; /* Adicionado !important para sobrepor estilos do MDL */
+            pointer-events: none; /* Impede cliques */
+        }
+
+        /* Estilos para a imagem de perfil e ícone do Google Apps */
+        #user-profile-pic {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%; /* Torna a imagem circular */
+            margin-right: 8px; /* Espaçamento entre a imagem e o texto */
+            object-fit: cover; /* Garante que a imagem preencha o espaço sem distorcer */
+        }
+        #google-apps-button {
+            /* Ajustes para o botão de ícone */
+            min-width: 32px; /* Garante tamanho mínimo para o ícone */
+            height: 32px;
+            padding: 0;
+            display: flex; /* Para centralizar o ícone */
+            align-items: center;
+            justify-content: center;
+        }
+        /* Estilos para o pop-up dos serviços Google */
+        #google-apps-popup a.mdl-button {
+            margin-bottom: 4px; /* Espaçamento entre os botões de serviço */
+            justify-content: flex-start; /* Alinha o texto à esquerda */
         }
     </style>
 </head>
@@ -170,25 +54,47 @@
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-analytics-compat.js"></script>
-    <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
 
     <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
         <header class="mdl-layout__header">
             <div class="mdl-layout__header-row">
-                <span class="mdl-layout-title">WZZM Admin</span>
+                <span class="mdl-layout-title">Wiki Zone Zero Mod</span>
                 <div class="mdl-layout-spacer"></div>
-                <div id="user-info" class="mdl-typography--body-1-force-preferred-font-color-contrast"></div>
-                <button id="login-google" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" style="display: none;">
-                    <i class="material-icons">account_circle</i> Login com Google
-                </button>
-                <button id="logout-button" class="mdl-button mdl-js-button mdl-button--accent" style="display: none;">
-                    <i class="material-icons">exit_to_app</i> Sair
-                </button>
+                <div style="position: relative; display: flex; align-items: center;">
+                    <button class="mdl-button mdl-js-button mdl-button--icon" id="google-apps-button" style="display: none; margin-right: 8px;">
+                        <i class="material-icons">apps</i>
+                    </button>
+                    <div id="google-apps-popup" style="
+                        display: none;
+                        position: absolute;
+                        top: 48px; /* Ajuste a posição vertical conforme necessário */
+                        right: 0;
+                        background-color: white;
+                        border: 1px solid #ccc;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                        z-index: 100;
+                        padding: 10px;
+                        min-width: 180px;
+                        border-radius: 4px;
+                    ">
+                        <a href="https://mail.google.com/" target="_blank" class="mdl-button mdl-js-button mdl-button--flat">Gmail</a>
+                        <a href="https://drive.google.com/" target="_blank" class="mdl-button mdl-js-button mdl-button--flat">Drive</a>
+                        <a href="https://calendar.google.com/" target="_blank" class="mdl-button mdl-js-button mdl-button--flat">Agenda</a>
+                        <a href="https://photos.google.com/" target="_blank" class="mdl-button mdl-js-button mdl-button--flat">Fotos</a>
+                        <a href="https://www.youtube.com/" target="_blank" class="mdl-button mdl-js-button mdl-button--flat">YouTube</a>
+                        <hr style="border: 0; border-top: 1px solid #eee; margin: 8px 0;">
+                        <a href="https://myaccount.google.com/" target="_blank" class="mdl-button mdl-js-button mdl-button--flat">Minha Conta Google</a>
+                        </div>
+                    <div id="user-info-container" style="display: flex; align-items: center;">
+                        <img id="user-profile-pic" src="" alt="Foto de Perfil" style="display: none;">
+                        <div id="user-info" class="mdl-typography--body-1-force-preferred-font-color-contrast"></div>
+                    </div>
+                </div>
             </div>
         </header>
 
         <div class="mdl-layout__drawer">
-            <span class="mdl-layout-title">Menu Principal</span>
+            <span class="mdl-layout-title">Menu</span>
             <nav class="mdl-navigation" id="main-navigation">
                 <a class="mdl-navigation__link" href="./index.html" data-target-iframe="false">Página Inicial</a>
                 <a class="mdl-navigation__link" href="./admintools/editordeartigos.html" data-target-iframe="true">Adicionar Artigo</a>
@@ -197,129 +103,58 @@
                 <a class="mdl-navigation__link" href="./admintools/cadastrarprofessor.html" data-target-iframe="true">Cadastrar Professor</a> 
                 <a class="mdl-navigation__link" href="./admintools/adicionarouremoverartigos.html" data-target-iframe="true">Adicionar e Remover Artigos</a> 
                 <a class="mdl-navigation__link" href="./admintools/editordenoticias.html" data-target-iframe="true">Adicionar Noticia</a> 
+
+                <a class="mdl-navigation__link" href="http://www.wzzm.org/POL%C3%8DTICAS%20GERAIS%20DO%20WIKI%20ZONE%20ZERO%20MOD.pdf" target="_blank">Políticas da WZZM</a>
             </nav>
         </div>
 
         <main class="mdl-layout__content">
-            <div id="login-required" class="container section">
-                <h2>Acesso Restrito</h2>
-                <p>Para acessar o painel de administração, por favor, faça login com sua conta Google.</p>
-                <button id="google-sign-in-button-main" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
-                    <i class="material-icons">account_circle</i> Entrar com Google
-                </button>
-                <p id="login-status-message" style="margin-top: 10px;"></p>
-            </div>
-
-            <div id="access-denied-admin" class="container section">
-                <h2>Acesso Negado</h2>
-                <p>Você não tem permissão para acessar esta área. Somente administradores podem visualizar este conteúdo.</p>
-                <p>Se você acredita que isso é um erro, entre em contato com o suporte.</p>
-            </div>
-
-            <div id="main-content-display" class="container">
-                <div class="banner-container">
-                    <a href="https://wzzm.org" target="_blank" rel="noopener noreferrer">
-                        <img src="/images/wzzm-banner.gif" alt="WZZM Banner">
+            <div class="page-content">
+                <div class="separator" style="clear: both; text-align: center;">
+                    <a href="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEi1fx0b6zFkwQ-U45g3millPHUg03_Gmc-Q9xtmTY98HWYrqjJBmgQjr-HeNZdMCrFj3R7dQHOcyEfkmPVcEShF5-1gKJLMvkI-N60JKuq7XFigE67uVlp4Da0sMXBHJ6BFlZaG4MCEiimtNbLDv4Q6Z_MNk7Xuy9OmjBj-k0UD_IvnnDUXe-ZmynmypNnV/s2833/Wiki_Zone_Zero_Mod_Banner.webp" style="display: block; padding: 1em 0;">
+                        <img alt="" border="0" width="320" data-original-height="873" data-original-width="2833" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEi1fx0b6zFkwQ-U45g3millPHUg03_Gmc-Q9xtmTY98HWYrqjJBmgQjr-HeNZdMCrFj3R7dQHOcyEfkmPVcEShF5-1gKJLMvkI-N60JKuq7XFigE67uVlp4DaOswxBHJ6BFlZaG4MCEiimtNbLDv4Q6Z_MNk7Xuy9OmjBj-k0UD_IvnnDUXe-ZmynmypNnV/s320/Wiki_Zone_Zero_Mod_Banner.webp"/>
                     </a>
                 </div>
-
-                <h1>Painel Administrativo WZZM</h1>
-                <p>Bem-vindo(a) ao painel de administração da WZZM. Aqui você pode gerenciar conteúdos, relatórios e configurações do site.</p>
-
-                <div class="note">
-                    <p><strong>Atenção:</strong> Esta é uma área restrita. Qualquer modificação aqui impacta diretamente o site principal.</p>
+                <iframe id="contentFrame" src="recepcao.html"></iframe>
+                <div id="access-denied-message" style="text-align: center; padding: 50px; font-size: 20px; color: #666; display: none;">
+                    Você precisa estar logado para acessar esta página.
                 </div>
-
-                <div class="section">
-                    <h2>Resumo Administrativo</h2>
-                    <p>Visão geral rápida das atividades recentes.</p>
-                    <div class="grid">
-                        <a class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
-                           href="./admintools/gerenciar-artigos.html" data-target-iframe="true">
-                            <i class="material-icons">article</i> Gerenciar Artigos
-                        </a>
-                        <a class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
-                           href="./admintools/gerenciar-usuarios.html" data-target-iframe="true">
-                            <i class="material-icons">person_add</i> Gerenciar Usuários
-                        </a>
-                        <a class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
-                           href="./admintools/configuracoes.html" data-target-iframe="true">
-                            <i class="material-icons">build</i> Configurações do Site
-                        </a>
-                        <a class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
-                           href="./admintools/estatisticas.html" data-target-iframe="true">
-                            <i class="material-icons">show_chart</i> Ver Estatísticas
-                        </a>
-                    </div>
-                </div>
-
-                <div class="section">
-                    <h2>Atividade Recente</h2>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Hora</th>
-                                <th>Descrição da Atividade</th>
-                                <th>Detalhes</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>24/05/2025</td>
-                                <td>10:30</td>
-                                <td>Relatório de Desempenho do Site</td>
-                                <td><a href="/relatorios/24_05_2025/" data-target-iframe="true">Ver relatório completo</a></td>
-                            </tr>
-                            <tr>
-                                <td>23/05/2025</td>
-                                <td>14:00</td>
-                                <td>Nova matéria adicionada: "Tecnologia na Educação"</td>
-                                <td>Verificar detalhes em: <a href="/relatorios/23_05_2025/" data-target-iframe="true">admin.wzzm.org/relatorios/23_05_2025/</a></td>
-                            </tr>
-                            <tr>
-                                <td>22/05/2025</td>
-                                <td>09:15</td>
-                                <td>Atualização de segurança aplicada</td>
-                                <td>Verificar detalhes em: <a href="/relatorios/22_05_2025/" data-target-iframe="true">admin.wzzm.org/relatorios/22_05_2025/</a></td>
-                            </tr>
-                            <tr>
-                                <td>21/05/2025</td>
-                                <td>15:47</td>
-                                <td>Modernização do site escolar.wzzm.org</td>
-                                <td>
-                                    UP90[2005-2025] Série EX8<br>
-                                    <a href="https://escolar.wzzm.org/" target="_blank" rel="noopener noreferrer">https://escolar.wzzm.org/</a>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div id="banned-message" style="text-align: center; padding: 50px; font-size: 20px; color: red; display: none;">
+                    Sua conta foi banida. Você não pode usar os recursos do site.
                 </div>
             </div>
-
-            <iframe id="content-iframe"></iframe>
-
-            <footer class="mdl-mini-footer">
-                <div class="mdl-mini-footer__left-section">
-                    <div class="mdl-logo">WZZM Escolar © 2025</div>
-                    <ul class="mdl-mini-footer__link-list">
-                        <li class="mdl-navigation__link"><a href="./Privacidade/" data-target-iframe="true">Privacidade</a></li>
-                        <li class="mdl-navigation__link"><a href="./Termos/" data-target-iframe="true">Termos</a></li>
-                    </ul>
-                </div>
-                <div class="mdl-mini-footer__right-section">
-                    <p>Feito com auxílio do site: <a href="https://html-online.com/" target="_blank" rel="noopener noreferrer">html-online.com</a></p>
-                    <p>Editor: Collei "Grigori" Ludwig</p>
-                    <p style="text-align: center;">Site administrador pela <a href="http://wzzm.org" target="_blank" rel="noopener noreferrer">Wiki Zone Zero Mod</a></p>
-                </div>
-            </footer>
         </main>
+
+        <footer class="mdl-mini-footer">
+            <div class="mdl-mini-footer__left-section">
+                <div class="mdl-logo">WZZM © 2025</div>
+                <ul class="mdl-mini-footer__link-list">
+                    <li><a href="./Privacidade/">Privacidade</a></li>
+                    <li><a href="./Termos/">Wiki Not Pedia</a></li>
+                </ul>
+            </div>
+            <div class="mdl-mini-footer__right-section">
+                <button id="login-google" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" style="display: none;">
+                    <i class="material-icons">account_circle</i> Login com Google
+                </button>
+                <button id="login-github" class="mdl-button mdl-js-button mdl-button--raised" style="display: none;">
+                    <i class="material-icons">code</i> Login com GitHub
+                </button>
+                <button id="logout-button" class="mdl-button mdl-js-button mdl-button--accent" style="display: none;">
+                    <i class="material-icons">exit_to_app</i> Sair
+                </button>
+                <button id="admin-panel-button" class="mdl-button mdl-js-button mdl-button--primary" style="display: none;">
+                    <i class="material-icons">admin_panel_settings</i> Admin
+                </button>
+            </div>
+        </footer>
     </div>
 
+    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
     <script>
         // --- Configuração do Firebase ---
         const firebaseConfig = {
-            apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0", // SUAS CREDENCIAIS DO FIREBASE AQUI
+            apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0",
             authDomain: "wzzm-ce3fc.firebaseapp.com",
             projectId: "wzzm-ce3fc",
             storageBucket: "wzzm-ce3fc.appspot.com",
@@ -328,23 +163,99 @@
             measurementId: "G-PLKNZNFCQ8"
         };
 
+        if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+        }
+
         // Inicialize Firebase
         const app = firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const firestore = firebase.firestore();
+        const analytics = firebase.analytics();
 
         // Elementos da UI
         const loginGoogleButton = document.getElementById('login-google');
+        const loginGitHubButton = document.getElementById('login-github');
         const logoutButton = document.getElementById('logout-button');
         const userInfo = document.getElementById('user-info');
+        const adminPanelButton = document.getElementById('admin-panel-button'); 
+        const contentFrame = document.getElementById('contentFrame');
+        const accessDeniedMessage = document.getElementById('access-denied-message');
+        const bannedMessage = document.getElementById('banned-message'); 
+        const navLinks = document.querySelectorAll('.mdl-navigation__link'); 
 
-        const loginRequiredDiv = document.getElementById('login-required');
-        const mainContentDisplay = document.getElementById('main-content-display');
-        const googleSignInButtonMain = document.getElementById('google-sign-in-button-main');
-        const loginStatusMessage = document.getElementById('login-status-message');
-        const accessDeniedAdminMessage = document.getElementById('access-denied-admin');
+        // Novos elementos da UI para a imagem de perfil e ícone do Google Apps
+        const userProfilePic = document.getElementById('user-profile-pic');
+        const googleAppsButton = document.getElementById('google-apps-button');
+        const userInfoContainer = document.getElementById('user-info-container');
+        const googleAppsPopup = document.getElementById('google-apps-popup'); // Referência ao pop-up
 
-        const contentIframe = document.getElementById('content-iframe');
+        // Variável para armazenar o status de banimento do usuário
+        let isCurrentUserBanned = false;
+
+        // Função para carregar a página no iframe
+        function loadPage(page, requiresAuth = true) {
+            if (isCurrentUserBanned && page !== 'recepcao.html') {
+                contentFrame.src = "about:blank";
+                contentFrame.style.display = 'none';
+                accessDeniedMessage.style.display = 'none';
+                bannedMessage.style.display = 'block'; 
+                return;
+            }
+
+            if (!requiresAuth || auth.currentUser) {
+                contentFrame.src = page;
+                contentFrame.style.display = 'block';
+                accessDeniedMessage.style.display = 'none';
+                bannedMessage.style.display = 'none'; 
+            } else {
+                contentFrame.src = "about:blank";
+                contentFrame.style.display = 'none';
+                accessDeniedMessage.style.display = 'block';
+                bannedMessage.style.display = 'none'; 
+                alert("Você precisa estar logado para acessar esta página.");
+            }
+        }
+
+        // Adiciona event listeners aos links de navegação
+        navLinks.forEach(link => {
+            if (!link.dataset.pageSrc) {
+                return;
+            }
+
+            link.addEventListener('click', function(event) {
+                event.preventDefault();
+
+                const pageSrc = this.dataset.pageSrc;
+                const requiresAuth = pageSrc !== 'recepcao.html';
+                
+                if (this.classList.contains('disabled') && requiresAuth) {
+                    return; 
+                }
+
+                loadPage(pageSrc, requiresAuth);
+                if (document.querySelector('.mdl-layout__drawer.is-visible')) {
+                    document.querySelector('.mdl-layout__obfuscator').classList.remove('is-visible');
+                    document.querySelector('.mdl-layout__drawer').classList.remove('is-visible');
+                }
+            });
+        });
+
+        // Função para habilitar/desabilitar links do menu lateral
+        function setNavLinksEnabled(enabled) {
+            navLinks.forEach(link => {
+                if (link.dataset.pageSrc === 'recepcao.html' || !link.dataset.pageSrc || link.href.includes('POL%C3%8DTICAS%20GERAIS%20DO%20WIKI%20ZONE%20ZERO%20MOD.pdf')) { 
+                    link.classList.remove('disabled');
+                    return;
+                }
+
+                if (enabled) {
+                    link.classList.remove('disabled');
+                } else {
+                    link.classList.add('disabled');
+                }
+            });
+        }
 
         // --- Função para criar/atualizar o perfil do usuário no Firestore ---
         async function createUserProfileDocument(user) {
@@ -355,7 +266,7 @@
 
             if (!docSnapshot.exists) {
                 const { displayName, email, photoURL } = user;
-                const createdAt = firebase.firestore.FieldValue.serverTimestamp();
+                const createdAt = firebase.firestore.FieldValue.serverTimestamp(); 
 
                 try {
                     await userRef.set({
@@ -364,8 +275,9 @@
                         email: email,
                         profilePictureUrl: photoURL,
                         createdAt: createdAt,
-                        lastLoginAt: createdAt,
-                        isAdmin: false // Define isAdmin como false por padrão para novos usuários
+                        lastLoginAt: createdAt, 
+                        isBan: false, 
+                        isAdmin: false, 
                     });
                     console.log("Novo perfil de usuário criado no Firestore!");
                 } catch (error) {
@@ -386,205 +298,152 @@
         // Listener de estado de autenticação (Firebase)
         auth.onAuthStateChanged(async (user) => {
             if (user) {
-                // Usuário logado
                 userInfo.textContent = `Olá, ${user.displayName || user.email}!`;
                 loginGoogleButton.style.display = 'none';
-                logoutButton.style.display = 'inline-block';
+                loginGitHubButton.style.display = 'none';
+                
+                if (user.photoURL) {
+                    userProfilePic.src = user.photoURL;
+                    userProfilePic.style.display = 'inline-block'; 
+                } else {
+                    userProfilePic.style.display = 'none'; 
+                }
+
+                googleAppsButton.style.display = 'inline-block';
+                userInfoContainer.style.display = 'flex';
 
                 await createUserProfileDocument(user);
 
-                // --- VERIFICAR PERMISSÃO DE ADMINISTRADOR ---
                 try {
                     const userProfileRef = firestore.collection('users').doc(user.uid);
                     const doc = await userProfileRef.get();
-                    if (doc.exists && doc.data() && doc.data().isAdmin === true) {
-                        // É administrador: mostra o conteúdo principal, esconde mensagens de login/acesso negado
-                        loginRequiredDiv.style.display = 'none';
-                        accessDeniedAdminMessage.style.display = 'none';
-                        mainContentDisplay.style.display = 'block';
-                        contentIframe.style.display = 'none'; // Garante que o iframe esteja escondido por padrão
+                    
+                    if (doc.exists && doc.data()) {
+                        isCurrentUserBanned = doc.data().isBan || false; 
+                        
+                        if (isCurrentUserBanned) {
+                            console.warn(`Usuário ${user.uid} está banido.`);
+                            setNavLinksEnabled(false); 
+                            logoutButton.style.display = 'none'; 
+                            logoutButton.removeEventListener('click', handleLogout); 
+                            adminPanelButton.style.display = 'none'; 
+                            loadPage('recepcao.html', false); 
+                            bannedMessage.style.display = 'block'; 
+                        } else {
+                            setNavLinksEnabled(true); 
+                            logoutButton.style.display = 'inline-block'; 
+                            logoutButton.addEventListener('click', handleLogout); 
+                            bannedMessage.style.display = 'none'; 
+
+                            if (doc.data().isAdmin === true) { 
+                                adminPanelButton.style.display = 'inline-block';
+                            } else {
+                                adminPanelButton.style.display = 'none';
+                            }
+
+                            const currentPage = contentFrame.src.split('/').pop(); 
+                            if (currentPage === 'recepcao.html' || currentPage === 'about:blank' || !currentPage) {
+                                loadPage('recepcao.html');
+                            } else {
+                                loadPage(currentPage);
+                            }
+                        }
                     } else {
-                        // Não é administrador: esconde o conteúdo principal, mostra mensagem de acesso negado
-                        loginRequiredDiv.style.display = 'none';
-                        mainContentDisplay.style.display = 'none';
-                        contentIframe.style.display = 'none';
-                        G
-                        accessDeniedAdminMessage.style.display = 'block';
-                        userInfo.textContent = `Olá, ${user.displayName || user.email} (Não Admin)!`;
+                        isCurrentUserBanned = false;
+                        setNavLinksEnabled(true);
+                        logoutButton.style.display = 'inline-block';
+                        logoutButton.addEventListener('click', handleLogout);
+                        adminPanelButton.style.display = 'none';
+                        bannedMessage.style.display = 'none';
+                        loadPage('recepcao.html');
                     }
                 } catch (error) {
-                    console.error("Erro ao verificar permissões de administrador:", error);
-                    loginRequiredDiv.style.display = 'none';
-                    mainContentDisplay.style.display = 'none';
-                    contentIframe.style.display = 'none';
-                    accessDeniedAdminMessage.style.display = 'block';
-                    userInfo.textContent = `Olá, ${user.displayName || user.email} (Erro na verificação)!`;
+                    console.error("Erro ao verificar perfil de usuário ou status de banimento:", error);
+                    adminPanelButton.style.display = 'none';
+                    isCurrentUserBanned = false; 
+                    setNavLinksEnabled(true);
+                    logoutButton.style.display = 'inline-block';
+                    logoutButton.addEventListener('click', handleLogout);
+                    bannedMessage.style.display = 'none';
+                    loadPage('recepcao.html');
                 }
 
             } else {
-                // Usuário não logado
                 userInfo.textContent = '';
                 loginGoogleButton.style.display = 'inline-block';
+                loginGitHubButton.style.display = 'inline-block';
                 logoutButton.style.display = 'none';
+                adminPanelButton.style.display = 'none'; 
+                isCurrentUserBanned = false; 
+                bannedMessage.style.display = 'none'; 
+                setNavLinksEnabled(false);
+                loadPage('recepcao.html', false);
 
-                // Esconde o conteúdo principal e mostra a mensagem de login
-                loginRequiredDiv.style.display = 'block';
-                mainContentDisplay.style.display = 'none';
-                contentIframe.style.display = 'none';
-                accessDeniedAdminMessage.style.display = 'none';
+                userProfilePic.style.display = 'none';
+                userProfilePic.src = ''; 
+                googleAppsButton.style.display = 'none';
+                userInfoContainer.style.display = 'none'; 
+                googleAppsPopup.style.display = 'none'; // Garante que o pop-up esteja escondido
             }
         });
 
-        // Login Google (para o botão no cabeçalho)
-        loginGoogleButton.addEventListener('click', async () => {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            try {
-                await auth.signInWithPopup(provider);
-            } catch (error) {
-                console.error("Erro ao fazer login com Google:", error);
-                alert(`Erro ao fazer login com Google: ${error.message}`);
-            }
-        });
-
-        // Login Google (para o botão na área de conteúdo restrito)
-        if (googleSignInButtonMain) {
-            googleSignInButtonMain.addEventListener('click', async () => {
-                const provider = new firebase.auth.GoogleAuthProvider();
-                loginStatusMessage.textContent = 'Redirecionando para a página de login do Google...';
-                try {
-                    await auth.signInWithRedirect(provider);
-                } catch (error) {
-                    console.error("Erro ao iniciar login com Google:", error);
-                    loginStatusMessage.textContent = `Erro ao fazer login: ${error.message}`;
-                }
-            });
-        }
-
-
-        // Lidar com o resultado do signInWithRedirect (quando o usuário retorna da página de login)
-        auth.getRedirectResult().then(async (result) => {
-            if (result.user) {
-                console.log("Login com sucesso após redirecionamento!");
-            } else {
-                console.log("Nenhum usuário retornado do redirecionamento (possivelmente cancelado ou sem operação).");
-            }
-        }).catch((error) => {
-            console.error("Erro ao obter resultado do redirecionamento:", error);
-            if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
-                loginStatusMessage.textContent = 'Login cancelado pelo usuário.';
-            } else if (error.code === 'auth/account-exists-with-different-credential') {
-                loginStatusMessage.textContent = 'Uma conta já existe com este e-mail usando outra forma de login. Tente fazer login com o método original.';
-            } else if (error.code === 'auth/operation-not-allowed') {
-                loginStatusMessage.textContent = 'Login com Google não está habilitado no Firebase. Verifique suas configurações.';
-            } else {
-                loginStatusMessage.textContent = `Falha no login: ${error.message}`;
-            }
-        });
-
-        // Logout
-        logoutButton.addEventListener('click', () => {
+        // Função separada para o logout
+        const handleLogout = () => {
             auth.signOut().then(() => {
                 console.log("Usuário deslogado.");
             }).catch((error) => {
                 console.error("Erro ao fazer logout:", error);
                 alert(`Erro ao fazer logout: ${error.message}`);
             });
+        };
+
+        // Login Google
+        loginGoogleButton.addEventListener('click', async () => {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            try {
+                await auth.signInWithPopup(provider); 
+            } catch (error) {
+                console.error("Erro ao fazer login com Google:", error);
+                alert(`Erro ao fazer login com Google: ${error.message}`);
+            }
         });
 
-        // --- Lógica para abrir links no iframe ---
+        // Login GitHub
+        loginGitHubButton.addEventListener('click', async () => {
+            const provider = new firebase.auth.GithubAuthProvider();
+            try {
+                await auth.signInWithPopup(provider); 
+            } catch (error) {
+                console.error("Erro ao fazer login com GitHub:", error);
+                alert(`Erro ao fazer login com GitHub: ${error.message}`);
+            }
+        });
+
+        // --- Lógica para o pop-up do Google Apps ---
+        googleAppsButton.addEventListener('click', (event) => {
+            event.stopPropagation(); // Impede que o clique no botão feche o pop-up imediatamente
+            if (googleAppsPopup.style.display === 'block') {
+                googleAppsPopup.style.display = 'none';
+            } else {
+                googleAppsPopup.style.display = 'block';
+            }
+        });
+
+        // Fecha o pop-up se o usuário clicar fora dele
+        document.addEventListener('click', (event) => {
+            if (googleAppsPopup.style.display === 'block' && 
+                !googleAppsButton.contains(event.target) && 
+                !googleAppsPopup.contains(event.target)) {
+                googleAppsPopup.style.display = 'none';
+            }
+        });
+
+        // Inicialização do estado ao carregar a página
         document.addEventListener('DOMContentLoaded', () => {
-            // Garante que o MDL esteja pronto para processar os componentes
-            if (window.componentHandler) {
-                window.componentHandler.upgradeDom();
+            if (componentHandler) {
+                componentHandler.upgradeDom();
             }
-
-            // Seleciona todos os links que devem abrir no iframe
-            const iframeLinks = document.querySelectorAll('a[data-target-iframe="true"]');
-
-            iframeLinks.forEach(link => {
-                link.addEventListener('click', function(event) {
-                    event.preventDefault(); // Impede o comportamento padrão do link
-
-                    const url = this.href; // Obtém a URL do link clicado
-
-                    // Esconde o conteúdo principal da página e mostra o iframe
-                    if (mainContentDisplay) {
-                        mainContentDisplay.style.display = 'none';
-                    }
-                    if (loginRequiredDiv) { // Certifica-se de esconder a tela de login se ela estiver visível
-                        loginRequiredDiv.style.display = 'none';
-                    }
-                    if (accessDeniedAdminMessage) { // Esconde a mensagem de acesso negado
-                        accessDeniedAdminMessage.style.display = 'none';
-                    }
-
-
-                    if (contentIframe) {
-                        contentIframe.style.display = 'block'; // Mostra o iframe
-                        contentIframe.src = url; // Define a URL do iframe
-                    } else {
-                        console.error("Iframe com ID 'content-iframe' não encontrado.");
-                        window.open(url, '_self'); // Fallback: abre o link na mesma janela
-                    }
-
-                    // Fechar o drawer do MDL se estiver aberto
-                    const layout = document.querySelector('.mdl-layout');
-                    if (layout && layout.MaterialLayout && layout.MaterialLayout.drawer_ && layout.MaterialLayout.drawer_.classList.contains('is-visible')) {
-                        layout.MaterialLayout.toggleDrawer();
-                    }
-                });
-            });
-
-            // Lógica para quando o usuário clicar no "Página Inicial" no menu lateral
-            const homeLink = document.querySelector('.mdl-navigation__link[href="./index.html"]');
-            if (homeLink) {
-                homeLink.addEventListener('click', function(event) {
-                    // Impede o comportamento padrão SOMENTE se o link não for destinado a abrir no iframe
-                    if (this.dataset.targetIframe !== 'true') {
-                        event.preventDefault();
-                        if (contentIframe) {
-                            contentIframe.style.display = 'none';
-                            contentIframe.src = 'about:blank'; // Limpa o iframe
-                        }
-                        // Re-evaluar qual conteúdo mostrar com base no estado de autenticação
-                        auth.onAuthStateChanged(user => {
-                            if (user) {
-                                firestore.collection('users').doc(user.uid).get().then(doc => {
-                                    if (doc.exists && doc.data() && doc.data().isAdmin === true) {
-                                        mainContentDisplay.style.display = 'block';
-                                        loginRequiredDiv.style.display = 'none';
-                                        accessDeniedAdminMessage.style.display = 'none';
-                                    } else {
-                                        mainContentDisplay.style.display = 'none';
-                                        loginRequiredDiv.style.display = 'none';
-                                        accessDeniedAdminMessage.style.display = 'block';
-                                    }
-                                }).catch(error => {
-                                    console.error("Erro ao verificar permissões ao voltar para Home:", error);
-                                    mainContentDisplay.style.display = 'none';
-                                    loginRequiredDiv.style.display = 'none';
-                                    accessDeniedAdminMessage.style.display = 'block';
-                                });
-                            } else {
-                                loginRequiredDiv.style.display = 'block';
-                                mainContentDisplay.style.display = 'none';
-                                accessDeniedAdminMessage.style.display = 'none';
-                            }
-                        });
-                        const layout = document.querySelector('.mdl-layout');
-                        if (layout && layout.MaterialLayout && layout.MaterialLayout.drawer_ && layout.MaterialLayout.drawer_.classList.contains('is-visible')) {
-                            layout.MaterialLayout.toggleDrawer();
-                        }
-                    }
-                });
-            }
-
-            // Opcional: Adicionar um listener para o iframe quando ele carrega (para fins de depuração)
-            if (contentIframe) {
-                contentIframe.onload = function() {
-                    console.log("Iframe carregado:", contentIframe.src);
-                };
-            }
+            loadPage('recepcao.html', false); 
         });
     </script>
 </body>
