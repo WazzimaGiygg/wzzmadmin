@@ -66,7 +66,7 @@
                     <label class="mdl-textfield__label" for="materia-description">Descrição</label>
                 </div>
 
-                <div class="mdl-selectfield mdl-js-selectfield mdl-textfield--floating-label">
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                     <select class="mdl-textfield__input" id="materia-graduation" name="materia-graduation" required>
                         <option value=""></option>
                         <option value="Ensino Fundamental">Ensino Fundamental</option>
@@ -165,26 +165,32 @@
                 createMateriaForm.reset(); // Limpa o formulário
 
                 // --- NOVA LÓGICA PARA ATUALIZAR MDL APÓS RESET ---
-                // Re-aplica os aprimoramentos MDL aos campos.
-                // Primeiro, "downgrade" os componentes para limpar o estado anterior
-                if (materiaTitleInput.parentElement.MaterialTextfield) {
-                    materiaTitleInput.parentElement.MaterialTextfield.revert();
-                }
-                if (materiaDescriptionInput.parentElement.MaterialTextfield) {
-                    materiaDescriptionInput.parentElement.MaterialTextfield.revert();
-                }
-                if (materiaGraduationSelect.parentElement.MaterialTextfield) {
-                    materiaGraduationSelect.parentElement.MaterialTextfield.revert();
-                }
-                if (materiaLinkInput.parentElement.MaterialTextfield) {
-                    materiaLinkInput.parentElement.MaterialTextfield.revert();
-                }
+                // Seleciona todos os elementos MDL de textfield e selectfield dentro do formulário
+                const mdlElements = createMateriaForm.querySelectorAll('.mdl-js-textfield, .mdl-js-selectfield');
 
-                // Em seguida, "upgrade" novamente os componentes para que o MDL reavalie seus estados
-                // e aplique as classes corretas para labels flutuantes vazias.
-                if (componentHandler) {
-                    componentHandler.upgradeElements(createMateriaForm.querySelectorAll('.mdl-js-textfield, .mdl-js-selectfield'));
-                }
+                mdlElements.forEach(element => {
+                    // Remove a classe 'is-dirty' (indica que o campo tem conteúdo)
+                    element.classList.remove('is-dirty');
+                    // Remove a classe 'is-focused' (se o campo estava focado)
+                    element.classList.remove('is-focused');
+                    // Garante que o input subjacente está realmente vazio
+                    const input = element.querySelector('input, textarea, select');
+                    if (input) {
+                        input.value = ''; // Resetamos novamente o valor para garantir (o form.reset() já faz, mas é uma redundância segura)
+                        // Para o select, é importante resetar para a primeira opção (vazia)
+                        if (input.tagName === 'SELECT') {
+                            input.selectedIndex = 0;
+                        }
+                    }
+
+                    // Se houver uma instância MDL associada, force-a a atualizar seu estado
+                    // Esta é a parte mais crítica para a label flutuante
+                    if (element.MaterialTextfield) { // Funciona tanto para textfield quanto para selectfield que usam o mesmo componente
+                        element.MaterialTextfield.checkDirty(); // Recalcula se o campo está "dirty"
+                        element.MaterialTextfield.checkValidity(); // Recalcula validade
+                        element.MaterialTextfield.onBlur_(); // Simula um blur para a label voltar ao estado original se estiver flutuando
+                    }
+                });
                 // --- FIM DA NOVA LÓGICA ---
 
             } catch (error) {
