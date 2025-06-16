@@ -157,17 +157,35 @@
                     titulo: title,
                     descricao: description,
                     graduacao: graduation,
-                    linkArtigo: link || null, // Armazena null se o link estiver vazio
+                    linkArtigo: link || null,
                     criadoEm: createdAt
                 });
 
                 displayMessage(successMessage, 'Matéria criada com sucesso!');
                 createMateriaForm.reset(); // Limpa o formulário
-                // Para garantir que o MDL atualize os campos após o reset
-                materiaTitleInput.parentElement.MaterialTextfield.change();
-                materiaDescriptionInput.parentElement.MaterialTextfield.change();
-                materiaGraduationSelect.parentElement.MaterialTextfield.change();
-                materiaLinkInput.parentElement.MaterialTextfield.change();
+
+                // --- NOVA LÓGICA PARA ATUALIZAR MDL APÓS RESET ---
+                // Re-aplica os aprimoramentos MDL aos campos.
+                // Primeiro, "downgrade" os componentes para limpar o estado anterior
+                if (materiaTitleInput.parentElement.MaterialTextfield) {
+                    materiaTitleInput.parentElement.MaterialTextfield.revert();
+                }
+                if (materiaDescriptionInput.parentElement.MaterialTextfield) {
+                    materiaDescriptionInput.parentElement.MaterialTextfield.revert();
+                }
+                if (materiaGraduationSelect.parentElement.MaterialTextfield) {
+                    materiaGraduationSelect.parentElement.MaterialTextfield.revert();
+                }
+                if (materiaLinkInput.parentElement.MaterialTextfield) {
+                    materiaLinkInput.parentElement.MaterialTextfield.revert();
+                }
+
+                // Em seguida, "upgrade" novamente os componentes para que o MDL reavalie seus estados
+                // e aplique as classes corretas para labels flutuantes vazias.
+                if (componentHandler) {
+                    componentHandler.upgradeElements(createMateriaForm.querySelectorAll('.mdl-js-textfield, .mdl-js-selectfield'));
+                }
+                // --- FIM DA NOVA LÓGICA ---
 
             } catch (error) {
                 console.error("Erro ao criar matéria:", error);
@@ -195,6 +213,13 @@
             } else {
                 formContainer.style.display = 'none';
                 displayMessage(errorMessage, 'Você precisa estar logado para criar matérias.');
+            }
+        });
+
+        // Certifique-se de que o MDL é inicializado quando a página é carregada
+        document.addEventListener('DOMContentLoaded', () => {
+            if (componentHandler) {
+                componentHandler.upgradeDom();
             }
         });
     </script>
