@@ -271,6 +271,7 @@
             currentMonthYearEl.textContent = `${monthNames[now.getMonth()]} de ${now.getFullYear()}`;
 
             try {
+                // Linha 193 (originalmente 470 na sua referência anterior)
                 const financialDoc = await firestore.collection('financialData').doc(currentMonthYearId).get();
                 if (financialDoc.exists) {
                     const data = financialDoc.data();
@@ -333,6 +334,14 @@
         // --- Carregar e Exibir Notas Fiscais ---
         async function loadInvoices() {
             invoicesTableBodyAdmin.innerHTML = '<tr><td colspan="6" style="text-align: center;">Carregando notas fiscais...</td></tr>';
+            
+            // Garantir que currentMonthYearId está definido antes de usar no query where
+            if (!currentMonthYearId) {
+                const now = new Date();
+                currentMonthYearId = getMonthYearId(now);
+                console.warn("currentMonthYearId não estava definido ao carregar notas fiscais, foi inicializado agora.");
+            }
+
             try {
                 const invoicesSnapshot = await firestore.collection('invoices')
                                                           .where('monthYear', '==', currentMonthYearId)
@@ -382,7 +391,7 @@
         addInvoiceBtn.addEventListener('click', async () => {
             const service = inputInvoiceService.value.trim();
             const invoiceNumber = inputInvoiceNumber.value.trim();
-            const invoiceDateStr = inputInvoiceDate.value; // YYYY-MM-DD
+            const invoiceDateStr = inputInvoiceDate.value; //YYYY-MM-DD
             const amount = parseFloat(inputInvoiceAmount.value || 0);
             const file = invoiceFile.files[0];
 
@@ -397,7 +406,14 @@
             if (file) {
                 uploadStatus.textContent = 'Carregando arquivo...';
                 try {
-                    //const storageRef = storage.ref(`invoices/${currentMonthYearId}/${file.name}`);
+                    // Garante que currentMonthYearId está definido para o caminho do storage
+                    if (!currentMonthYearId) {
+                        const now = new Date();
+                        currentMonthYearId = getMonthYearId(now);
+                        console.warn("currentMonthYearId não estava definido ao carregar notas fiscais, foi inicializado agora.");
+                    }
+                    const uniqueFileName = `${invoiceNumber}_${invoiceDateStr}_${file.name}`;
+                    const storageRef = storage.ref(`invoices/${currentMonthYearId}/${uniqueFileName}`);
                     const snapshot = await storageRef.put(file);
                     fileURL = await snapshot.ref.getDownloadURL();
                     uploadStatus.textContent = 'Arquivo carregado com sucesso!';
@@ -464,34 +480,7 @@
                 displayAlert("Erro ao excluir nota fiscal. " + error.message, "error");
             }
         }
-        async function loadCurrentFinancialData() {
-    // ... seu código ...
-    try {
-        // const financialDoc = await firestore.collection('financialData').doc(currentMonthYearId).get();
-        async function loadCurrentFinancialData(clientId) { // Ou como ela recebe o ID
-        if (financialDoc.exists) {
-            const data = financialDoc.data(); // Linha 42
-            inputTotalDonations.value = data.totalDonations || 0;
-            inputFirebaseCost.value = data.firebaseCost || 0;
-            inputWorkspaceCost.value = data.workspaceCost || 0;
-            inputStatusMessage.value = data.statusMessage || '';
-            inputConnectedServices.value = (data.connectedServices || []).join(', ');
-        } else {
-            // ... inicialização dos campos ...
-        }
-        // Temporariamente, comente este bloco para testar
-        // if (componentHandler) {
-        //     componentHandler.upgradeDom();
-        //     document.querySelectorAll('.mdl-textfield').forEach(field => {
-        //         field.MaterialTextfield.checkDirty();
-        //     });
-        // }
-    } catch (error) {
-        console.error("Erro ao carregar dados financeiros:", error);
-        displayAlert("Erro ao carregar dados financeiros.", "error");
-    }
-}
-
+        
         // --- Verificação de Admin e Carregamento Inicial ---
         auth.onAuthStateChanged(async (user) => {
             if (user) {
@@ -502,8 +491,8 @@
                     if (doc.exists && doc.data() && doc.data().isAdmin === true) {
                         authGuard.style.display = 'none';
                         adminContent.style.display = 'block';
-                        await loadCurrentFinancialData();
-                        await loadInvoices();
+                        await loadCurrentFinancialData(); // Esta chamada vai definir currentMonthYearId
+                        await loadInvoices(); // Esta chamada agora usa o currentMonthYearId já definido
                     } else {
                         authGuard.style.display = 'block';
                         adminContent.style.display = 'none';
@@ -526,16 +515,6 @@
                 componentHandler.upgradeDom();
             }
         });
-
-          // const dadosRecebidos = /* sua lógica para obter os dados, por exemplo, de uma chamada ao Firestore */;
-
-  // if (dadosRecebidos) { // Verifica se não é null ou undefined
-    // const valores = Object.values(dadosRecebidos);
-    // ... (restante da sua lógica)
-//  } else {
-   // console.error("Dados recebidos são nulos ou indefinidos. Não foi possível carregar o conteúdo.");
-    // Você pode exibir uma mensagem de erro para o usuário ou lidar com isso de outra forma.
- // }
 
     </script>
 </body>
