@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Informações do Cliente - WZZM</title>
+    <title>Gerenciar Clientes - WZZM (Admin)</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
     <style>
@@ -12,68 +12,138 @@
             background-color: #f5f5f5;
             display: flex;
             justify-content: center;
-            align-items: flex-start; /* Alinha no topo, para não ter scroll caso o conteúdo seja menor */
-            min-height: calc(100vh - 200px); /* Ajuste para espaçamento do footer/header, se tiver */
+            align-items: flex-start;
+            min-height: 100vh;
             padding: 20px;
             box-sizing: border-box;
         }
         .mdl-card {
             width: 100%;
-            max-width: 800px;
+            max-width: 900px; /* Um pouco mais largo para a lista */
             margin: 20px auto;
             padding: 20px;
         }
+        .search-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        .search-container .mdl-textfield {
+            flex-grow: 1;
+        }
+        #searchResults {
+            margin-top: 20px;
+        }
+        .client-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .client-list-item:hover {
+            background-color: #f0f0f0;
+        }
+        .client-list-item:last-child {
+            border-bottom: none;
+        }
+        .client-list-item span {
+            flex: 1;
+        }
+        .client-list-item .status-indicator {
+            font-size: 0.8em;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: white;
+            margin-left: 10px;
+        }
+        .status-active { background-color: #4CAF50; } /* Verde */
+        .status-inactive { background-color: #FFC107; } /* Amarelo */
+        .status-banned { background-color: #F44336; } /* Vermelho */
+
+        /* Estilos para a seção de detalhes do cliente (igual à página anterior) */
         .info-item {
             margin-bottom: 10px;
-            display: flex; /* Usar flexbox para alinhamento de rótulo e valor */
+            display: flex;
             align-items: baseline;
         }
         .info-item strong {
-            flex-basis: 150px; /* Largura fixa para os rótulos */
+            flex-basis: 150px;
             margin-right: 10px;
-            text-align: right; /* Alinha o texto do rótulo à direita */
+            text-align: right;
         }
-        #loadingClientInfo, #clientError {
+        #clientDetailsSection {
+            margin-top: 30px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        #loadingClientInfo, #clientError, #noResults {
             text-align: center;
             margin-top: 20px;
         }
         #loadingClientInfo { color: #3f51b5; }
         #clientError { color: #F44336; }
+        #noResults { color: #666; }
     </style>
 </head>
 <body>
 
     <div class="mdl-card mdl-shadow--2dp">
         <div class="mdl-card__title mdl-card--expand">
-            <h2 class="mdl-card__title-text">Detalhes do Cliente</h2>
+            <h2 class="mdl-card__title-text">Gerenciamento de Clientes</h2>
         </div>
-        <div class="mdl-card__supporting-text" id="clientInfoContent">
-            <div id="loadingClientInfo">Carregando informações do cliente...</div>
-            <div id="clientError" style="display:none;">Não foi possível carregar as informações do cliente.</div>
-            
-            <div id="clientDataDisplay" style="display:none;">
-                <div class="info-item"><strong>UID Google:</strong> <span id="displayUidGoogle"></span></div>
-                <div class="info-item"><strong>Nome Completo:</strong> <span id="displayFullName"></span></div>
-                <div class="info-item"><strong>CPF:</strong> <span id="displayCpf"></span></div>
-                <div class="info-item"><strong>RG:</strong> <span id="displayRg"></span></div>
-                <div class="info-item"><strong>Nome Social:</strong> <span id="displaySocialName"></span></div>
-                <div class="info-item"><strong>Data de Nascimento:</strong> <span id="displayBirthDate"></span></div>
-                <div class="info-item"><strong>Gênero:</strong> <span id="displayGender"></span></div>
-                <div class="info-item"><strong>Endereço:</strong> <span id="displayAddress"></span></div>
-                <div class="info-item"><strong>CEP:</strong> <span id="displayZipCode"></span></div>
-                <div class="info-item"><strong>Cidade:</strong> <span id="displayCity"></span></div>
-                <div class="info-item"><strong>Estado:</strong> <span id="displayState"></span></div>
-                <div class="info-item"><strong>País:</strong> <span id="displayCountry"></span></div>
-                <div class="info-item"><strong>Telefone(s):</strong> <span id="displayPhoneNumber"></span></div>
-                <div class="info-item"><strong>E-mail(s) Adicionais:</strong> <span id="displayEmail"></span></div>
-                <div class="info-item"><strong>Status da Conta:</strong> <span id="displayStatus"></span></div>
-                <div class="info-item"><strong>Cadastrado em:</strong> <span id="displayCreatedAt"></span></div>
-                <div class="info-item"><strong>Última Atualização:</strong> <span id="displayUpdatedAt"></span></div>
-            </div>
-            <div class="mdl-card__actions mdl-card--border">
-                <button id="editClientBtn" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect">
-                    <i class="material-icons">edit</i> Editar Informações
+        <div class="mdl-card__supporting-text">
+            <div class="search-container">
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input class="mdl-textfield__input" type="text" id="searchInput" placeholder="Buscar por Nome, CPF ou UID">
+                    <label class="mdl-textfield__label" for="searchInput">Buscar Cliente</label>
+                </div>
+                <button id="searchButton" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect">
+                    <i class="material-icons">search</i> Buscar
                 </button>
+            </div>
+
+            <div id="noResults" style="display:none;">Nenhum cliente encontrado.</div>
+            <div id="loadingSearchResults" style="display:none; text-align: center; color: #3f51b5;">Carregando resultados...</div>
+            
+            <div id="searchResults">
+                </div>
+
+            <div id="clientDetailsSection" style="display:none;">
+                <h3>Detalhes do Cliente Selecionado</h3>
+                <div id="loadingClientInfo" style="display:none;">Carregando informações do cliente...</div>
+                <div id="clientError" style="display:none;">Não foi possível carregar as informações do cliente.</div>
+                
+                <div id="clientDataDisplay">
+                    <div class="info-item"><strong>UID Google:</strong> <span id="displayUidGoogle"></span></div>
+                    <div class="info-item"><strong>Nome Completo:</strong> <span id="displayFullName"></span></div>
+                    <div class="info-item"><strong>CPF:</strong> <span id="displayCpf"></span></div>
+                    <div class="info-item"><strong>RG:</strong> <span id="displayRg"></span></div>
+                    <div class="info-item"><strong>Nome Social:</strong> <span id="displaySocialName"></span></div>
+                    <div class="info-item"><strong>Data de Nascimento:</strong> <span id="displayBirthDate"></span></div>
+                    <div class="info-item"><strong>Gênero:</strong> <span id="displayGender"></span></div>
+                    <div class="info-item"><strong>Endereço:</strong> <span id="displayAddress"></span></div>
+                    <div class="info-item"><strong>CEP:</strong> <span id="displayZipCode"></span></div>
+                    <div class="info-item"><strong>Cidade:</strong> <span id="displayCity"></span></div>
+                    <div class="info-item"><strong>Estado:</strong> <span id="displayState"></span></div>
+                    <div class="info-item"><strong>País:</strong> <span id="displayCountry"></span></div>
+                    <div class="info-item"><strong>Telefone(s):</strong> <span id="displayPhoneNumber"></span></div>
+                    <div class="info-item"><strong>E-mail(s) Adicionais:</strong> <span id="displayEmail"></span></div>
+                    <div class="info-item"><strong>Status da Conta:</strong> <span id="displayStatus"></span></div>
+                    <div class="info-item"><strong>Cadastrado em:</strong> <span id="displayCreatedAt"></span></div>
+                    <div class="info-item"><strong>Última Atualização:</strong> <span id="displayUpdatedAt"></span></div>
+                </div>
+                <div class="mdl-card__actions mdl-card--border">
+                    <button id="toggleBlockBtn" class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent mdl-js-ripple-effect">
+                        <i class="material-icons">block</i> <span id="toggleBlockBtnText">Bloquear Cliente</span>
+                    </button>
+                    <button id="editClientBtn" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect">
+                        <i class="material-icons">edit</i> Editar Informações
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -102,44 +172,124 @@
         const auth = firebase.auth();
 
         // Referências aos elementos HTML
+        const searchInput = document.getElementById('searchInput');
+        const searchButton = document.getElementById('searchButton');
+        const searchResultsDiv = document.getElementById('searchResults');
+        const noResultsDiv = document.getElementById('noResults');
+        const loadingSearchResultsDiv = document.getElementById('loadingSearchResults');
+        
+        const clientDetailsSection = document.getElementById('clientDetailsSection');
         const loadingClientInfo = document.getElementById('loadingClientInfo');
         const clientError = document.getElementById('clientError');
         const clientDataDisplay = document.getElementById('clientDataDisplay');
+        const toggleBlockBtn = document.getElementById('toggleBlockBtn');
+        const toggleBlockBtnText = document.getElementById('toggleBlockBtnText');
         const editClientBtn = document.getElementById('editClientBtn');
 
-        // Função para obter o parâmetro UID da URL
-        function getParameterByName(name, url = window.location.href) {
-            name = name.replace(/[\[\]]/g, '\\$&');
-            var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
-                results = regex.exec(url);
-            if (!results) return null;
-            if (!results[2]) return '';
-            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        let currentSelectedClientUid = null; // Armazena o UID do cliente atualmente selecionado
+
+        // Função para formatar CPF (ex: 12345678900 -> 123.456.789-00)
+        function formatCpf(cpf) {
+            cpf = String(cpf).replace(/\D/g, ''); // Garante que é string e remove não dígitos
+            if (cpf.length === 11) {
+                return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+            }
+            return cpf; // Retorna sem formatação se não tiver 11 dígitos
         }
 
-        // Função para carregar e exibir os dados do cliente
-        async function loadClientData() {
+        // Função para buscar clientes no Firestore
+        async function searchClients(query) {
+            searchResultsDiv.innerHTML = ''; // Limpa resultados anteriores
+            noResultsDiv.style.display = 'none';
+            loadingSearchResultsDiv.style.display = 'block';
+            clientDetailsSection.style.display = 'none'; // Esconde detalhes ao fazer nova busca
+
+            let clients = [];
+            try {
+                // Tenta buscar por UID (exato)
+                if (query.length > 0) { // Garante que não faça uma busca vazia
+                    const docRef = firestore.collection('clients').doc(query);
+                    const doc = await docRef.get();
+                    if (doc.exists) {
+                        clients.push({ id: doc.id, ...doc.data() });
+                    }
+                }
+
+                // Se não encontrou por UID, ou se a busca é por nome/cpf, tenta outras buscas
+                if (clients.length === 0 && query.length > 2) { // Evita buscas muito curtas para nome/CPF
+                    // Busca por nome completo (case-insensitive, startsWith para otimização)
+                    const nameQuerySnapshot = await firestore.collection('clients')
+                        .where('fullName', '>=', query)
+                        .where('fullName', '<=', query + '\uf8ff')
+                        .get();
+                    nameQuerySnapshot.forEach(doc => {
+                        if (!clients.some(c => c.id === doc.id)) { // Evita duplicatas se já achou por UID
+                            clients.push({ id: doc.id, ...doc.data() });
+                        }
+                    });
+
+                    // Busca por CPF (exato ou parcial, cuidado com dados sensíveis)
+                    const cpfQuerySnapshot = await firestore.collection('clients')
+                        .where('cpf', '==', query.replace(/\D/g, '')) // Busca CPF sem formatação
+                        .get();
+                    cpfQuerySnapshot.forEach(doc => {
+                        if (!clients.some(c => c.id === doc.id)) {
+                            clients.push({ id: doc.id, ...doc.data() });
+                        }
+                    });
+                }
+
+                if (clients.length > 0) {
+                    clients.forEach(client => {
+                        const listItem = document.createElement('div');
+                        listItem.classList.add('client-list-item');
+                        listItem.dataset.uid = client.id;
+
+                        let statusClass = '';
+                        let statusText = '';
+                        if (client.isBanned) {
+                            statusClass = 'status-banned';
+                            statusText = 'Banido';
+                        } else if (client.isActive) {
+                            statusClass = 'status-active';
+                            statusText = 'Ativo';
+                        } else {
+                            statusClass = 'status-inactive';
+                            statusText = 'Inativo';
+                        }
+                        
+                        listItem.innerHTML = `
+                            <span>${client.fullName || 'Nome Indisponível'}</span>
+                            <span>${client.cpf ? formatCpf(client.cpf) : 'CPF Indisponível'}</span>
+                            <span class="status-indicator ${statusClass}">${statusText}</span>
+                        `;
+                        listItem.addEventListener('click', () => displayClientDetails(client.id));
+                        searchResultsDiv.appendChild(listItem);
+                    });
+                } else {
+                    noResultsDiv.style.display = 'block';
+                }
+
+            } catch (error) {
+                console.error("Erro ao buscar clientes:", error);
+                noResultsDiv.textContent = `Erro ao buscar: ${error.message}`;
+                noResultsDiv.style.display = 'block';
+            } finally {
+                loadingSearchResultsDiv.style.display = 'none';
+            }
+        }
+
+        // Função para exibir os detalhes de um cliente (adaptado da sua página original)
+        async function displayClientDetails(clientId) {
+            currentSelectedClientUid = clientId; // Armazena o UID do cliente selecionado
+            clientDetailsSection.style.display = 'block';
             loadingClientInfo.style.display = 'block';
             clientError.style.display = 'none';
             clientDataDisplay.style.display = 'none';
-
-            let clientId = getParameterByName('uid');
-
-            // Se o UID não veio na URL, tenta pegar do usuário logado
-            if (!clientId && auth.currentUser) {
-                clientId = auth.currentUser.uid;
-            }
-
-            // Se ainda assim não tiver um UID, mostra erro e sai
-            if (!clientId) {
-                clientError.textContent = "UID do cliente não encontrado na URL ou usuário não logado.";
-                clientError.style.display = 'block';
-                loadingClientInfo.style.display = 'none';
-                return;
-            }
+            toggleBlockBtn.style.display = 'none'; // Esconde o botão até os dados carregarem
+            editClientBtn.style.display = 'none'; // Esconde o botão de editar inicialmente
 
             try {
-                // Busca o documento principal do cliente na coleção 'clients'
                 const clientDoc = await firestore.collection('clients').doc(clientId).get();
 
                 if (clientDoc.exists) {
@@ -149,17 +299,31 @@
                     document.getElementById('displayCpf').textContent = data.cpf ? formatCpf(data.cpf) : 'N/A';
                     document.getElementById('displayRg').textContent = data.rg || 'N/A';
                     document.getElementById('displaySocialName').textContent = data.socialName || 'N/A';
-                    document.getElementById('displayBirthDate').textContent = data.birthDate || 'N/A'; // Assumindo campo 'birthDate'
-                    document.getElementById('displayGender').textContent = data.gender || 'N/A'; // Assumindo campo 'gender'
-                    document.getElementById('displayAddress').textContent = data.address || 'N/A'; // Assumindo campo 'address'
-                    document.getElementById('displayZipCode').textContent = data.zipCode || 'N/A'; // Assumindo campo 'zipCode'
-                    document.getElementById('displayCity').textContent = data.city || 'N/A'; // Assumindo campo 'city'
-                    document.getElementById('displayState').textContent = data.state || 'N/A'; // Assumindo campo 'state'
-                    document.getElementById('displayCountry').textContent = data.country || 'N/A'; // Assumindo campo 'country'
+                    document.getElementById('displayBirthDate').textContent = data.birthDate || 'N/A';
+                    document.getElementById('displayGender').textContent = data.gender || 'N/A';
+                    document.getElementById('displayAddress').textContent = data.address || 'N/A';
+                    document.getElementById('displayZipCode').textContent = data.zipCode || 'N/A';
+                    document.getElementById('displayCity').textContent = data.city || 'N/A';
+                    document.getElementById('displayState').textContent = data.state || 'N/A';
+                    document.getElementById('displayCountry').textContent = data.country || 'N/A';
 
-                    document.getElementById('displayStatus').textContent = data.isBanned ? 'Banido' : (data.isActive ? 'Ativo' : 'Inativo');
+                    const status = data.isBanned ? 'Banido' : (data.isActive ? 'Ativo' : 'Inativo');
+                    document.getElementById('displayStatus').textContent = status;
+                    
+                    // Configura o botão de bloquear/desbloquear
+                    if (data.isBanned) {
+                        toggleBlockBtnText.textContent = 'Desbloquear Cliente';
+                        toggleBlockBtn.classList.remove('mdl-button--accent'); // Remover cor de bloqueio
+                        toggleBlockBtn.classList.add('mdl-button--colored'); // Adicionar cor de desbloqueio
+                    } else {
+                        toggleBlockBtnText.textContent = 'Bloquear Cliente';
+                        toggleBlockBtn.classList.remove('mdl-button--colored');
+                        toggleBlockBtn.classList.add('mdl-button--accent');
+                    }
+                    toggleBlockBtn.style.display = 'block'; // Mostra o botão
+
                     document.getElementById('displayCreatedAt').textContent = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleString() : 'N/A';
-                    document.getElementById('displayUpdatedAt').textContent = data.updatedAt ? new Date(data.updatedAt.toDate()).toLocaleString() : 'N/A'; // Assumindo campo 'updatedAt'
+                    document.getElementById('displayUpdatedAt').textContent = data.updatedAt ? new Date(data.updatedAt.toDate()).toLocaleString() : 'N/A';
 
                     // --- Buscando Telefone(s) ---
                     const phoneSnapshot = await firestore.collection('clientPhones').where('clientId', '==', clientId).get();
@@ -176,77 +340,107 @@
                         const emails = emailSnapshot.docs.map(doc => doc.data().emailAddress).join(', ');
                         document.getElementById('displayEmail').textContent = emails || 'N/A';
                     } else {
-                        // Se não houver emails em clientEmails, exibe o email principal do Firebase Auth
                         document.getElementById('displayEmail').textContent = auth.currentUser ? auth.currentUser.email : 'N/A';
                     }
                     
                     clientDataDisplay.style.display = 'block';
-
-                    // Se o usuário logado não for o dono ou admin, desabilita o botão de editar
-                    // (Esta lógica depende das suas regras de segurança do Firestore para 'clients')
-                    if (auth.currentUser && auth.currentUser.uid === clientId) {
-                        editClientBtn.style.display = 'block'; // Mostra se for o próprio cliente
-                    } else {
-                        editClientBtn.style.display = 'none'; // Esconde se não for o próprio
-                        // TODO: Adicionar lógica para admins aqui se eles puderem editar de qualquer cliente
-                    }
-
+                    editClientBtn.style.display = 'block'; // Mostra o botão de editar também
+                    
                 } else {
                     clientError.textContent = "Informações do cliente não encontradas para o UID fornecido.";
                     clientError.style.display = 'block';
+                    toggleBlockBtn.style.display = 'none';
+                    editClientBtn.style.display = 'none';
                 }
             } catch (error) {
                 console.error("Erro ao carregar dados do cliente:", error);
                 clientError.textContent = `Erro ao carregar dados: ${error.message}`;
                 clientError.style.display = 'block';
+                toggleBlockBtn.style.display = 'none';
+                editClientBtn.style.display = 'none';
             } finally {
                 loadingClientInfo.style.display = 'none';
             }
         }
 
-        // Função para formatar CPF (ex: 12345678900 -> 123.456.789-00)
-        function formatCpf(cpf) {
-            cpf = String(cpf).replace(/\D/g, ''); // Garante que é string e remove não dígitos
-            if (cpf.length === 11) {
-                return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+        // Função para alternar o status de bloqueio do cliente
+        async function toggleClientBlock() {
+            if (!currentSelectedClientUid) {
+                alert('Nenhum cliente selecionado para bloquear/desbloquear.');
+                return;
             }
-            return cpf; // Retorna sem formatação se não tiver 11 dígitos
+
+            if (!confirm('Tem certeza que deseja alterar o status de bloqueio deste cliente?')) {
+                return;
+            }
+
+            try {
+                const clientDocRef = firestore.collection('clients').doc(currentSelectedClientUid);
+                const doc = await clientDocRef.get();
+
+                if (doc.exists) {
+                    const data = doc.data();
+                    const newBlockStatus = !data.isBanned; // Inverte o status atual
+
+                    await clientDocRef.update({
+                        isBanned: newBlockStatus,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+
+                    alert(`Cliente ${newBlockStatus ? 'bloqueado' : 'desbloqueado'} com sucesso!`);
+                    // Recarrega os detalhes do cliente para refletir a mudança
+                    displayClientDetails(currentSelectedClientUid);
+                } else {
+                    alert('Erro: Cliente não encontrado.');
+                }
+            } catch (error) {
+                console.error('Erro ao alternar bloqueio do cliente:', error);
+                alert(`Erro ao alterar status: ${error.message}`);
+            }
         }
 
-        // Adiciona evento ao botão de editar
+        // Event Listeners
+        searchButton.addEventListener('click', () => searchClients(searchInput.value.trim()));
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchClients(searchInput.value.trim());
+            }
+        });
+        toggleBlockBtn.addEventListener('click', toggleClientBlock);
         editClientBtn.addEventListener('click', () => {
-            const currentUid = getParameterByName('uid') || (auth.currentUser ? auth.currentUser.uid : null);
-            if (currentUid) {
-                // Redireciona para a página de edição do cliente, passando o UID
-                // Você precisará criar uma página 'editar_cliente.html' similar ao 'cadastro_cliente.html'
+            if (currentSelectedClientUid) {
                 if (window.parent && window.parent.loadPage) {
-                    window.parent.loadPage('editar_cliente/?uid=' + currentUid, true);
+                    window.parent.loadPage('editar_cliente/?uid=' + currentSelectedClientUid, true);
                 } else {
-                    window.location.href = 'editar_cliente/?uid=' + currentUid;
+                    window.location.href = 'editar_cliente/?uid=' + currentSelectedClientUid;
                 }
             }
         });
 
-        // Evento de carregamento do DOM para iniciar o carregamento dos dados
-        document.addEventListener('DOMContentLoaded', loadClientData);
-
-        // Opcional: Monitora mudanças de estado de autenticação para recarregar dados ou redirecionar
-        auth.onAuthStateChanged(user => {
-            const uidFromUrl = getParameterByName('uid');
+        // Verificação de autenticação do administrador (MUITO IMPORTANTE!)
+        // Esta é uma VERIFICAÇÃO CLIENT-SIDE. Você DEVE ter REGRAS DE SEGURANÇA
+        // no Firebase Firestore que restrinjam o acesso a esta página/funcionalidade
+        // apenas para administradores.
+        auth.onAuthStateChanged(async (user) => {
             if (user) {
-                // Se o usuário logou/deslogou e o UID não bate ou não está na URL, recarrega
-                if (!uidFromUrl || uidFromUrl !== user.uid) {
-                    // Evita loops infinitos ou recargas desnecessárias se o UID já estiver correto
-                    // ou se a página foi acessada sem UID na URL mas com user logado.
-                    // A loadClientData já lida com pegar o UID do auth.currentUser
-                    if (!uidFromUrl && user.uid) { // Carrega se não tinha UID na URL mas agora tem user logado
-                        loadClientData();
-                    } else if (uidFromUrl && uidFromUrl !== user.uid) { // Recarrega se o UID na URL é de outro user
-                        loadClientData();
+                // Exemplo básico: verificar se o usuário está em uma coleção de 'admins'
+                // Ou se possui um 'claim' de administrador no Firebase Authentication
+                const adminDoc = await firestore.collection('admins').doc(user.uid).get();
+                if (adminDoc.exists) {
+                    // Usuário é administrador, pode usar a ferramenta
+                    console.log("Administrador logado. Ferramenta disponível.");
+                    // Opcional: Carregar alguns clientes recentes ou populares ao iniciar
+                    // searchClients(''); // Pode buscar todos os clientes ou os 10 primeiros
+                } else {
+                    alert('Acesso negado. Você não tem permissão de administrador para esta funcionalidade.');
+                    if (window.parent && window.parent.location) {
+                        window.parent.location.href = 'index.html'; // Redireciona para página inicial/login
+                    } else {
+                        window.location.href = 'index.html';
                     }
                 }
             } else {
-                // Se o usuário deslogou ou não está logado, redireciona para a página principal/login
+                alert('Você precisa estar logado para acessar esta funcionalidade.');
                 if (window.parent && window.parent.location) {
                     window.parent.location.href = 'index.html';
                 } else {
@@ -254,6 +448,7 @@
                 }
             }
         });
+
     </script>
 </body>
 </html>
