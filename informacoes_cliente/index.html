@@ -397,7 +397,7 @@
             if (file) {
                 uploadStatus.textContent = 'Carregando arquivo...';
                 try {
-                    const storageRef = storage.ref(`invoices/${currentMonthYearId}/${file.name}`);
+                    //const storageRef = storage.ref(`invoices/${currentMonthYearId}/${file.name}`);
                     const snapshot = await storageRef.put(file);
                     fileURL = await snapshot.ref.getDownloadURL();
                     uploadStatus.textContent = 'Arquivo carregado com sucesso!';
@@ -467,7 +467,8 @@
         async function loadCurrentFinancialData() {
     // ... seu código ...
     try {
-        const financialDoc = await firestore.collection('financialData').doc(currentMonthYearId).get();
+        // const financialDoc = await firestore.collection('financialData').doc(currentMonthYearId).get();
+        async function loadCurrentFinancialData(clientId) { // Ou como ela recebe o ID
         if (financialDoc.exists) {
             const data = financialDoc.data(); // Linha 42
             inputTotalDonations.value = data.totalDonations || 0;
