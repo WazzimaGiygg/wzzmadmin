@@ -464,6 +464,32 @@
                 displayAlert("Erro ao excluir nota fiscal. " + error.message, "error");
             }
         }
+        async function loadCurrentFinancialData() {
+    // ... seu código ...
+    try {
+        const financialDoc = await firestore.collection('financialData').doc(currentMonthYearId).get();
+        if (financialDoc.exists) {
+            const data = financialDoc.data(); // Linha 42
+            inputTotalDonations.value = data.totalDonations || 0;
+            inputFirebaseCost.value = data.firebaseCost || 0;
+            inputWorkspaceCost.value = data.workspaceCost || 0;
+            inputStatusMessage.value = data.statusMessage || '';
+            inputConnectedServices.value = (data.connectedServices || []).join(', ');
+        } else {
+            // ... inicialização dos campos ...
+        }
+        // Temporariamente, comente este bloco para testar
+        // if (componentHandler) {
+        //     componentHandler.upgradeDom();
+        //     document.querySelectorAll('.mdl-textfield').forEach(field => {
+        //         field.MaterialTextfield.checkDirty();
+        //     });
+        // }
+    } catch (error) {
+        console.error("Erro ao carregar dados financeiros:", error);
+        displayAlert("Erro ao carregar dados financeiros.", "error");
+    }
+}
 
         // --- Verificação de Admin e Carregamento Inicial ---
         auth.onAuthStateChanged(async (user) => {
