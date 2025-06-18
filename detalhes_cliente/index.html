@@ -1,159 +1,231 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerenciar Clientes - WZZM (Admin)</title>
+    <title>Gerenciar Usuário - WZZM Admin</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
     <style>
         body {
-            font-family: 'Roboto', sans-serif;
+            font-family: 'Roboto', 'Helvetica', Arial, sans-serif;
             background-color: #f5f5f5;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
+            margin: 0;
             padding: 20px;
+        }
+        .container {
+            max-width: 800px; /* Aumentado para melhor visualização dos campos */
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12);
+        }
+        h1 {
+            color: #3f51b5;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        h2 {
+            color: #3f51b5;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        .mdl-textfield {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .mdl-textfield__input {
+            width: 100%;
             box-sizing: border-box;
         }
-        .mdl-card {
-            width: 100%;
-            max-width: 900px; /* Um pouco mais largo para a lista */
-            margin: 20px auto;
-            padding: 20px;
-        }
-        .search-container {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            align-items: center;
-        }
-        .search-container .mdl-textfield {
-            flex-grow: 1;
-        }
-        #searchResults {
-            margin-top: 20px;
-        }
-        .client-list-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        .client-list-item:hover {
-            background-color: #f0f0f0;
-        }
-        .client-list-item:last-child {
-            border-bottom: none;
-        }
-        .client-list-item span {
-            flex: 1;
-        }
-        .client-list-item .status-indicator {
-            font-size: 0.8em;
-            padding: 4px 8px;
-            border-radius: 4px;
-            color: white;
-            margin-left: 10px;
-        }
-        .status-active { background-color: #4CAF50; } /* Verde */
-        .status-inactive { background-color: #FFC107; } /* Amarelo */
-        .status-banned { background-color: #F44336; } /* Vermelho */
-
-        /* Estilos para a seção de detalhes do cliente (igual à página anterior) */
-        .info-item {
-            margin-bottom: 10px;
-            display: flex;
-            align-items: baseline;
-        }
-        .info-item strong {
-            flex-basis: 150px;
+        .mdl-button {
             margin-right: 10px;
+        }
+        .actions {
             text-align: right;
-        }
-        #clientDetailsSection {
             margin-top: 30px;
-            border-top: 1px solid #eee;
-            padding-top: 20px;
         }
-        #loadingClientInfo, #clientError, #noResults {
+        .error-message {
             text-align: center;
+            padding: 15px;
+            color: #d32f2f;
+            background-color: #ffebee;
+            border: 1px solid #d32f2f;
+            border-radius: 5px;
             margin-top: 20px;
+            display: none;
         }
-        #loadingClientInfo { color: #3f51b5; }
-        #clientError { color: #F44336; }
-        #noResults { color: #666; }
+        .success-message {
+            text-align: center;
+            padding: 15px;
+            color: #388e3c;
+            background-color: #e8f5e9;
+            border: 1px solid #388e3c;
+            border-radius: 5px;
+            margin-top: 20px;
+            display: none;
+        }
+        #user-data-section {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            margin-bottom: 20px;
+            display: none; /* Escondido por padrão */
+        }
+        #user-data-section .mdl-textfield {
+            margin-bottom: 10px; /* Reduz espaçamento entre campos de dados */
+        }
+        .mdl-selectfield { /* Estilo para select, se for usar */
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .mdl-selectfield label {
+            color: rgba(0,0,0,.26);
+            font-size: 16px;
+        }
+        .mdl-selectfield select {
+            border: none;
+            border-bottom: 1px solid rgba(0,0,0,.12);
+            padding: 5px 0;
+            width: 100%;
+            background-color: transparent;
+            font-size: 16px;
+            outline: none;
+            -webkit-appearance: none; /* Remove seta padrão em alguns navegadores */
+            -moz-appearance: none;
+            appearance: none;
+        }
+        .mdl-selectfield select:focus {
+            border-bottom: 2px solid #3f51b5;
+        }
     </style>
 </head>
 <body>
-
-    <div class="mdl-card mdl-shadow--2dp">
-        <div class="mdl-card__title mdl-card--expand">
-            <h2 class="mdl-card__title-text">Gerenciamento de Clientes</h2>
-        </div>
-        <div class="mdl-card__supporting-text">
-            <div class="search-container">
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    <input class="mdl-textfield__input" type="text" id="searchInput" placeholder="Buscar por Nome, CPF ou UID">
-                    <label class="mdl-textfield__label" for="searchInput">Buscar Cliente</label>
-                </div>
-                <button id="searchButton" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect">
-                    <i class="material-icons">search</i> Buscar
-                </button>
-            </div>
-
-            <div id="noResults" style="display:none;">Nenhum cliente encontrado.</div>
-            <div id="loadingSearchResults" style="display:none; text-align: center; color: #3f51b5;">Carregando resultados...</div>
-            
-            <div id="searchResults">
-                </div>
-
-            <div id="clientDetailsSection" style="display:none;">
-                <h3>Detalhes do Cliente Selecionado</h3>
-                <div id="loadingClientInfo" style="display:none;">Carregando informações do cliente...</div>
-                <div id="clientError" style="display:none;">Não foi possível carregar as informações do cliente.</div>
-                
-                <div id="clientDataDisplay">
-                    <div class="info-item"><strong>UID Google:</strong> <span id="displayUidGoogle"></span></div>
-                    <div class="info-item"><strong>Nome Completo:</strong> <span id="displayFullName"></span></div>
-                    <div class="info-item"><strong>CPF:</strong> <span id="displayCpf"></span></div>
-                    <div class="info-item"><strong>RG:</strong> <span id="displayRg"></span></div>
-                    <div class="info-item"><strong>Nome Social:</strong> <span id="displaySocialName"></span></div>
-                    <div class="info-item"><strong>Data de Nascimento:</strong> <span id="displayBirthDate"></span></div>
-                    <div class="info-item"><strong>Gênero:</strong> <span id="displayGender"></span></div>
-                    <div class="info-item"><strong>Endereço:</strong> <span id="displayAddress"></span></div>
-                    <div class="info-item"><strong>CEP:</strong> <span id="displayZipCode"></span></div>
-                    <div class="info-item"><strong>Cidade:</strong> <span id="displayCity"></span></div>
-                    <div class="info-item"><strong>Estado:</strong> <span id="displayState"></span></div>
-                    <div class="info-item"><strong>País:</strong> <span id="displayCountry"></span></div>
-                    <div class="info-item"><strong>Telefone(s):</strong> <span id="displayPhoneNumber"></span></div>
-                    <div class="info-item"><strong>E-mail(s) Adicionais:</strong> <span id="displayEmail"></span></div>
-                    <div class="info-item"><strong>Status da Conta:</strong> <span id="displayStatus"></span></div>
-                    <div class="info-item"><strong>Cadastrado em:</strong> <span id="displayCreatedAt"></span></div>
-                    <div class="info-item"><strong>Última Atualização:</strong> <span id="displayUpdatedAt"></span></div>
-                </div>
-                <div class="mdl-card__actions mdl-card--border">
-                    <button id="toggleBlockBtn" class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent mdl-js-ripple-effect">
-                        <i class="material-icons">block</i> <span id="toggleBlockBtnText">Bloquear Cliente</span>
-                    </button>
-                    <button id="editClientBtn" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect">
-                        <i class="material-icons">edit</i> Editar Informações
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-analytics-compat.js"></script>
+    <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+
+    <div class="container">
+        <h1>Gerenciar Usuário</h1>
+
+        <div id="error-display" class="error-message"></div>
+        <div id="success-display" class="success-message"></div>
+
+        <form id="search-user-form">
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="text" id="search-uid" required>
+                <label class="mdl-textfield__label" for="search-uid">UID do Usuário *</label>
+                <span class="mdl-textfield__help">Insira o UID completo do usuário para gerenciar.</span>
+            </div>
+            <div class="actions" style="text-align: center;">
+                <button type="submit" id="search-user-btn"
+                        class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                    Buscar Usuário
+                </button>
+            </div>
+        </form>
+
+        <div id="user-data-section">
+            <h2>Dados do Usuário</h2>
+            <form id="update-user-form">
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input class="mdl-textfield__input" type="text" id="user-uid" readonly>
+                    <label class="mdl-textfield__label" for="user-uid">UID Google</label>
+                </div>
+                
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input class="mdl-textfield__input" type="text" id="user-firstname">
+                    <label class="mdl-textfield__label" for="user-firstname">Primeiro Nome</label>
+                </div>
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input class="mdl-textfield__input" type="text" id="user-lastname">
+                    <label class="mdl-textfield__label" for="user-lastname">Sobrenome</label>
+                </div>
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input class="mdl-textfield__input" type="email" id="user-email">
+                    <label class="mdl-textfield__label" for="user-email">Email (Primário)</label>
+                </div>
+                 <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input class="mdl-textfield__input" type="text" id="user-cpf">
+                    <label class="mdl-textfield__label" for="user-cpf">CPF</label>
+                </div>
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input class="mdl-textfield__input" type="text" id="user-rg">
+                    <label class="mdl-textfield__label" for="user-rg">RG</label>
+                </div>
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input class="mdl-textfield__input" type="text" id="user-socialname">
+                    <label class="mdl-textfield__label" for="user-socialname">Nome Social</label>
+                </div>
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input class="mdl-textfield__input" type="date" id="user-birthdate">
+                    <label class="mdl-textfield__label" for="user-birthdate">Data de Nascimento</label>
+                </div>
+                
+                <div class="mdl-selectfield mdl-js-selectfield mdl-textfield--floating-label">
+                    <label for="user-gender">Gênero</label>
+                    <select id="user-gender" class="mdl-textfield__input">
+                        <option value=""></option>
+                        <option value="Masculino">Masculino</option>
+                        <option value="Feminino">Feminino</option>
+                        <option value="Outro">Outro</option>
+                        <option value="Prefiro não informar">Prefiro não informar</option>
+                    </select>
+                </div>
+
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input class="mdl-textfield__input" type="text" id="user-address">
+                    <label class="mdl-textfield__label" for="user-address">Endereço</label>
+                </div>
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input class="mdl-textfield__input" type="text" id="user-zipcode">
+                    <label class="mdl-textfield__label" for="user-zipcode">CEP</label>
+                </div>
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input class="mdl-textfield__input" type="text" id="user-city">
+                    <label class="mdl-textfield__label" for="user-city">Cidade</label>
+                </div>
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input class="mdl-textfield__input" type="text" id="user-state">
+                    <label class="mdl-textfield__label" for="user-state">Estado</label>
+                </div>
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input class="mdl-textfield__input" type="text" id="user-country">
+                    <label class="mdl-textfield__label" for="user-country">País</label>
+                </div>
+                
+                <div class="mdl-selectfield mdl-js-selectfield mdl-textfield--floating-label">
+                    <label for="user-status">Status da Conta</label>
+                    <select id="user-status" class="mdl-textfield__input">
+                        <option value=""></option>
+                        <option value="active">Ativo</option>
+                        <option value="inactive">Inativo</option>
+                        <option value="banned">Banido</option>
+                    </select>
+                </div>
+
+                <div class="actions" style="text-align: center;">
+                    <button type="submit" id="update-user-btn"
+                            class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                        Atualizar Dados
+                    </button>
+                    <button type="button" id="cancel-update-btn"
+                            class="mdl-button mdl-js-button mdl-button--raised">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
-        // Sua configuração do Firebase (substitua com suas próprias chaves)
+        // --- Configuração do Firebase com suas chaves e dados originais ---
         const firebaseConfig = {
             apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0",
             authDomain: "wzzm-ce3fc.firebaseapp.com",
@@ -164,291 +236,289 @@
             measurementId: "G-PLKNZNFCQ8"
         };
 
-        // Inicializa o Firebase
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
+        let app;
+        try {
+            app = firebase.app();
+        } catch (e) {
+            app = firebase.initializeApp(firebaseConfig);
         }
         const firestore = firebase.firestore();
         const auth = firebase.auth();
 
-        // Referências aos elementos HTML
-        const searchInput = document.getElementById('searchInput');
-        const searchButton = document.getElementById('searchButton');
-        const searchResultsDiv = document.getElementById('searchResults');
-        const noResultsDiv = document.getElementById('noResults');
-        const loadingSearchResultsDiv = document.getElementById('loadingSearchResults');
-        
-        const clientDetailsSection = document.getElementById('clientDetailsSection');
-        const loadingClientInfo = document.getElementById('loadingClientInfo');
-        const clientError = document.getElementById('clientError');
-        const clientDataDisplay = document.getElementById('clientDataDisplay');
-        const toggleBlockBtn = document.getElementById('toggleBlockBtn');
-        const toggleBlockBtnText = document.getElementById('toggleBlockBtnText');
-        const editClientBtn = document.getElementById('editClientBtn');
+        let currentUser = null; // O usuário moderador logado
+        let currentManagingUserUid = null; // O UID do usuário que está sendo gerenciado/editado
 
-        let currentSelectedClientUid = null; // Armazena o UID do cliente atualmente selecionado
+        // Elementos HTML de busca e exibição/edição do usuário
+        const searchUserForm = document.getElementById('search-user-form');
+        const searchUidInput = document.getElementById('search-uid');
+        const searchUserBtn = document.getElementById('search-user-btn');
 
-        // Função para formatar CPF (ex: 12345678900 -> 123.456.789-00)
-        function formatCpf(cpf) {
-            cpf = String(cpf).replace(/\D/g, ''); // Garante que é string e remove não dígitos
-            if (cpf.length === 11) {
-                return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-            }
-            return cpf; // Retorna sem formatação se não tiver 11 dígitos
-        }
+        const userDataSection = document.getElementById('user-data-section');
+        const updateUserForm = document.getElementById('update-user-form');
+        const userUidInput = document.getElementById('user-uid');
+        const userFirstNameInput = document.getElementById('user-firstname');
+        const userLastNameInput = document.getElementById('user-lastname');
+        const userEmailInput = document.getElementById('user-email');
+        const userCpfInput = document.getElementById('user-cpf');
+        const userRgInput = document.getElementById('user-rg');
+        const userSocialNameInput = document.getElementById('user-socialname');
+        const userBirthDateInput = document.getElementById('user-birthdate');
+        const userGenderSelect = document.getElementById('user-gender');
+        const userAddressInput = document.getElementById('user-address');
+        const userZipCodeInput = document.getElementById('user-zipcode');
+        const userCityInput = document.getElementById('user-city');
+        const userStateInput = document.getElementById('user-state');
+        const userCountryInput = document.getElementById('user-country');
+        const userStatusSelect = document.getElementById('user-status');
 
-        // Função para buscar clientes no Firestore
-        async function searchClients(query) {
-            searchResultsDiv.innerHTML = ''; // Limpa resultados anteriores
-            noResultsDiv.style.display = 'none';
-            loadingSearchResultsDiv.style.display = 'block';
-            clientDetailsSection.style.display = 'none'; // Esconde detalhes ao fazer nova busca
 
-            let clients = [];
-            try {
-                // Tenta buscar por UID (exato)
-                if (query.length > 0) { // Garante que não faça uma busca vazia
-                    const docRef = firestore.collection('clients').doc(query);
-                    const doc = await docRef.get();
-                    if (doc.exists) {
-                        clients.push({ id: doc.id, ...doc.data() });
-                    }
-                }
+        const updateUserBtn = document.getElementById('update-user-btn');
+        const cancelUpdateBtn = document.getElementById('cancel-update-btn');
 
-                // Se não encontrou por UID, ou se a busca é por nome/cpf, tenta outras buscas
-                if (clients.length === 0 && query.length > 2) { // Evita buscas muito curtas para nome/CPF
-                    // Busca por nome completo (case-insensitive, startsWith para otimização)
-                    const nameQuerySnapshot = await firestore.collection('clients')
-                        .where('fullName', '>=', query)
-                        .where('fullName', '<=', query + '\uf8ff')
-                        .get();
-                    nameQuerySnapshot.forEach(doc => {
-                        if (!clients.some(c => c.id === doc.id)) { // Evita duplicatas se já achou por UID
-                            clients.push({ id: doc.id, ...doc.data() });
-                        }
-                    });
+        const errorDisplay = document.getElementById('error-display');
+        const successDisplay = document.getElementById('success-display');
 
-                    // Busca por CPF (exato ou parcial, cuidado com dados sensíveis)
-                    const cpfQuerySnapshot = await firestore.collection('clients')
-                        .where('cpf', '==', query.replace(/\D/g, '')) // Busca CPF sem formatação
-                        .get();
-                    cpfQuerySnapshot.forEach(doc => {
-                        if (!clients.some(c => c.id === doc.id)) {
-                            clients.push({ id: doc.id, ...doc.data() });
-                        }
-                    });
-                }
-
-                if (clients.length > 0) {
-                    clients.forEach(client => {
-                        const listItem = document.createElement('div');
-                        listItem.classList.add('client-list-item');
-                        listItem.dataset.uid = client.id;
-
-                        let statusClass = '';
-                        let statusText = '';
-                        if (client.isBanned) {
-                            statusClass = 'status-banned';
-                            statusText = 'Banido';
-                        } else if (client.isActive) {
-                            statusClass = 'status-active';
-                            statusText = 'Ativo';
-                        } else {
-                            statusClass = 'status-inactive';
-                            statusText = 'Inativo';
-                        }
-                        
-                        listItem.innerHTML = `
-                            <span>${client.fullName || 'Nome Indisponível'}</span>
-                            <span>${client.cpf ? formatCpf(client.cpf) : 'CPF Indisponível'}</span>
-                            <span class="status-indicator ${statusClass}">${statusText}</span>
-                        `;
-                        listItem.addEventListener('click', () => displayClientDetails(client.id));
-                        searchResultsDiv.appendChild(listItem);
-                    });
-                } else {
-                    noResultsDiv.style.display = 'block';
-                }
-
-            } catch (error) {
-                console.error("Erro ao buscar clientes:", error);
-                noResultsDiv.textContent = `Erro ao buscar: ${error.message}`;
-                noResultsDiv.style.display = 'block';
-            } finally {
-                loadingSearchResultsDiv.style.display = 'none';
+        function displayMessage(element, message, isError = true) {
+            if (isError) {
+                errorDisplay.textContent = `Erro: ${message}`;
+                errorDisplay.style.display = 'block';
+                successDisplay.style.display = 'none';
+            } else {
+                successDisplay.textContent = message;
+                successDisplay.style.display = 'block';
+                errorDisplay.style.display = 'none';
             }
         }
 
-        // Função para exibir os detalhes de um cliente (adaptado da sua página original)
-        async function displayClientDetails(clientId) {
-            currentSelectedClientUid = clientId; // Armazena o UID do cliente selecionado
-            clientDetailsSection.style.display = 'block';
-            loadingClientInfo.style.display = 'block';
-            clientError.style.display = 'none';
-            clientDataDisplay.style.display = 'none';
-            toggleBlockBtn.style.display = 'none'; // Esconde o botão até os dados carregarem
-            editClientBtn.style.display = 'none'; // Esconde o botão de editar inicialmente
+        function clearMessages() {
+            errorDisplay.style.display = 'none';
+            successDisplay.style.display = 'none';
+        }
 
-            try {
-                const clientDoc = await firestore.collection('clients').doc(clientId).get();
-
-                if (clientDoc.exists) {
-                    const data = clientDoc.data();
-                    document.getElementById('displayUidGoogle').textContent = clientId || 'N/A';
-                    document.getElementById('displayFullName').textContent = data.fullName || 'N/A';
-                    document.getElementById('displayCpf').textContent = data.cpf ? formatCpf(data.cpf) : 'N/A';
-                    document.getElementById('displayRg').textContent = data.rg || 'N/A';
-                    document.getElementById('displaySocialName').textContent = data.socialName || 'N/A';
-                    document.getElementById('displayBirthDate').textContent = data.birthDate || 'N/A';
-                    document.getElementById('displayGender').textContent = data.gender || 'N/A';
-                    document.getElementById('displayAddress').textContent = data.address || 'N/A';
-                    document.getElementById('displayZipCode').textContent = data.zipCode || 'N/A';
-                    document.getElementById('displayCity').textContent = data.city || 'N/A';
-                    document.getElementById('displayState').textContent = data.state || 'N/A';
-                    document.getElementById('displayCountry').textContent = data.country || 'N/A';
-
-                    const status = data.isBanned ? 'Banido' : (data.isActive ? 'Ativo' : 'Inativo');
-                    document.getElementById('displayStatus').textContent = status;
-                    
-                    // Configura o botão de bloquear/desbloquear
-                    if (data.isBanned) {
-                        toggleBlockBtnText.textContent = 'Desbloquear Cliente';
-                        toggleBlockBtn.classList.remove('mdl-button--accent'); // Remover cor de bloqueio
-                        toggleBlockBtn.classList.add('mdl-button--colored'); // Adicionar cor de desbloqueio
-                    } else {
-                        toggleBlockBtnText.textContent = 'Bloquear Cliente';
-                        toggleBlockBtn.classList.remove('mdl-button--colored');
-                        toggleBlockBtn.classList.add('mdl-button--accent');
+        function resetForm() {
+            searchUserForm.reset();
+            updateUserForm.reset();
+            userDataSection.style.display = 'none';
+            currentManagingUserUid = null;
+            clearMessages();
+            // Atualiza o MDL para os campos resetados
+            if (window.componentHandler) {
+                searchUserForm.querySelectorAll('.mdl-textfield').forEach(textfield => {
+                    if (textfield.MaterialTextfield) {
+                        textfield.MaterialTextfield.checkDirty();
+                        textfield.MaterialTextfield.checkValidity();
                     }
-                    toggleBlockBtn.style.display = 'block'; // Mostra o botão
-
-                    document.getElementById('displayCreatedAt').textContent = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleString() : 'N/A';
-                    document.getElementById('displayUpdatedAt').textContent = data.updatedAt ? new Date(data.updatedAt.toDate()).toLocaleString() : 'N/A';
-
-                    // --- Buscando Telefone(s) ---
-                    const phoneSnapshot = await firestore.collection('clientPhones').where('clientId', '==', clientId).get();
-                    if (!phoneSnapshot.empty) {
-                        const phones = phoneSnapshot.docs.map(doc => doc.data().phoneNumber).join(', ');
-                        document.getElementById('displayPhoneNumber').textContent = phones || 'N/A';
-                    } else {
-                        document.getElementById('displayPhoneNumber').textContent = 'N/A';
+                });
+                updateUserForm.querySelectorAll('.mdl-textfield').forEach(textfield => {
+                    if (textfield.MaterialTextfield) {
+                        textfield.MaterialTextfield.checkDirty();
+                        textfield.MaterialTextfield.checkValidity();
                     }
-
-                    // --- Buscando E-mail(s) Adicionais ---
-                    const emailSnapshot = await firestore.collection('clientEmails').where('clientId', '==', clientId).get();
-                    if (!emailSnapshot.empty) {
-                        const emails = emailSnapshot.docs.map(doc => doc.data().emailAddress).join(', ');
-                        document.getElementById('displayEmail').textContent = emails || 'N/A';
-                    } else {
-                        document.getElementById('displayEmail').textContent = auth.currentUser ? auth.currentUser.email : 'N/A';
+                });
+                 updateUserForm.querySelectorAll('.mdl-selectfield').forEach(selectfield => {
+                    if (selectfield.MaterialTextfield) { // MaterialSelectfield não existe, é um textfield com select
+                        selectfield.MaterialTextfield.checkDirty();
+                        selectfield.MaterialTextfield.checkValidity();
                     }
-                    
-                    clientDataDisplay.style.display = 'block';
-                    editClientBtn.style.display = 'block'; // Mostra o botão de editar também
-                    
-                } else {
-                    clientError.textContent = "Informações do cliente não encontradas para o UID fornecido.";
-                    clientError.style.display = 'block';
-                    toggleBlockBtn.style.display = 'none';
-                    editClientBtn.style.display = 'none';
-                }
-            } catch (error) {
-                console.error("Erro ao carregar dados do cliente:", error);
-                clientError.textContent = `Erro ao carregar dados: ${error.message}`;
-                clientError.style.display = 'block';
-                toggleBlockBtn.style.display = 'none';
-                editClientBtn.style.display = 'none';
-            } finally {
-                loadingClientInfo.style.display = 'none';
+                });
             }
         }
 
-        // Função para alternar o status de bloqueio do cliente
-        async function toggleClientBlock() {
-            if (!currentSelectedClientUid) {
-                alert('Nenhum cliente selecionado para bloquear/desbloquear.');
-                return;
-            }
-
-            if (!confirm('Tem certeza que deseja alterar o status de bloqueio deste cliente?')) {
-                return;
-            }
-
-            try {
-                const clientDocRef = firestore.collection('clients').doc(currentSelectedClientUid);
-                const doc = await clientDocRef.get();
-
-                if (doc.exists) {
-                    const data = doc.data();
-                    const newBlockStatus = !data.isBanned; // Inverte o status atual
-
-                    await clientDocRef.update({
-                        isBanned: newBlockStatus,
-                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-
-                    alert(`Cliente ${newBlockStatus ? 'bloqueado' : 'desbloqueado'} com sucesso!`);
-                    // Recarrega os detalhes do cliente para refletir a mudança
-                    displayClientDetails(currentSelectedClientUid);
-                } else {
-                    alert('Erro: Cliente não encontrado.');
-                }
-            } catch (error) {
-                console.error('Erro ao alternar bloqueio do cliente:', error);
-                alert(`Erro ao alterar status: ${error.message}`);
-            }
-        }
-
-        // Event Listeners
-        searchButton.addEventListener('click', () => searchClients(searchInput.value.trim()));
-        searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                searchClients(searchInput.value.trim());
-            }
-        });
-        toggleBlockBtn.addEventListener('click', toggleClientBlock);
-        editClientBtn.addEventListener('click', () => {
-            if (currentSelectedClientUid) {
-                if (window.parent && window.parent.loadPage) {
-                    window.parent.loadPage('editar_cliente/?uid=' + currentSelectedClientUid, true);
-                } else {
-                    window.location.href = 'editar_cliente/?uid=' + currentSelectedClientUid;
-                }
-            }
-        });
-
-        // Verificação de autenticação do administrador (MUITO IMPORTANTE!)
-        // Esta é uma VERIFICAÇÃO CLIENT-SIDE. Você DEVE ter REGRAS DE SEGURANÇA
-        // no Firebase Firestore que restrinjam o acesso a esta página/funcionalidade
-        // apenas para administradores.
+        // Listener de autenticação para garantir que o usuário seja um MODERADOR
         auth.onAuthStateChanged(async (user) => {
             if (user) {
-                // Exemplo básico: verificar se o usuário está em uma coleção de 'admins'
-                // Ou se possui um 'claim' de administrador no Firebase Authentication
-                const adminDoc = await firestore.collection('admins').doc(user.uid).get();
-                if (adminDoc.exists) {
-                    // Usuário é administrador, pode usar a ferramenta
-                    console.log("Administrador logado. Ferramenta disponível.");
-                    // Opcional: Carregar alguns clientes recentes ou populares ao iniciar
-                    // searchClients(''); // Pode buscar todos os clientes ou os 10 primeiros
-                } else {
-                    alert('Acesso negado. Você não tem permissão de administrador para esta funcionalidade.');
-                    if (window.parent && window.parent.location) {
-                        window.parent.location.href = 'index.html'; // Redireciona para página inicial/login
+                currentUser = user;
+                console.log("Usuário logado:", currentUser.uid, "Email:", currentUser.email);
+
+                // **Verificação de Moderador/Administrador (CRUCIAL)**
+                // Esta é uma verificação CLIENT-SIDE. Você DEVE ter REGRAS DE SEGURANÇA
+                // no Firebase Firestore que restrinjam o acesso à coleção 'users'
+                // e a modificação de dados apenas para moderadores/administradores.
+                try {
+                    const adminDoc = await firestore.collection('admins').doc(user.uid).get();
+                    if (!adminDoc.exists) { // Se o UID do usuário não está na coleção 'admins'
+                        displayMessage(errorDisplay, "Acesso negado. Você não tem permissão de administrador/moderador para esta funcionalidade.", true);
+                        alert("Acesso negado. Você não tem permissão de administrador/moderador para esta página.");
+                        if (window.parent !== window && window.parent.postMessage) {
+                            window.parent.postMessage({ type: 'navigateIframe', url: './login.html' }, window.location.origin);
+                        } else {
+                            window.location.href = './login.html'; // Redireciona para login ou página de erro
+                        }
+                    }
+                } catch (err) {
+                    console.error("Erro ao verificar status de administrador:", err);
+                    displayMessage(errorDisplay, "Erro ao verificar permissões: " + err.message, true);
+                    // Opcional: Redirecionar mesmo em caso de erro na verificação
+                    if (window.parent !== window && window.parent.postMessage) {
+                        window.parent.postMessage({ type: 'navigateIframe', url: './login.html' }, window.location.origin);
                     } else {
-                        window.location.href = 'index.html';
+                        window.location.href = './login.html';
                     }
                 }
             } else {
-                alert('Você precisa estar logado para acessar esta funcionalidade.');
-                if (window.parent && window.parent.location) {
-                    window.parent.location.href = 'index.html';
+                currentUser = null;
+                displayMessage(errorDisplay, "Você precisa estar logado para gerenciar usuários.", true);
+                alert("Você precisa estar logado para acessar esta página.");
+                if (window.parent !== window && window.parent.postMessage) {
+                    window.parent.postMessage({ type: 'navigateIframe', url: './login.html' }, window.location.origin);
                 } else {
-                    window.location.href = 'index.html';
+                    window.location.href = './login.html';
                 }
             }
         });
 
+        // Função para buscar usuário pelo UID
+        searchUserForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            clearMessages();
+
+            if (!currentUser) {
+                displayMessage(errorDisplay, "Você precisa estar logado para buscar usuários.", true);
+                return;
+            }
+
+            const uidToSearch = searchUidInput.value.trim();
+            if (!uidToSearch) {
+                displayMessage(errorDisplay, "Por favor, insira um UID para buscar.", true);
+                return;
+            }
+            
+            // Impede que um moderador tente gerenciar a si mesmo (se a regra for essa)
+            if (uidToSearch === currentUser.uid) {
+                displayMessage(errorDisplay, "Você não pode gerenciar sua própria conta através desta ferramenta.", true);
+                userDataSection.style.display = 'none';
+                return;
+            }
+
+            searchUserBtn.disabled = true;
+
+            try {
+                // Busca o usuário na coleção 'users'
+                const userDoc = await firestore.collection('clients').doc(uidToSearch).get(); // Alterado para 'clients' como na sua outra página
+
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    currentManagingUserUid = uidToSearch; // Define o UID do usuário a ser gerenciado
+
+                    // Preenche os campos do formulário com os dados do usuário
+                    userUidInput.value = uidToSearch;
+                    userFirstNameInput.value = userData.firstName || '';
+                    userLastNameInput.value = userData.lastName || '';
+                    userEmailInput.value = userData.email || '';
+                    userCpfInput.value = userData.cpf || '';
+                    userRgInput.value = userData.rg || '';
+                    userSocialNameInput.value = userData.socialName || '';
+                    userBirthDateInput.value = userData.birthDate || ''; // Formato 'YYYY-MM-DD'
+                    userGenderSelect.value = userData.gender || '';
+                    userAddressInput.value = userData.address || '';
+                    userZipCodeInput.value = userData.zipCode || '';
+                    userCityInput.value = userData.city || '';
+                    userStateInput.value = userData.state || '';
+                    userCountryInput.value = userData.country || '';
+
+                    // Define o status da conta
+                    let statusValue = '';
+                    if (userData.isBanned) {
+                        statusValue = 'banned';
+                    } else if (userData.isActive) {
+                        statusValue = 'active';
+                    } else {
+                        statusValue = 'inactive';
+                    }
+                    userStatusSelect.value = statusValue;
+                    
+                    // Atualiza os componentes MDL para mostrar os valores preenchidos
+                    if (window.componentHandler) {
+                        updateUserForm.querySelectorAll('.mdl-textfield').forEach(textfield => {
+                            if (textfield.MaterialTextfield) {
+                                textfield.MaterialTextfield.checkDirty();
+                            }
+                        });
+                        updateUserForm.querySelectorAll('.mdl-selectfield').forEach(selectfield => {
+                            if (selectfield.MaterialTextfield) {
+                                selectfield.MaterialTextfield.checkDirty();
+                            }
+                        });
+                    }
+
+                    userDataSection.style.display = 'block'; // Mostra a seção de dados do usuário
+                } else {
+                    displayMessage(errorDisplay, `Usuário com UID '${uidToSearch}' não encontrado na coleção 'clients'.`, true);
+                    userDataSection.style.display = 'none';
+                }
+            } catch (error) {
+                displayMessage(errorDisplay, "Erro ao buscar usuário: " + error.message, true);
+                console.error("Erro ao buscar usuário:", error);
+            } finally {
+                searchUserBtn.disabled = false;
+            }
+        });
+
+        // Função para atualizar os dados do usuário
+        updateUserForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            clearMessages();
+
+            if (!currentUser) {
+                displayMessage(errorDisplay, "Você precisa estar logado para atualizar dados.", true);
+                return;
+            }
+
+            if (!currentManagingUserUid) {
+                displayMessage(errorDisplay, "Nenhum usuário selecionado para atualização.", true);
+                return;
+            }
+
+            updateUserBtn.disabled = true;
+
+            const updatedData = {
+                firstName: userFirstNameInput.value.trim(),
+                lastName: userLastNameInput.value.trim(),
+                email: userEmailInput.value.trim(),
+                cpf: userCpfInput.value.trim().replace(/\D/g, ''), // Remove não-dígitos do CPF
+                rg: userRgInput.value.trim(),
+                socialName: userSocialNameInput.value.trim(),
+                birthDate: userBirthDateInput.value.trim(),
+                gender: userGenderSelect.value,
+                address: userAddressInput.value.trim(),
+                zipCode: userZipCodeInput.value.trim(),
+                city: userCityInput.value.trim(),
+                state: userStateInput.value.trim(),
+                country: userCountryInput.value.trim(),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            // Lógica para isActive e isBanned baseada no select de status
+            const selectedStatus = userStatusSelect.value;
+            updatedData.isActive = (selectedStatus === 'active');
+            updatedData.isBanned = (selectedStatus === 'banned');
+
+
+            try {
+                await firestore.collection('clients').doc(currentManagingUserUid).update(updatedData);
+                displayMessage(successDisplay, "Dados do usuário atualizados com sucesso!", false);
+                // Opcional: Recarregar os dados para garantir que tudo esteja sincronizado
+                // searchUidInput.value = currentManagingUserUid;
+                // searchUserForm.dispatchEvent(new Event('submit'));
+            } catch (error) {
+                displayMessage(errorDisplay, "Erro ao atualizar dados do usuário: " + error.message, true);
+                console.error("Erro ao atualizar dados do usuário:", error);
+            } finally {
+                updateUserBtn.disabled = false;
+            }
+        });
+
+        // Event listener para o botão Cancelar no formulário de atualização
+        cancelUpdateBtn.addEventListener('click', () => {
+            resetForm();
+        });
+
+        // Inicializa componentes MDL ao carregar a página
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.componentHandler) {
+                window.componentHandler.upgradeDom();
+            }
+        });
     </script>
 </body>
 </html>
