@@ -3,35 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wiki Zone Zero Mod - Administração V</title>
+    <title>Wiki Zone Zero Mod</title>
     <link rel="icon" href="favicom.png" type="image/x-icon">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+    <style id="custom-app-css">
+        /* Este será o local onde o CSS dos aplicativos do usuário será injetado */
+    </style>
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            display: flex; /* Usar flexbox para o layout principal */
-            flex-direction: column; /* Conteúdo em coluna: header, main, footer */
-            min-height: 100vh; /* Ocupa a altura total da viewport */
-            font-family: 'Roboto', 'Helvetica', Arial, sans-serif;
-            background-color: #f5f5f5;
+        /* Seus estilos CSS existentes aqui */
+        .page-content {
+            padding: 20px;
         }
-
-        .mdl-layout__content {
-            flex-grow: 1; /* Faz o conteúdo principal crescer e ocupar o espaço restante */
-            display: flex; /* Permite que o iframe ou div de conteúdo ocupe o espaço */
-            flex-direction: column;
-            padding: 0; /* Remover padding padrão para o iframe ocupar tudo */
-        }
-
         #contentFrame {
             width: 100%;
-            flex-grow: 1; /* Permite que o iframe ocupe o espaço disponível */
+            height: calc(100vh - 200px);
             border: none;
-            margin: 0;
-            padding: 0;
-            display: block; /* Garante que o iframe se comporte como bloco */
         }
 
         /* Estilos adicionais para os links do menu lateral quando desabilitados */
@@ -51,23 +38,18 @@
             object-fit: cover; /* Garante que a imagem preencha o espaço sem distorcer */
         }
         #google-apps-button {
-            min-width: 32px;
+            /* Ajustes para o botão de ícone */
+            min-width: 32px; /* Garante tamanho mínimo para o ícone */
             height: 32px;
             padding: 0;
-            display: flex;
+            display: flex; /* Para centralizar o ícone */
             align-items: center;
             justify-content: center;
         }
         /* Estilos para o pop-up dos serviços Google */
         #google-apps-popup a.mdl-button {
-            margin-bottom: 4px;
-            justify-content: flex-start;
-            display: block;
-            width: 100%;
-        }
-        /* Esconder mensagens quando o iframe estiver visível */
-        #access-denied-message, #banned-message {
-            display: none;
+            margin-bottom: 4px; /* Espaçamento entre os botões de serviço */
+            justify-content: flex-start; /* Alinha o texto à esquerda */
         }
     </style>
 </head>
@@ -80,7 +62,7 @@
     <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
         <header class="mdl-layout__header">
             <div class="mdl-layout__header-row">
-                <span class="mdl-layout-title">Administração</span>
+                <span class="mdl-layout-title">Wiki Zone Zero Mod</span>
                 <div class="mdl-layout-spacer"></div>
                 <div style="position: relative; display: flex; align-items: center;">
                     <button class="mdl-button mdl-js-button mdl-button--icon" id="google-apps-button" style="display: none; margin-right: 8px;">
@@ -99,14 +81,14 @@
                         min-width: 180px;
                         border-radius: 4px;
                     ">
-                        <a href="https://mail.google.com/" class="mdl-button mdl-js-button mdl-button--flat" target="_blank">Gmail</a>
-                        <a href="https://drive.google.com/" class="mdl-button mdl-js-button mdl-button--flat" target="_blank">Drive</a>
-                        <a href="https://calendar.google.com/" class="mdl-button mdl-js-button mdl-button--flat" target="_blank">Agenda</a>
-                        <a href="https://photos.google.com/" class="mdl-button mdl-js-button mdl-button--flat" target="_blank">Fotos</a>
-                        <a href="https://youtube.com/" class="mdl-button mdl-js-button mdl-button--flat" target="_blank">YouTube</a>
+                        <a href="https://mail.google.com/" target="_blank" class="mdl-button mdl-js-button mdl-button--flat">Gmail</a>
+                        <a href="https://drive.google.com/" target="_blank" class="mdl-button mdl-js-button mdl-button--flat">Drive</a>
+                        <a href="https://calendar.google.com/" target="_blank" class="mdl-button mdl-js-button mdl-button--flat">Agenda</a>
+                        <a href="https://photos.google.com/" target="_blank" class="mdl-button mdl-js-button mdl-button--flat">Fotos</a>
+                        <a href="https://www.youtube.com/" target="_blank" class="mdl-button mdl-js-button mdl-button--flat">YouTube</a>
                         <hr style="border: 0; border-top: 1px solid #eee; margin: 8px 0;">
-                        <a href="https://myaccount.google.com/" class="mdl-button mdl-js-button mdl-button--flat" target="_blank">Minha Conta Google</a>
-                    </div>
+                        <a href="https://myaccount.google.com/" target="_blank" class="mdl-button mdl-js-button mdl-button--flat">Minha Conta Google</a>
+                        </div>
                     <div id="user-info-container" style="display: flex; align-items: center;">
                         <img id="user-profile-pic" src="" alt="Foto de Perfil" style="display: none;">
                         <div id="user-info" class="mdl-typography--body-1-force-preferred-font-color-contrast"></div>
@@ -131,16 +113,29 @@
                 <a class="mdl-navigation__link" href="./admintools/pageadmin.html">Pagina Administradora</a>
 
                 <a class="mdl-navigation__link" href="http://www.wzzm.org/POL%C3%8DTICAS%20GERAIS%20DO%20WIKI%20ZONE%20ZERO%20MOD.pdf" target="_blank">Políticas da WZZM</a>
+                <a class="mdl-navigation__link" href="#" data-page-src="cadastro-aplicativo.html" data-requires-auth="true">
+                    <i class="material-icons">developer_mode</i> Cadastrar Aplicativo
+                </a>
+                <a class="mdl-navigation__link" href="#" data-page-src="meus-aplicativos.html" data-requires-auth="true">
+                    <i class="material-icons">apps</i> Meus Aplicativos
+                </a>
             </nav>
         </div>
 
         <main class="mdl-layout__content">
-            <iframe id="contentFrame" src="./recepcao.html"></iframe>
-            <div id="access-denied-message" style="text-align: center; padding: 50px; font-size: 20px; color: #666; display: none;">
-                Você precisa estar logado para acessar esta página.
-            </div>
-            <div id="banned-message" style="text-align: center; padding: 50px; font-size: 20px; color: red; display: none;">
-                Sua conta foi banida. Você não pode usar os recursos do site.
+            <div class="page-content">
+                <div class="separator" style="clear: both; text-align: center;">
+                    <a href="https://static.wikitide.net/wikimetrospwiki/thumb/8/88/Wiki_Zone_Zero_Mod_Banner.png/1920px-Wiki_Zone_Zero_Mod_Banner.png" style="display: block; padding: 1em 0;">
+                        <img alt="" border="0" width="320" data-original-height="873" data-original-width="2833" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEi1fx0b6zFkwQ-U45g3millPHUg03_Gmc-Q9xtmTY98HWYrqjJBmgQjr-HeNZdMCrFj3R7dQHOcyEfkmPVcEShF5-1gKJLMvkI-N60JKuq7XFigE67uVlp4DaOswxBHJ6BFlZaG4MCEiimtNbLDv4Q6Z_MNk7Xuy9OmjBj-k0UD_IvnnDUXe-ZmynmypNnV/s320/Wiki_Zone_Zero_Mod_Banner.webp"/>
+                    </a>
+                </div>
+                <iframe id="contentFrame" src="recepcao.html"></iframe>
+                <div id="access-denied-message" style="text-align: center; padding: 50px; font-size: 20px; color: #666; display: none;">
+                    Você precisa estar logado para acessar esta página.
+                </div>
+                <div id="banned-message" style="text-align: center; padding: 50px; font-size: 20px; color: red; display: none;">
+                    Sua conta foi banida. Você não pode usar os recursos do site.
+                </div>
             </div>
         </main>
 
@@ -149,7 +144,7 @@
                 <div class="mdl-logo">WZZM © 2025</div>
                 <ul class="mdl-mini-footer__link-list">
                     <li><a href="./Privacidade/">Privacidade</a></li>
-                    <li><a href="https://wikizero.wzzm.org/>Doações</a></li>
+                      <li><a href="https://wikizero.wzzm.org/">Doações</a></li>
                 </ul>
             </div>
             <div class="mdl-mini-footer__right-section">
@@ -186,7 +181,6 @@
             firebase.initializeApp(firebaseConfig);
         }
 
-        // Inicialize Firebase
         const app = firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const firestore = firebase.firestore();
@@ -197,88 +191,78 @@
         const loginGitHubButton = document.getElementById('login-github');
         const logoutButton = document.getElementById('logout-button');
         const userInfo = document.getElementById('user-info');
-        const adminPanelButton = document.getElementById('admin-panel-button');
+        const adminPanelButton = document.getElementById('admin-panel-button'); 
         const contentFrame = document.getElementById('contentFrame');
         const accessDeniedMessage = document.getElementById('access-denied-message');
-        const bannedMessage = document.getElementById('banned-message');
-        const navLinks = document.querySelectorAll('.mdl-navigation__link');
+        const bannedMessage = document.getElementById('banned-message'); 
+        const navLinks = document.querySelectorAll('.mdl-navigation__link'); 
 
-        // Novos elementos da UI para a imagem de perfil e ícone do Google Apps
         const userProfilePic = document.getElementById('user-profile-pic');
         const googleAppsButton = document.getElementById('google-apps-button');
         const userInfoContainer = document.getElementById('user-info-container');
         const googleAppsPopup = document.getElementById('google-apps-popup');
 
-        // Variável para armazenar o status de banimento do usuário
+        const customAppCssStyleTag = document.getElementById('custom-app-css'); // Nova referência
+
         let isCurrentUserBanned = false;
 
-        // Função para carregar a página no iframe
-        function loadPageInIframe(pageUrl, requiresAuth = true) {
-            if (isCurrentUserBanned && pageUrl !== 'recepcao.html' && pageUrl !== './recepcao.html') { // Corrigido ./recepcao.html.html para ./recepcao.html
-                // Se banido e tentando acessar página restrita, exibe a mensagem de banido
+        function loadPage(page, requiresAuth = true) {
+            if (isCurrentUserBanned && page !== 'recepcao.html') {
+                contentFrame.src = "about:blank";
                 contentFrame.style.display = 'none';
                 accessDeniedMessage.style.display = 'none';
-                bannedMessage.style.display = 'block';
+                bannedMessage.style.display = 'block'; 
                 return;
             }
 
             if (!requiresAuth || auth.currentUser) {
-                // Se não requer autenticação OU usuário logado, carrega no iframe
-                contentFrame.src = pageUrl;
-                contentFrame.style.display = 'block'; // Garante que o iframe esteja visível
-                accessDeniedMessage.style.display = 'none'; // Esconde mensagens de erro
-                bannedMessage.style.display = 'none';
+                contentFrame.src = page;
+                contentFrame.style.display = 'block';
+                accessDeniedMessage.style.display = 'none';
+                bannedMessage.style.display = 'none'; 
             } else {
-                // Se requer autenticação e usuário não logado
-                contentFrame.style.display = 'none'; // Esconde o iframe
-                accessDeniedMessage.style.display = 'block'; // Exibe a mensagem de acesso negado
-                bannedMessage.style.display = 'none';
+                contentFrame.src = "about:blank";
+                contentFrame.style.display = 'none';
+                accessDeniedMessage.style.display = 'block';
+                bannedMessage.style.display = 'none'; 
                 alert("Você precisa estar logado para acessar esta página.");
             }
         }
 
-        // Adiciona event listeners aos links de navegação
         navLinks.forEach(link => {
-            // O link para o PDF ainda deve abrir em nova aba, já está com target="_blank"
-            if (link.target === '_blank') {
+            if (!link.dataset.pageSrc) {
                 return;
             }
 
             link.addEventListener('click', function(event) {
-                event.preventDefault(); // Impede o comportamento padrão do link
+                event.preventDefault();
 
-                const pageUrl = this.href; // Pega o href do link
-                // Ajuste a lógica de requiresAuth. Se 'admintools' estiver no caminho, requer autenticação.
-                // Adapte para 'register-material' e 'conhecawazzimagiygg.html' se eles também exigem login.
-                const requiresAuth = pageUrl.includes('admintools') || pageUrl.includes('register-material.html') || pageUrl.includes('conhecawazzimagiygg.html');
+                const pageSrc = this.dataset.pageSrc;
+                const requiresAuth = this.dataset.requiresAuth === 'true'; // Obter do data-attribute
 
                 if (this.classList.contains('disabled') && requiresAuth) {
-                    return;
+                    return; 
                 }
 
-                loadPageInIframe(pageUrl, requiresAuth); // Carrega a página no iframe
-
-                // Fecha o drawer do MDL
-                const drawer = document.querySelector('.mdl-layout__drawer');
-                const obfuscator = document.querySelector('.mdl-layout__obfuscator');
-                if (drawer && drawer.classList.contains('is-visible')) {
-                    drawer.classList.remove('is-visible');
-                    obfuscator.classList.remove('is-visible');
+                loadPage(pageSrc, requiresAuth);
+                if (document.querySelector('.mdl-layout__drawer.is-visible')) {
+                    document.querySelector('.mdl-layout__obfuscator').classList.remove('is-visible');
+                    document.querySelector('.mdl-layout__drawer').classList.remove('is-visible');
                 }
             });
         });
 
-        // Função para habilitar/desabilitar links do menu lateral
         function setNavLinksEnabled(enabled) {
             navLinks.forEach(link => {
-                const isAlwaysEnabled = link.href.includes('recepcao.html') || link.href.includes('POL%C3%8DTICAS%20GERAIS%20DO%20WIKI%20ZONE%20ZERO%20MOD.pdf'); // Corrigido a duplicação
-
-                if (isAlwaysEnabled) {
+                if (link.dataset.pageSrc === 'recepcao.html' || !link.dataset.pageSrc || link.href.includes('POL%C3%8DTICAS%20GERAIS%20DO%20WIKI%20ZONE%20ZERO%20MOD.pdf')) { 
                     link.classList.remove('disabled');
                     return;
                 }
 
-                if (enabled) {
+                // Check if the link specifically requires authentication
+                const requiresAuth = link.dataset.requiresAuth === 'true';
+
+                if (enabled || !requiresAuth) { // Enable if logged in OR if it doesn't require auth
                     link.classList.remove('disabled');
                 } else {
                     link.classList.add('disabled');
@@ -286,7 +270,6 @@
             });
         }
 
-        // --- Função para criar/atualizar o perfil do usuário no Firestore ---
         async function createUserProfileDocument(user) {
             if (!user) return;
 
@@ -295,7 +278,7 @@
 
             if (!docSnapshot.exists) {
                 const { displayName, email, photoURL } = user;
-                const createdAt = firebase.firestore.FieldValue.serverTimestamp();
+                const createdAt = firebase.firestore.FieldValue.serverTimestamp(); 
 
                 try {
                     await userRef.set({
@@ -304,9 +287,9 @@
                         email: email,
                         profilePictureUrl: photoURL,
                         createdAt: createdAt,
-                        lastLoginAt: createdAt,
-                        isBan: false,
-                        isAdmin: false,
+                        lastLoginAt: createdAt, 
+                        isBan: false, 
+                        isAdmin: false, 
                     });
                     console.log("Novo perfil de usuário criado no Firestore!");
                 } catch (error) {
@@ -324,149 +307,200 @@
             }
         }
 
-        // Listener de estado de autenticação (Firebase)
-        auth.onAuthStateChanged(async (user) => {
-            if (user) {
-                userInfo.textContent = `Olá, ${user.displayName || user.email}!`;
-                loginGoogleButton.style.display = 'none';
-                loginGitHubButton.style.display = 'none';
-                logoutButton.style.display = 'inline-block'; // Exibir logout
-                // Remove listener para evitar duplicidade antes de adicionar
-                logoutButton.removeEventListener('click', handleLogout); 
-                logoutButton.addEventListener('click', handleLogout); // Adicionar listener de logout
+        // --- Nova Função para carregar e aplicar CSS de aplicativos ---
+        async function loadAndApplyUserAppsCSS(userId) {
+            try {
+                // Limpa qualquer CSS customizado anterior
+                customAppCssStyleTag.innerHTML = '';
 
-                if (user.photoURL) {
-                    userProfilePic.src = user.photoURL;
-                    userProfilePic.style.display = 'inline-block';
-                } else {
-                    userProfilePic.style.display = 'none';
-                }
+                const userAppsSnapshot = await firestore.collection('users').doc(userId)
+                    .collection('listasecundariah')
+                    .where('tipo', '==', 'Aparência') // Filtra apenas apps de aparência
+                    .where('status', '==', 'ativo') // Apenas apps ativos
+                    .get();
 
-                googleAppsButton.style.display = 'inline-block';
-                userInfoContainer.style.display = 'flex';
+                let combinedCSS = '';
+                if (!userAppsSnapshot.empty) {
+                    for (const doc of userAppsSnapshot.docs) {
+                        const appId = doc.id; // O ID do documento na listasecundariah é o appId da coleção 'aplicativo'
+                        const appDoc = await firestore.collection('aplicativo').doc(appId).get();
 
-                await createUserProfileDocument(user);
-
-                try {
-                    const userProfileRef = firestore.collection('users').doc(user.uid);
-                    const doc = await userProfileRef.get();
-
-                    if (doc.exists && doc.data()) {
-                        isCurrentUserBanned = doc.data().isBan || false;
-
-                        if (isCurrentUserBanned) {
-                            console.warn(`Usuário ${user.uid} está banido.`);
-                            setNavLinksEnabled(false);
-                            logoutButton.style.display = 'none'; // Esconde botão de logout se banido
-                            logoutButton.removeEventListener('click', handleLogout); // Remove o listener
-                            adminPanelButton.style.display = 'none';
-                            // Carrega a página de recepção (ou uma página de banimento) no iframe
-                            loadPageInIframe('recepcao.html', false);
-                            contentFrame.style.display = 'none'; // Esconde o iframe
-                            accessDeniedMessage.style.display = 'none';
-                            bannedMessage.style.display = 'block';
-                        } else {
-                            setNavLinksEnabled(true);
-                            bannedMessage.style.display = 'none';
-                            contentFrame.style.display = 'block'; // Garante que o iframe esteja visível
-
-                            if (doc.data().isAdmin === true) {
-                                adminPanelButton.style.display = 'inline-block';
-                            } else {
-                                adminPanelButton.style.display = 'none';
-                            }
-
-                            // Carrega a página inicial de CONTEÚDO no iframe se o usuário acabou de logar
-                            // e a URL atual é a recepção, vazia ou index.html.
-                            const currentPath = window.location.pathname.split('/').pop();
-                            if (currentPath === 'recepcao.html' || currentPath === '' || currentPath === 'index.html') {
-                                loadPageInIframe('recepcao.html', false); // *** LINHA CORRIGIDA AQUI ***
-                            } else {
-                                // Se o usuário logou e já estava em uma página específica, mantém essa página no iframe
-                                loadPageInIframe(currentPath, currentPath.includes('admintools') || currentPath.includes('register-material.html') || currentPath.includes('conhecawazzimagiygg.html'));
+                        if (appDoc.exists && appDoc.data().codigoAplicativo) {
+                            const appCode = appDoc.data().codigoAplicativo;
+                            // Regex para extrair o CSS entre |CSS|: ++ e -+
+                            const cssMatch = appCode.match(/\|CSS\|:\s*\n\+\+([\s\S]*?)-\+/);
+                            if (cssMatch && cssMatch[1]) {
+                                combinedCSS += cssMatch[1].trim() + '\n';
                             }
                         }
-                    } else {
-                        // Perfil de usuário não encontrado, tratar como não banido por padrão
-                        isCurrentUserBanned = false;
-                        setNavLinksEnabled(true);
-                        adminPanelButton.style.display = 'none';
-                        bannedMessage.style.display = 'none';
-                        loadPageInIframe('recepcao.html', false); // Carrega a recepção no iframe
                     }
-                } catch (error) {
-                    console.error("Erro ao verificar perfil de usuário ou status de banimento:", error);
-                    adminPanelButton.style.display = 'none';
-                    isCurrentUserBanned = false;
-                    setNavLinksEnabled(true);
-                    bannedMessage.style.display = 'none';
-                    loadPageInIframe('recepcao.html', false); // Carrega a recepção no iframe em caso de erro
+                }
+                
+                if (combinedCSS) {
+                    customAppCssStyleTag.innerHTML = combinedCSS;
+                    console.log("CSS de aplicativos do usuário aplicado.");
+                } else {
+                    console.log("Nenhum aplicativo de aparência ativo ou CSS encontrado para o usuário.");
                 }
 
-            } else { // Usuário não logado
-                userInfo.textContent = '';
-                loginGoogleButton.style.display = 'inline-block';
-                loginGitHubButton.style.display = 'inline-block';
-                logoutButton.style.display = 'none';
-                logoutButton.removeEventListener('click', handleLogout); // Remove listener para evitar duplicidade
+            } catch (error) {
+                console.error("Erro ao carregar/aplicar CSS de aplicativos do usuário:", error);
+            }
+        }
+
+
+        // Listener de estado de autenticação (Firebase) - ATUALIZADO
+       auth.onAuthStateChanged(async (user) => {
+    if (user) {
+        // --- Lógica existente para exibir informações do usuário logado (UI) ---
+        userInfo.textContent = `Olá, ${user.displayName || user.email}!`;
+        loginGoogleButton.style.display = 'none';
+        loginGitHubButton.style.display = 'none'; // Se você ainda tem login GitHub
+
+        if (user.photoURL) {
+            userProfilePic.src = user.photoURL;
+            userProfilePic.style.display = 'inline-block';
+        } else {
+            userProfilePic.style.display = 'none';
+        }
+        googleAppsButton.style.display = 'inline-block';
+        userInfoContainer.style.display = 'flex';
+        // --- Fim da lógica existente (UI) ---
+
+        // Garante que o perfil do usuário principal (da plataforma) exista
+        await createUserProfileDocument(user);
+
+        let isUserBanned = false; // Flag para controlar o banimento
+        let isUserAdmin = false; // Flag para controlar se é admin
+
+        try {
+            // Verifica o perfil principal do usuário (não o cliente, mas o "usuário" do sistema)
+            const userProfileRef = firestore.collection('users').doc(user.uid);
+            const doc = await userProfileRef.get();
+
+            if (doc.exists && doc.data()) {
+                isUserBanned = doc.data().isBan || false;
+                isUserAdmin = doc.data().isAdmin || false; // Pega o status de admin
+            }
+            // Se o documento não existir, assume que não é banido nem admin por padrão.
+        } catch (error) {
+            console.error("Erro ao verificar perfil de usuário ou status de banimento/admin:", error);
+            // Em caso de erro, por segurança, assume que não é banido/admin para não travar o acesso
+            isUserBanned = false;
+            isUserAdmin = false;
+        }
+
+        // --- Lógica para o status de banimento (continua como está) ---
+        if (isUserBanned) {
+            console.warn(`Usuário ${user.uid} está banido.`);
+            setNavLinksEnabled(false);
+            logoutButton.style.display = 'none';
+            logoutButton.removeEventListener('click', handleLogout);
+            adminPanelButton.style.display = 'none';
+            loadPage('recepcao.html', false); // Ou uma página específica para banidos
+            bannedMessage.style.display = 'block';
+        } else {
+            // Usuário NÃO está banido
+            setNavLinksEnabled(true);
+            logoutButton.style.display = 'inline-block';
+            logoutButton.removeEventListener('click', handleLogout);
+            logoutButton.addEventListener('click', handleLogout);
+            bannedMessage.style.display = 'none';
+
+            if (isUserAdmin) { // Usa a flag isUserAdmin
+                adminPanelButton.style.display = 'inline-block';
+            } else {
                 adminPanelButton.style.display = 'none';
-                isCurrentUserBanned = false;
-                bannedMessage.style.display = 'none';
-                setNavLinksEnabled(false);
-
-                userProfilePic.style.display = 'none';
-                userProfilePic.src = '';
-                googleAppsButton.style.display = 'none';
-                userInfoContainer.style.display = 'none';
-                googleAppsPopup.style.display = 'none';
-
-                // Se não logado, sempre carrega a recepcao no iframe
-                loadPageInIframe('recepcao.html', false);
             }
-            // Para lidar com o parâmetro de banimento na URL
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('banned') === 'true') {
-                contentFrame.style.display = 'none';
-                accessDeniedMessage.style.display = 'none';
-                bannedMessage.style.display = 'block';
-            }
-        });
 
-        // Função separada para o logout
+            await loadAndApplyUserAppsCSS(user.uid); // Carrega CSS personalizado
+
+            // --- AQUI É ONDE VAMOS ADICIONAR A NOVA LÓGICA DE VERIFICAÇÃO DO CLIENTE ---
+            const clientId = user.uid; // O UID do usuário Google é o ID do cliente
+
+            try {
+                // Verifica se o cliente tem um cadastro COMPLETO na coleção 'clients'
+                const clientDoc = await firestore.collection('clients').doc(clientId).get();
+
+                if (clientDoc.exists) {
+                    // O cliente JÁ TEM cadastro completo.
+                    // Redirecionar para a página de informações do cliente.
+                    loadPage('informacoes_cliente/?uid=' + clientId, true);
+                } else {
+                    // O cliente NÃO TEM cadastro completo.
+                    // Redirecionar para a página de cadastro do cliente.
+                    loadPage('cadastro_cliente/?uid=' + clientId, true);
+                }
+            } catch (error) {
+                console.error("Erro ao verificar cadastro do cliente no Firestore:", error);
+                // Em caso de erro na verificação do Firestore (para 'clients'),
+                // por segurança, direcione para a página de cadastro de cliente.
+                loadPage('cadastro_cliente/?uid=' + clientId, true);
+            }
+            // --- FIM DA NOVA LÓGICA DE VERIFICAÇÃO DO CLIENTE ---
+
+            // Remova ou ajuste esta parte se ela estiver em conflito com a nova lógica acima
+            // const currentPage = contentFrame.src.split('/').pop();
+            // if (currentPage === 'recepcao.html' || currentPage === 'about:blank' || !currentPage) {
+            //     loadPage('recepcao.html', false); // Pode ser removido, pois o loadPage acima já direcionará
+            // } else {
+            //     const currentNavLink = Array.from(navLinks).find(link => link.dataset.pageSrc && link.dataset.pageSrc.endsWith(currentPage));
+            //     const currentRequiresAuth = currentNavLink ? currentNavLink.dataset.requiresAuth === 'true' : false;
+            //     loadPage(currentPage, currentRequiresAuth); // Pode ser removido
+            // }
+        }
+
+    } else {
+        // --- Lógica existente para usuário deslogado ---
+        userInfo.textContent = '';
+        loginGoogleButton.style.display = 'inline-block';
+        loginGitHubButton.style.display = 'inline-block'; // Se você ainda tem
+        logoutButton.style.display = 'none';
+        adminPanelButton.style.display = 'none';
+        isCurrentUserBanned = false;
+        bannedMessage.style.display = 'none';
+        setNavLinksEnabled(false);
+        loadPage('recepcao.html', false); // Tela inicial para deslogados
+
+        userProfilePic.style.display = 'none';
+        userProfilePic.src = '';
+        googleAppsButton.style.display = 'none';
+        userInfoContainer.style.display = 'none';
+        googleAppsPopup.style.display = 'none';
+        customAppCssStyleTag.innerHTML = '';
+        // --- Fim da lógica existente (deslogado) ---
+    }
+});
+
         const handleLogout = () => {
             auth.signOut().then(() => {
                 console.log("Usuário deslogado.");
-                // Após o logout, carrega a página de recepção no iframe
-                loadPageInIframe('recepcao.html', false);
             }).catch((error) => {
                 console.error("Erro ao fazer logout:", error);
                 alert(`Erro ao fazer logout: ${error.message}`);
             });
         };
 
-        // Login Google
         loginGoogleButton.addEventListener('click', async () => {
             const provider = new firebase.auth.GoogleAuthProvider();
             try {
-                await auth.signInWithPopup(provider);
+                await auth.signInWithPopup(provider); 
             } catch (error) {
                 console.error("Erro ao fazer login com Google:", error);
                 alert(`Erro ao fazer login com Google: ${error.message}`);
             }
         });
 
-        // Login GitHub
         loginGitHubButton.addEventListener('click', async () => {
             const provider = new firebase.auth.GithubAuthProvider();
             try {
-                await auth.signInWithPopup(provider);
+                await auth.signInWithPopup(provider); 
             } catch (error) {
                 console.error("Erro ao fazer login com GitHub:", error);
                 alert(`Erro ao fazer login com GitHub: ${error.message}`);
             }
         });
 
-        // --- Lógica para o pop-up do Google Apps ---
         googleAppsButton.addEventListener('click', (event) => {
             event.stopPropagation();
             if (googleAppsPopup.style.display === 'block') {
@@ -477,21 +511,19 @@
         });
 
         document.addEventListener('click', (event) => {
-            if (googleAppsPopup.style.display === 'block' &&
-                !googleAppsButton.contains(event.target) &&
+            if (googleAppsPopup.style.display === 'block' && 
+                !googleAppsButton.contains(event.target) && 
                 !googleAppsPopup.contains(event.target)) {
                 googleAppsPopup.style.display = 'none';
             }
         });
 
-        // Inicialização do estado ao carregar a página
         document.addEventListener('DOMContentLoaded', () => {
             if (componentHandler) {
                 componentHandler.upgradeDom();
             }
-            // A carga inicial do iframe será feita pelo onAuthStateChanged
-            // Assim que o status de autenticação for verificado, a página correta será carregada no iframe.
-            // Para garantir que algo seja exibido enquanto o Firebase inicializa, você pode definir um src inicial no iframe diretamente no HTML, como 'recepcao.html'.
+            // A carga inicial da página será tratada pelo onAuthStateChanged
+            // loadPage('recepcao.html', false); 
         });
     </script>
 </body>
