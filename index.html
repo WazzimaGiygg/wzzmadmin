@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adiministração - Wiki Zone Zero Mod</title>
+    <title>Wiki Zone Zero Mod</title>
     <link rel="icon" href="favicom.png" type="image/x-icon">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
@@ -22,34 +22,34 @@
         }
 
         /* Estilos adicionais para os links do menu lateral quando desabilitados */
-        .mdl-navigation__link.disabled {
+        .mdl-navigation__link.disabled,
+        #google-apps-popup a.disabled {
             cursor: not-allowed;
             opacity: 0.6;
-            color: #777 !important; /* Adicionado !important para sobrepor estilos do MDL */
-            pointer-events: none; /* Impede cliques */
+            color: #777 !important;
+            pointer-events: none;
         }
 
         /* Estilos para a imagem de perfil e ícone do Google Apps */
         #user-profile-pic {
             width: 32px;
             height: 32px;
-            border-radius: 50%; /* Torna a imagem circular */
-            margin-right: 8px; /* Espaçamento entre a imagem e o texto */
-            object-fit: cover; /* Garante que a imagem preencha o espaço sem distorcer */
+            border-radius: 50%;
+            margin-right: 8px;
+            object-fit: cover;
         }
         #google-apps-button {
-            /* Ajustes para o botão de ícone */
-            min-width: 32px; /* Garante tamanho mínimo para o ícone */
+            min-width: 32px;
             height: 32px;
             padding: 0;
-            display: flex; /* Para centralizar o ícone */
+            display: flex;
             align-items: center;
             justify-content: center;
         }
         /* Estilos para o pop-up dos serviços Google */
         #google-apps-popup a.mdl-button {
-            margin-bottom: 4px; /* Espaçamento entre os botões de serviço */
-            justify-content: flex-start; /* Alinha o texto à esquerda */
+            margin-bottom: 4px;
+            justify-content: flex-start;
         }
     </style>
 </head>
@@ -62,7 +62,7 @@
     <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
         <header class="mdl-layout__header">
             <div class="mdl-layout__header-row">
-                <span class="mdl-layout-title">Administração - Wiki Zone Zero Mod</span>
+                <span class="mdl-layout-title">Wiki Zone Zero Mod</span>
                 <div class="mdl-layout-spacer"></div>
                 <div style="position: relative; display: flex; align-items: center;">
                     <button class="mdl-button mdl-js-button mdl-button--icon" id="google-apps-button" style="display: none; margin-right: 8px;">
@@ -71,7 +71,7 @@
                     <div id="google-apps-popup" style="
                         display: none;
                         position: absolute;
-                        top: 48px; /* Ajuste a posição vertical conforme necessário */
+                        top: 48px;
                         right: 0;
                         background-color: white;
                         border: 1px solid #ccc;
@@ -81,15 +81,14 @@
                         min-width: 180px;
                         border-radius: 4px;
                     ">
-                        <!-- Links do Google Apps - REMOVIDO target="_blank" -->
-                        <a href="https://mail.google.com/" class="mdl-button mdl-js-button mdl-button--flat" data-external-link="true">Gmail</a>
-                        <a href="https://drive.google.com/" class="mdl-button mdl-js-button mdl-button--flat" data-external-link="true">Drive</a>
-                        <a href="https://calendar.google.com/" class="mdl-button mdl-js-button mdl-button--flat" data-external-link="true">Agenda</a>
-                        <a href="https://photos.google.com/" class="mdl-button mdl-js-button mdl-button--flat" data-external-link="true">Fotos</a>
-                        <a href="https://www.youtube.com/" class="mdl-button mdl-js-button mdl-button--flat" data-external-link="true">YouTube</a>
+                        <a href="https://mail.google.com/" target="_blank" class="mdl-button mdl-js-button mdl-button--flat">Gmail</a>
+                        <a href="https://drive.google.com/" target="_blank" class="mdl-button mdl-js-button mdl-button--flat">Drive</a>
+                        <a href="https://calendar.google.com/" target="_blank" class="mdl-button mdl-js-button mdl-button--flat">Agenda</a>
+                        <a href="https://photos.google.com/" target="_blank" class="mdl-button mdl-js-button mdl-button--flat">Fotos</a>
+                        <a href="https://www.youtube.com/" target="_blank" class="mdl-button mdl-js-button mdl-button--flat">YouTube</a>
                         <hr style="border: 0; border-top: 1px solid #eee; margin: 8px 0;">
-                        <a href="https://myaccount.google.com/" class="mdl-button mdl-js-button mdl-button--flat" data-external-link="true">Minha Conta Google</a>
-                    </div>
+                        <a href="https://myaccount.google.com/" target="_blank" class="mdl-button mdl-js-button mdl-button--flat">Minha Conta Google</a>
+                        </div>
                     <div id="user-info-container" style="display: flex; align-items: center;">
                         <img id="user-profile-pic" src="" alt="Foto de Perfil" style="display: none;">
                         <div id="user-info" class="mdl-typography--body-1-force-preferred-font-color-contrast"></div>
@@ -113,8 +112,7 @@
                 <a class="mdl-navigation__link" href="./admintools/estatisticas.html">Estatisticas</a>
                 <a class="mdl-navigation__link" href="./admintools/pageadmin.html">Pagina Administradora</a>
 
-                <!-- Link de Políticas da WZZM - REMOVIDO target="_blank" -->
-                <a class="mdl-navigation__link" href="http://www.wzzm.org/POL%C3%8DTICAS%20GERAIS%20DO%20WIKI%20ZONE%20ZERO%20MOD.pdf">Políticas da WZZM</a>
+                <a class="mdl-navigation__link" href="http://www.wzzm.org/POL%C3%8DTICAS%20GERAIS%20DO%20WIKI%20ZONE%20ZERO%20MOD.pdf" target="_blank">Políticas da WZZM</a>
                 <a class="mdl-navigation__link" href="#" data-page-src="cadastro-aplicativo.html" data-requires-auth="true">
                     <i class="material-icons">developer_mode</i> Cadastrar Aplicativo
                 </a>
@@ -166,7 +164,7 @@
         </footer>
     </div>
 
-    <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
     <script>
         // --- Configuração do Firebase ---
         const firebaseConfig = {
@@ -198,22 +196,25 @@
         const accessDeniedMessage = document.getElementById('access-denied-message');
         const bannedMessage = document.getElementById('banned-message');
         const navLinks = document.querySelectorAll('.mdl-navigation__link');
+        const googleAppsLinks = document.querySelectorAll('#google-apps-popup a');
 
         const userProfilePic = document.getElementById('user-profile-pic');
         const googleAppsButton = document.getElementById('google-apps-button');
         const userInfoContainer = document.getElementById('user-info-container');
         const googleAppsPopup = document.getElementById('google-apps-popup');
 
-        const customAppCssStyleTag = document.getElementById('custom-app-css'); // Nova referência
+        const customAppCssStyleTag = document.getElementById('custom-app-css');
 
-        let isCurrentUserBanned = false;
+        let isCurrentUserBanned = false; // Manter para controle global
 
         function loadPage(page, requiresAuth = true) {
-            if (isCurrentUserBanned && page !== 'recepcao.html') {
+            // Se o usuário está banido, apenas as políticas são permitidas para navegação "direta"
+            // A página de recepção será carregada via `auth.onAuthStateChanged` para exibir a mensagem de banido.
+            if (isCurrentUserBanned && page !== 'recepcao.html' && !page.includes('POL%C3%8DTICAS%20GERAIS%20DO%20WIKI%20ZONE%20ZERO%20MOD.pdf')) {
                 contentFrame.src = "about:blank";
                 contentFrame.style.display = 'none';
                 accessDeniedMessage.style.display = 'none';
-                bannedMessage.style.display = 'block';
+                bannedMessage.style.display = 'block'; // Exibe a mensagem de banido
                 return;
             }
 
@@ -227,42 +228,39 @@
                 contentFrame.style.display = 'none';
                 accessDeniedMessage.style.display = 'block';
                 bannedMessage.style.display = 'none';
-                // Substitua alert por uma caixa de mensagem customizada, se preferir
                 alert("Você precisa estar logado para acessar esta página.");
             }
         }
 
-        // Lidar com cliques nos links da navegação principal
         navLinks.forEach(link => {
-            // Verifica se o link tem um atributo data-page-src ou se é um link externo
-            // Links sem data-page-src E sem target="_blank" serão tratados abaixo para carregar no iframe
-            if (!link.dataset.pageSrc) {
-                // Adiciona um evento de clique para links que não usam data-page-src
-                // mas são destinados ao iframe (ou seja, não têm target="_blank")
-                link.addEventListener('click', function(event) {
-                    // Previne o comportamento padrão do link
-                    event.preventDefault();
-                    // Carrega a URL do href no iframe
-                    loadPage(this.href, false); // Assume que links sem data-page-src não requerem auth por padrão
-                    // Fecha o drawer do MDL
-                    if (document.querySelector('.mdl-layout__drawer.is-visible')) {
-                        document.querySelector('.mdl-layout__obfuscator').classList.remove('is-visible');
-                        document.querySelector('.mdl-layout__drawer').classList.remove('is-visible');
-                    }
-                });
-                return; // Pula para o próximo link se não tiver data-page-src (já tratado acima)
+            if (!link.dataset.pageSrc && !link.href.includes('POL%C3%8DTICAS%20GERAIS%20DO%20WIKI%20ZONE%20ZERO%20MOD.pdf')) {
+                return; // Ignora links sem data-page-src, a menos que seja o PDF de políticas
             }
 
             link.addEventListener('click', function(event) {
-                event.preventDefault();
+                const pageSrc = this.dataset.pageSrc || this.href;
+                const requiresAuth = this.dataset.requiresAuth === 'true';
 
-                const pageSrc = this.dataset.pageSrc;
-                const requiresAuth = this.dataset.requiresAuth === 'true'; // Obter do data-attribute
-
-                if (this.classList.contains('disabled') && requiresAuth) {
+                // Se o usuário está banido, impede a navegação para qualquer página que não seja políticas
+                // A navegação para recepcao.html para banidos será controlada pelo setNavLinksEnabled e o loadPage inicial
+                if (isCurrentUserBanned && !pageSrc.includes('POL%C3%8DTICAS%20GERAIS%20DO%20WIKI%20ZONE%20ZERO%20MOD.pdf')) {
+                    event.preventDefault(); // Impede a navegação
+                    // Não é necessário chamar loadPage aqui, pois a UI já estará mostrando a mensagem de banido.
                     return;
                 }
 
+                // Impede a navegação se o link está desabilitado e não for as políticas
+                if (this.classList.contains('disabled') && !pageSrc.includes('POL%C3%8DTICAS%20GERAIS%20DO%20WIKI%20ZONE%20ZERO%20MOD.pdf')) {
+                     event.preventDefault();
+                     return;
+                }
+
+                if (pageSrc.includes('POL%C3%8DTICAS%20GERAIS%20DO%20WIKI%20ZONE%20ZERO%20MOD.pdf')) {
+                    // Para o link do PDF, permite a abertura em nova aba sem modificar o iframe
+                    return;
+                }
+
+                event.preventDefault(); // Previne a navegação padrão para links de data-page-src
                 loadPage(pageSrc, requiresAuth);
                 if (document.querySelector('.mdl-layout__drawer.is-visible')) {
                     document.querySelector('.mdl-layout__obfuscator').classList.remove('is-visible');
@@ -271,31 +269,33 @@
             });
         });
 
-        // Lidar com cliques nos links do pop-up do Google Apps
-        googleAppsPopup.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', function(event) {
-                event.preventDefault(); // Previne o comportamento padrão (abrir em nova aba)
-                contentFrame.src = this.href; // Carrega a URL no iframe
-                googleAppsPopup.style.display = 'none'; // Fecha o pop-up
-            });
-        });
-
-
         function setNavLinksEnabled(enabled) {
+            // Desativa/ativa links do menu lateral
             navLinks.forEach(link => {
-                // Apenas desabilita links que têm data-page-src
-                // Links externos ou 'recepcao.html' não serão afetados por esta desabilitação
-                if (!link.dataset.pageSrc && !link.href.includes('POL%C3%8DTICAS%20GERAIS%20DO%20WIKI%20ZONE%20ZERO%20MOD.pdf') && !link.dataset.externalLink) {
-                    // Permite links sem data-page-src (que serão carregados no iframe)
-                    // e links externos (que podem ser controlados pelo target="_blank" se desejado, mas aqui estamos abrindo no iframe)
+                // O link das políticas é o ÚNICO que NUNCA é desativado
+                if (link.href.includes('POL%C3%8DTICAS%20GERAIS%20DO%20WIKI%20ZONE%20ZERO%20MOD.pdf')) {
                     link.classList.remove('disabled');
-                    return;
+                } else {
+                    const requiresAuth = link.dataset.requiresAuth === 'true';
+                    if (enabled && !isCurrentUserBanned) {
+                        link.classList.remove('disabled');
+                    } else if (!enabled && !requiresAuth) {
+                        // Mantém habilitado se não requer auth e não está logado,
+                        // mas AGORA DESABILITA se o usuário estiver banido, mesmo que não exija auth.
+                        if (isCurrentUserBanned) {
+                            link.classList.add('disabled');
+                        } else {
+                            link.classList.remove('disabled');
+                        }
+                    } else {
+                        link.classList.add('disabled'); // Desabilita por padrão se não atende as condições
+                    }
                 }
+            });
 
-                // Links que usam data-page-src ou o link de políticas com URL completo
-                const requiresAuth = link.dataset.requiresAuth === 'true';
-
-                if (enabled || !requiresAuth) { // Enable if logged in OR if it doesn't require auth
+            // Desativa/ativa links do popup do Google Apps
+            googleAppsLinks.forEach(link => {
+                if (enabled && !isCurrentUserBanned) {
                     link.classList.remove('disabled');
                 } else {
                     link.classList.add('disabled');
@@ -340,27 +340,24 @@
             }
         }
 
-        // --- Nova Função para carregar e aplicar CSS de aplicativos ---
         async function loadAndApplyUserAppsCSS(userId) {
             try {
-                // Limpa qualquer CSS customizado anterior
                 customAppCssStyleTag.innerHTML = '';
 
                 const userAppsSnapshot = await firestore.collection('users').doc(userId)
                     .collection('listasecundariah')
-                    .where('tipo', '==', 'Aparência') // Filtra apenas apps de aparência
-                    .where('status', '==', 'ativo') // Apenas apps ativos
+                    .where('tipo', '==', 'Aparência')
+                    .where('status', '==', 'ativo')
                     .get();
 
                 let combinedCSS = '';
                 if (!userAppsSnapshot.empty) {
                     for (const doc of userAppsSnapshot.docs) {
-                        const appId = doc.id; // O ID do documento na listasecundariah é o appId da coleção 'aplicativo'
+                        const appId = doc.id;
                         const appDoc = await firestore.collection('aplicativo').doc(appId).get();
 
                         if (appDoc.exists && appDoc.data().codigoAplicativo) {
                             const appCode = appDoc.data().codigoAplicativo;
-                            // Regex para extrair o CSS entre |CSS|: ++ e -+
                             const cssMatch = appCode.match(/\|CSS\|:\s*\n\+\+([\s\S]*?)-\+/);
                             if (cssMatch && cssMatch[1]) {
                                 combinedCSS += cssMatch[1].trim() + '\n';
@@ -381,14 +378,11 @@
             }
         }
 
-
-        // Listener de estado de autenticação (Firebase) - ATUALIZADO
-       auth.onAuthStateChanged(async (user) => {
+        auth.onAuthStateChanged(async (user) => {
             if (user) {
-                // --- Lógica existente para exibir informações do usuário logado (UI) ---
                 userInfo.textContent = `Olá, ${user.displayName || user.email}!`;
                 loginGoogleButton.style.display = 'none';
-                loginGitHubButton.style.display = 'none'; // Se você ainda tem login GitHub
+                loginGitHubButton.style.display = 'none';
 
                 if (user.photoURL) {
                     userProfilePic.src = user.photoURL;
@@ -398,110 +392,93 @@
                 }
                 googleAppsButton.style.display = 'inline-block';
                 userInfoContainer.style.display = 'flex';
-                // --- Fim da lógica existente (UI) ---
 
-                // Garante que o perfil do usuário principal (da plataforma) exista
                 await createUserProfileDocument(user);
 
-                let isUserBanned = false; // Flag para controlar o banimento
-                let isUserAdmin = false; // Flag para controlar se é admin
+                let isUserBanned = false;
+                let isUserAdmin = false;
 
                 try {
-                    // Verifica o perfil principal do usuário (não o cliente, mas o "usuário" do sistema)
                     const userProfileRef = firestore.collection('users').doc(user.uid);
                     const doc = await userProfileRef.get();
 
                     if (doc.exists && doc.data()) {
                         isUserBanned = doc.data().isBan || false;
-                        isUserAdmin = doc.data().isAdmin || false; // Pega o status de admin
+                        isUserAdmin = doc.data().isAdmin || false;
                     }
-                    // Se o documento não existir, assume que não é banido nem admin por padrão.
                 } catch (error) {
                     console.error("Erro ao verificar perfil de usuário ou status de banimento/admin:", error);
-                    // Em caso de erro, por segurança, assume que não é banido/admin para não travar o acesso
                     isUserBanned = false;
                     isUserAdmin = false;
                 }
 
-                // --- Lógica para o status de banimento (continua como está) ---
+                isCurrentUserBanned = isUserBanned;
+
                 if (isUserBanned) {
                     console.warn(`Usuário ${user.uid} está banido.`);
-                    setNavLinksEnabled(false);
+                    setNavLinksEnabled(false); // Desabilita todos os links (incluindo Página Inicial e popup)
                     logoutButton.style.display = 'none';
                     logoutButton.removeEventListener('click', handleLogout);
                     adminPanelButton.style.display = 'none';
-                    loadPage('recepcao.html', false); // Ou uma página específica para banidos
+                    loadPage('recepcao.html', false); // Carrega a página de recepção, mas a mensagem de banido será mostrada
                     bannedMessage.style.display = 'block';
+                    contentFrame.style.display = 'none'; // Esconde o iframe
+                    googleAppsButton.style.pointerEvents = 'none';
+                    googleAppsButton.style.opacity = '0.6';
+                    googleAppsPopup.style.display = 'none';
                 } else {
-                    // Usuário NÃO está banido
-                    setNavLinksEnabled(true);
+                    setNavLinksEnabled(true); // Habilita os links normais (incluindo Página Inicial e popup)
                     logoutButton.style.display = 'inline-block';
                     logoutButton.removeEventListener('click', handleLogout);
                     logoutButton.addEventListener('click', handleLogout);
                     bannedMessage.style.display = 'none';
+                    contentFrame.style.display = 'block';
+                    accessDeniedMessage.style.display = 'none';
+                    googleAppsButton.style.pointerEvents = 'auto';
+                    googleAppsButton.style.opacity = '1';
 
-                    if (isUserAdmin) { // Usa a flag isUserAdmin
+                    if (isUserAdmin) {
                         adminPanelButton.style.display = 'inline-block';
                     } else {
                         adminPanelButton.style.display = 'none';
                     }
 
-                    await loadAndApplyUserAppsCSS(user.uid); // Carrega CSS personalizado
+                    await loadAndApplyUserAppsCSS(user.uid);
 
-                    // --- AQUI É ONDE VAMOS ADICIONAR A NOVA LÓGICA DE VERIFICAÇÃO DO CLIENTE ---
-                    const clientId = user.uid; // O UID do usuário Google é o ID do cliente
+                    const clientId = user.uid;
 
                     try {
-                        // Verifica se o cliente tem um cadastro COMPLETO na coleção 'clients'
                         const clientDoc = await firestore.collection('clients').doc(clientId).get();
 
                         if (clientDoc.exists) {
-                            // O cliente JÁ TEM cadastro completo.
-                            // Redirecionar para a página de informações do cliente.
                             loadPage('informacoes_cliente/?uid=' + clientId, true);
                         } else {
-                            // O cliente NÃO TEM cadastro completo.
-                            // Redirecionar para a página de cadastro do cliente.
                             loadPage('cadastro_cliente/?uid=' + clientId, true);
                         }
                     } catch (error) {
                         console.error("Erro ao verificar cadastro do cliente no Firestore:", error);
-                        // Em caso de erro na verificação do Firestore (para 'clients'),
-                        // por segurança, direcione para a página de cadastro de cliente.
                         loadPage('cadastro_cliente/?uid=' + clientId, true);
                     }
-                    // --- FIM DA NOVA LÓGICA DE VERIFICAÇÃO DO CLIENTE ---
-
-                    // Remova ou ajuste esta parte se ela estiver em conflito com a nova lógica acima
-                    // const currentPage = contentFrame.src.split('/').pop();
-                    // if (currentPage === 'recepcao.html' || currentPage === 'about:blank' || !currentPage) {
-                    //      loadPage('recepcao.html', false); // Pode ser removido, pois o loadPage acima já direcionará
-                    // } else {
-                    //      const currentNavLink = Array.from(navLinks).find(link => link.dataset.pageSrc && link.dataset.pageSrc.endsWith(currentPage));
-                    //      const currentRequiresAuth = currentNavLink ? currentNavLink.dataset.requiresAuth === 'true' : false;
-                    //      loadPage(currentPage, currentRequiresAuth); // Pode ser removido
-                    // }
                 }
 
             } else {
-                // --- Lógica existente para usuário deslogado ---
                 userInfo.textContent = '';
                 loginGoogleButton.style.display = 'inline-block';
-                loginGitHubButton.style.display = 'inline-block'; // Se você ainda tem
+                loginGitHubButton.style.display = 'inline-block';
                 logoutButton.style.display = 'none';
                 adminPanelButton.style.display = 'none';
                 isCurrentUserBanned = false;
                 bannedMessage.style.display = 'none';
-                setNavLinksEnabled(false);
+                setNavLinksEnabled(false); // Desabilita todos os links que requerem autenticação (incluindo Página Inicial e popup)
                 loadPage('recepcao.html', false); // Tela inicial para deslogados
-
                 userProfilePic.style.display = 'none';
                 userProfilePic.src = '';
                 googleAppsButton.style.display = 'none';
                 userInfoContainer.style.display = 'none';
                 googleAppsPopup.style.display = 'none';
                 customAppCssStyleTag.innerHTML = '';
-                // --- Fim da lógica existente (deslogado) ---
+                contentFrame.style.display = 'block';
+                accessDeniedMessage.style.display = 'none';
             }
         });
 
@@ -555,8 +532,6 @@
             if (componentHandler) {
                 componentHandler.upgradeDom();
             }
-            // A carga inicial da página será tratada pelo onAuthStateChanged
-            // loadPage('recepcao.html', false);
         });
     </script>
 </body>
