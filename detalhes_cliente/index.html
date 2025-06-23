@@ -131,6 +131,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-functions-compat.js"></script>
 
     <script>
         // Substitua pelas suas credenciais do Firebase
@@ -147,6 +148,7 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
+        const functions = firebase.functions(); // Inicializa o Firebase Functions
 
         // Elementos HTML
         const adminAccessDeniedDiv = document.getElementById('adminAccessDenied');
@@ -214,34 +216,30 @@
         }
 
         /**
-         * Busca e exibe os detalhes de um usuário.
+         * Busca e exibe os detalhes de um usuário usando uma Cloud Function.
          * @param {string} uid O UID do usuário a ser buscado.
          */
         async function fetchUserDetails(uid) {
             clearUserDetails();
             searchErrorDiv.textContent = '';
             try {
-                // Obter dados do Firebase Authentication
-                // Observação: O Firebase Web SDK não permite obter dados de outros usuários do Auth diretamente.
-                // Para isso, seria necessário uma Cloud Function ou Admin SDK no backend.
-                // Aqui, vamos focar nos dados do Firestore.
+                // Chama a Cloud Function para buscar os detalhes do usuário
+                const getUserDetails = functions.httpsCallable('getUserDetailsAndToggleBan');
+                const result = await getUserDetails({ uid: uid, action: 'getDetails' });
+                const userData = result.data;
 
-                const userDoc = await db.collection('users').doc(uid).get();
-
-                if (userDoc.exists) {
-                    const userData = userDoc.data();
+                if (userData && userData.uid) { // Verifica se a função retornou dados válidos
                     selectedUserUid = uid;
                     selectedUserIsBanned = userData.isBanned || false;
 
-                    userUidDisplay.textContent = uid;
-                    userEmailDisplay.textContent = userData.email || 'N/A'; // Email não está no doc users por padrão
-                                                                             // Considere adicioná-lo ou buscá-lo do Auth no backend
+                    userUidDisplay.textContent = userData.uid;
+                    userEmailDisplay.textContent = userData.email || 'N/A';
                     userIsAdminDisplay.textContent = userData.isAdmin ? 'Sim' : 'Não';
-                    userLastLoginDisplay.textContent = userData.lastLoginAt ? new Date(userData.lastLoginAt.toDate()).toLocaleString() : 'N/A';
+                    userLastLoginDisplay.textContent = userData.lastSignInTime ? new Date(userData.lastSignInTime).toLocaleString() : 'N/A';
                     userIsBannedDisplay.textContent = userData.isBanned ? 'Sim' : 'Não';
 
-                    userNameInput.value = userData.name || '';
-                    userProfilePictureUrlInput.value = userData.profilePictureUrl || '';
+                    userNameInput.value = userData.displayName || '';
+                    userProfilePictureUrlInput.value = userData.photoURL || '';
                     userMotivoBanInput.value = userData.motivoBan || '';
 
                     toggleBanButton.textContent = selectedUserIsBanned ? 'Desbanir Usuário' : 'Banir Usuário';
@@ -249,10 +247,11 @@
 
                     userDetailsDiv.style.display = 'block';
                 } else {
-                    searchErrorDiv.textContent = 'Usuário não encontrado no Firestore.';
+                    searchErrorDiv.textContent = 'Usuário não encontrado ou erro ao buscar dados.';
                 }
             } catch (error) {
                 console.error("Erro ao buscar detalhes do usuário:", error);
+                // Exibe a mensagem de erro da Cloud Function, se disponível
                 searchErrorDiv.textContent = `Erro ao buscar usuário: ${error.message}`;
             }
         }
@@ -267,7 +266,6 @@
                 if (isAdmin) {
                     adminAccessDeniedDiv.style.display = 'none';
                     adminContentDiv.style.display = 'block';
-                    // Você pode pré-preencher o searchUidInput com um UID de teste aqui, se quiser
                 } else {
                     adminAccessDeniedDiv.style.display = 'block';
                     adminContentDiv.style.display = 'none';
@@ -307,7 +305,7 @@
 
             const newName = userNameInput.value.trim();
             const newProfilePictureUrl = userProfilePictureUrlInput.value.trim();
-            const newMotivoBan = userMotivoBanInput.value.trim();
+            // userMotivoBanInput é tratado pelo botão de banir/desbanir
 
             if (!newName) {
                 editErrorDiv.textContent = 'O nome é um campo obrigatório.';
@@ -318,9 +316,9 @@
                 const updateData = {
                     name: newName,
                     profilePictureUrl: newProfilePictureUrl,
-                    // Não incluir isBanned e motivoBan aqui, pois são tratados pelo toggleBanButton
                 };
 
+                // Atualiza o documento no Firestore
                 await db.collection('users').doc(selectedUserUid).update(updateData);
                 editSuccessDiv.textContent = 'Dados do usuário atualizados com sucesso!';
                 // Re-buscar para atualizar a exibição, caso os dados no Firestore tenham mudado
@@ -355,31 +353,16 @@
             }
 
             try {
-                const updateData = {
+                // Chama a Cloud Function para banir/desbanir o usuário
+                const toggleUserBan = functions.httpsCallable('getUserDetailsAndToggleBan');
+                const result = await toggleUserBan({
+                    uid: selectedUserUid,
+                    action: 'toggleBan',
                     isBanned: newBanStatus,
-                    motivoBan: newBanStatus ? motivoBanValue : firebase.firestore.FieldValue.delete() // Remove o campo se desbanindo
-                };
+                    motivoBan: newBanStatus ? motivoBanValue : null // Passa null para remover o campo se desbanindo
+                });
 
-                await db.collection('users').doc(selectedUserUid).update(updateData);
-
-                // IMPORTANTE: Para banir de fato (impedir login), você precisaria de uma Cloud Function
-                // que use o Admin SDK do Firebase para desabilitar o usuário no Firebase Authentication.
-                // O código abaixo atualiza apenas o status no Firestore.
-                // Exemplo de Cloud Function:
-                // exports.toggleUserBan = functions.firestore
-                //    .document('users/{userId}')
-                //    .onUpdate(async (change, context) => {
-                //        const newData = change.after.data();
-                //        const previousData = change.before.data();
-                //        if (newData.isBanned !== previousData.isBanned) {
-                //            const userId = context.params.userId;
-                //            await admin.auth().updateUser(userId, { disabled: newData.isBanned });
-                //            console.log(`Usuário ${userId} ${newData.isBanned ? 'desativado' : 'ativado'} no Auth.`);
-                //        }
-                //    });
-
-
-                editSuccessDiv.textContent = `Usuário ${newBanStatus ? 'banido' : 'desbanido'} com sucesso!`;
+                editSuccessDiv.textContent = result.data.message;
                 selectedUserIsBanned = newBanStatus; // Atualiza o estado local
                 toggleBanButton.textContent = selectedUserIsBanned ? 'Desbanir Usuário' : 'Banir Usuário';
                 toggleBanButton.classList.toggle('red', !selectedUserIsBanned);
@@ -388,8 +371,12 @@
                     userMotivoBanInput.value = ''; // Limpa o motivo ao desbanir
                 }
 
+                // Re-buscar os detalhes para garantir que a UI está totalmente sincronizada com as atualizações do Auth/Firestore
+                fetchUserDetails(selectedUserUid);
+
             } catch (error) {
                 console.error("Erro ao banir/desbanir usuário:", error);
+                // Exibe a mensagem de erro da Cloud Function, se disponível
                 editErrorDiv.textContent = `Erro ao banir/desbanir: ${error.message}`;
             }
         });
