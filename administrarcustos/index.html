@@ -1,285 +1,541 @@
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrar Custos - WZZM Admin</title>
+    <link rel="icon" href="../../favicom.png" type="image/x-icon">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        .mdl-card {
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .mdl-list {
+            padding: 0;
+        }
+        .mdl-list__item {
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+            justify-content: space-between;
+        }
+        .mdl-list__item-primary-content {
+            font-weight: bold;
+        }
+        .mdl-list__item-secondary-action {
+            color: #3f51b5;
+        }
+        .mdl-textfield {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        .mdl-button {
+            margin-top: 15px;
+        }
+        .form-section {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        h3 {
+            border-bottom: 2px solid #3f51b5;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            color: #3f51b5;
+        }
+        .mdl-data-table {
+            width: 100%;
+            margin-top: 20px;
+        }
+        .mdl-data-table th, .mdl-data-table td {
+            text-align: left;
+            padding: 8px 12px;
+        }
+        .mdl-data-table th:nth-child(4), .mdl-data-table td:nth-child(4) {
+             text-align: right;
+        }
+        .mdl-data-table__cell--non-numeric {
+            white-space: normal;
+        }
+        .alert-message {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            display: none; /* Hidden by default */
+        }
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .file-upload-section {
+            margin-top: 20px;
+            border: 1px dashed #ccc;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-storage-compat.js"></script>
 
-    // --- Helper functions (Funções Auxiliares) ---
-    function isAdmin() {
-      // Verifica se o usuário está logado e se o documento do usuário possui isAdmin: true
-      // Isso requer que o documento 'users/{request.auth.uid}' exista.
-      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    <div class="mdl-card mdl-shadow--2dp">
+        <div class="mdl-card__title mdl-card--expand">
+            <h2 class="mdl-card__title-text">Gerenciar Transparência Financeira</h2>
+        </div>
+        <div class="mdl-card__supporting-text">
+            <div id="auth-guard">
+                <h4 style="text-align: center; color: #f44336;">Acesso Negado: Apenas administradores podem gerenciar esta página.</h4>
+            </div>
+
+            <div id="admin-content" style="display: none;">
+                <div id="alertContainer" class="alert-message"></div>
+
+                <div class="form-section">
+                    <h3>Dados Financeiros do Mês (<span id="currentMonthYearAdmin"></span>)</h3>
+                    <div class="mdl-grid">
+                        <div class="mdl-cell mdl-cell--6-col">
+                            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                                <input class="mdl-textfield__input" type="number" step="0.01" id="inputTotalDonations">
+                                <label class="mdl-textfield__label" for="inputTotalDonations">Total de Doações (R$)</label>
+                            </div>
+                        </div>
+                        <div class="mdl-cell mdl-cell--6-col">
+                            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                                <input class="mdl-textfield__input" type="number" step="0.01" id="inputFirebaseCost">
+                                <label class="mdl-textfield__label" for="inputFirebaseCost">Custo Firebase (R$)</label>
+                            </div>
+                        </div>
+                        <div class="mdl-cell mdl-cell--6-col">
+                            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                                <input class="mdl-textfield__input" type="number" step="0.01" id="inputWorkspaceCost">
+                                <label class="mdl-textfield__label" for="inputWorkspaceCost">Custo Google Workspace (R$)</label>
+                            </div>
+                        </div>
+                        <div class="mdl-cell mdl-cell--6-col">
+                            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                                <input class="mdl-textfield__input" type="text" id="inputStatusMessage">
+                                <label class="mdl-textfield__label" for="inputStatusMessage">Mensagem de Status</label>
+                            </div>
+                        </div>
+                        <div class="mdl-cell mdl-cell--12-col">
+                            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                                <input class="mdl-textfield__input" type="text" id="inputConnectedServices">
+                                <label class="mdl-textfield__label" for="inputConnectedServices">Serviços Conectados (separar por vírgula)</label>
+                                <span class="mdl-textfield__help">Ex: Firebase Hosting, Cloud Firestore, Google Workspace</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="saveFinancialData">
+                        Salvar Dados Financeiros
+                    </button>
+                </div>
+
+                <div class="form-section">
+                    <h3>Adicionar Nova Nota Fiscal</h3>
+                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                        <input class="mdl-textfield__input" type="text" id="inputInvoiceService">
+                        <label class="mdl-textfield__label" for="inputInvoiceService">Serviço (Ex: Firebase, Google Workspace)</label>
+                    </div>
+                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                        <input class="mdl-textfield__input" type="text" id="inputInvoiceNumber">
+                        <label class="mdl-textfield__label" for="inputInvoiceNumber">Número da Nota Fiscal</label>
+                    </div>
+                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                        <input class="mdl-textfield__input" type="date" id="inputInvoiceDate">
+                        <label class="mdl-textfield__label" for="inputInvoiceDate"></label>
+                    </div>
+                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                        <input class="mdl-textfield__input" type="number" step="0.01" id="inputInvoiceAmount">
+                        <label class="mdl-textfield__label" for="inputInvoiceAmount">Valor (R$)</label>
+                    </div>
+                    <div class="file-upload-section">
+                        <h4>Upload do Arquivo da Nota Fiscal (PDF)</h4>
+                        <input type="file" id="invoiceFile" accept="application/pdf">
+                        <p id="uploadStatus"></p>
+                    </div>
+                    <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="addInvoice">
+                        Adicionar Nota Fiscal
+                    </button>
+                </div>
+
+                <div class="form-section">
+                    <h3>Notas Fiscais Cadastradas</h3>
+                    <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp" style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <th class="mdl-data-table__cell--non-numeric">Serviço</th>
+                                <th class="mdl-data-table__cell--non-numeric">Nº Nota Fiscal</th>
+                                <th class="mdl-data-table__cell--non-numeric">Data</th>
+                                <th>Valor (R$)</th>
+                                <th class="mdl-data-table__cell--non-numeric">Link</th>
+                                <th class="mdl-data-table__cell--non-numeric">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="invoicesTableBodyAdmin">
+                            <tr><td colspan="6" style="text-align: center;">Carregando notas fiscais...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+    <script>
+        // Sua configuração do Firebase (substitua com suas próprias chaves)
+        const firebaseConfig = {
+            apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0",
+            authDomain: "wzzm-ce3fc.firebaseapp.com",
+            projectId: "wzzm-ce3fc",
+            storageBucket: "wzzm-ce3fc.appspot.com",
+            messagingSenderId: "249427877153",
+            appId: "1:249427877153:web:0e4297294794a5aadeb260",
+            measurementId: "G-PLKNZNFCQ8"
+        };
+
+        // Inicializa o Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const auth = firebase.auth();
+        const firestore = firebase.firestore();
+        const storage = firebase.storage();
+
+        // Elementos HTML
+        const authGuard = document.getElementById('auth-guard');
+        const adminContent = document.getElementById('admin-content');
+        const alertContainer = document.getElementById('alertContainer');
+
+        const currentMonthYearEl = document.getElementById('currentMonthYearAdmin');
+        const inputTotalDonations = document.getElementById('inputTotalDonations');
+        const inputFirebaseCost = document.getElementById('inputFirebaseCost');
+        const inputWorkspaceCost = document.getElementById('inputWorkspaceCost');
+        const inputStatusMessage = document.getElementById('inputStatusMessage');
+        const inputConnectedServices = document.getElementById('inputConnectedServices');
+        const saveFinancialDataBtn = document.getElementById('saveFinancialData');
+
+        const inputInvoiceService = document.getElementById('inputInvoiceService');
+        const inputInvoiceNumber = document.getElementById('inputInvoiceNumber');
+        const inputInvoiceDate = document.getElementById('inputInvoiceDate');
+        const inputInvoiceAmount = document.getElementById('inputInvoiceAmount');
+        const invoiceFile = document.getElementById('invoiceFile');
+        const uploadStatus = document.getElementById('uploadStatus');
+        const addInvoiceBtn = document.getElementById('addInvoice');
+        const invoicesTableBodyAdmin = document.getElementById('invoicesTableBodyAdmin');
+
+        let currentMonthYearId = ''; // Vai armazenar "YYYY-MM" do mês atual
+
+        // --- Funções Auxiliares ---
+        function formatCurrency(value) {
+            return `R$ ${parseFloat(value).toFixed(2).replace('.', ',')}`;
+        }
+
+        function displayAlert(message, type) {
+            alertContainer.textContent = message;
+            alertContainer.className = `alert-message alert-${type}`;
+            alertContainer.style.display = 'block';
+            setTimeout(() => {
+                alertContainer.style.display = 'none';
+            }, 5000);
+        }
+
+        function getMonthYearId(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            return `${year}-${month}`;
+        }
+
+        // --- Carregar e Exibir Dados Financeiros Atuais ---
+        async function loadCurrentFinancialData() {
+            const now = new Date();
+            currentMonthYearId = getMonthYearId(now);
+            const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+            currentMonthYearEl.textContent = `${monthNames[now.getMonth()]} de ${now.getFullYear()}`;
+
+            try {
+                const financialDoc = await firestore.collection('financialData').doc(currentMonthYearId).get();
+                if (financialDoc.exists) {
+                    const data = financialDoc.data();
+                    inputTotalDonations.value = data.totalDonations || 0;
+                    inputFirebaseCost.value = data.firebaseCost || 0;
+                    inputWorkspaceCost.value = data.workspaceCost || 0;
+                    inputStatusMessage.value = data.statusMessage || '';
+                    inputConnectedServices.value = (data.connectedServices || []).join(', ');
+                } else {
+                    // Se o documento não existe, inicializa os campos com 0 ou vazio
+                    inputTotalDonations.value = 0;
+                    inputFirebaseCost.value = 0;
+                    inputWorkspaceCost.value = 0;
+                    inputStatusMessage.value = 'Projeto ainda não está em funcionamento completo por falta de fundos.';
+                    inputConnectedServices.value = 'Firebase Hosting, Cloud Firestore'; // Sugestão inicial
+                }
+                // Upgrade MDL textfields after setting values
+                if (componentHandler) {
+                    componentHandler.upgradeDom();
+                    document.querySelectorAll('.mdl-textfield').forEach(field => {
+                        field.MaterialTextfield.checkDirty();
+                    });
+                }
+            } catch (error) {
+                console.error("Erro ao carregar dados financeiros:", error);
+                displayAlert("Erro ao carregar dados financeiros.", "error");
+            }
+        }
+
+        // --- Salvar Dados Financeiros ---
+        saveFinancialDataBtn.addEventListener('click', async () => {
+            const totalDonations = parseFloat(inputTotalDonations.value || 0);
+            const firebaseCost = parseFloat(inputFirebaseCost.value || 0);
+            const workspaceCost = parseFloat(inputWorkspaceCost.value || 0);
+            const statusMessage = inputStatusMessage.value.trim();
+            const connectedServices = inputConnectedServices.value.split(',').map(s => s.trim()).filter(s => s !== '');
+
+            if (isNaN(totalDonations) || isNaN(firebaseCost) || isNaN(workspaceCost)) {
+                displayAlert("Por favor, insira valores numéricos válidos para doações e custos.", "error");
+                return;
+            }
+
+            try {
+                await firestore.collection('financialData').doc(currentMonthYearId).set({
+                    totalDonations: totalDonations,
+                    firebaseCost: firebaseCost,
+                    workspaceCost: workspaceCost,
+                    statusMessage: statusMessage,
+                    connectedServices: connectedServices,
+                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true }); // Use merge para não sobrescrever outros campos se existirem
+
+                displayAlert("Dados financeiros salvos com sucesso!", "success");
+            } catch (error) {
+                console.error("Erro ao salvar dados financeiros:", error);
+                displayAlert("Erro ao salvar dados financeiros. " + error.message, "error");
+            }
+        });
+
+        // --- Carregar e Exibir Notas Fiscais ---
+        async function loadInvoices() {
+            invoicesTableBodyAdmin.innerHTML = '<tr><td colspan="6" style="text-align: center;">Carregando notas fiscais...</td></tr>';
+            try {
+                const invoicesSnapshot = await firestore.collection('invoices')
+                                                          .where('monthYear', '==', currentMonthYearId)
+                                                          .orderBy('date', 'desc')
+                                                          .get();
+                
+                if (!invoicesSnapshot.empty) {
+                    invoicesTableBodyAdmin.innerHTML = '';
+                    invoicesSnapshot.forEach(doc => {
+                        const invoice = doc.data();
+                        const row = invoicesTableBodyAdmin.insertRow();
+                        row.insertCell(0).textContent = invoice.service || 'N/A';
+                        row.insertCell(1).textContent = invoice.invoiceNumber || 'N/A';
+                        row.insertCell(2).textContent = invoice.date ? new Date(invoice.date.seconds * 1000).toLocaleDateString() : 'N/A';
+                        row.insertCell(3).textContent = formatCurrency(invoice.amount || 0);
+                        
+                        const linkCell = row.insertCell(4);
+                        if (invoice.fileURL) {
+                            const link = document.createElement('a');
+                            link.href = invoice.fileURL;
+                            link.textContent = 'Ver Nota';
+                            link.target = '_blank';
+                            linkCell.appendChild(link);
+                        } else {
+                            linkCell.textContent = 'N/A';
+                        }
+
+                        const actionsCell = row.insertCell(5);
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.className = 'mdl-button mdl-js-button mdl-button--icon mdl-button--colored';
+                        deleteBtn.innerHTML = '<i class="material-icons">delete</i>';
+                        deleteBtn.title = 'Excluir Nota Fiscal';
+                        deleteBtn.addEventListener('click', () => deleteInvoice(doc.id, invoice.fileURL));
+                        actionsCell.appendChild(deleteBtn);
+                    });
+                } else {
+                    invoicesTableBodyAdmin.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhuma nota fiscal encontrada para este mês.</td></tr>';
+                }
+            } catch (error) {
+                console.error("Erro ao carregar notas fiscais:", error);
+                displayAlert("Erro ao carregar notas fiscais. " + error.message, "error");
+                invoicesTableBodyAdmin.innerHTML = '<tr><td colspan="6" style="text-align: center; color: red;">Erro ao carregar notas fiscais.</td></tr>';
+            }
+        }
+
+        // --- Adicionar Nova Nota Fiscal ---
+        addInvoiceBtn.addEventListener('click', async () => {
+            const service = inputInvoiceService.value.trim();
+            const invoiceNumber = inputInvoiceNumber.value.trim();
+            const invoiceDateStr = inputInvoiceDate.value; // YYYY-MM-DD
+            const amount = parseFloat(inputInvoiceAmount.value || 0);
+            const file = invoiceFile.files[0];
+
+            if (!service || !invoiceNumber || !invoiceDateStr || isNaN(amount) || amount <= 0) {
+                displayAlert("Por favor, preencha todos os campos da nota fiscal e o valor deve ser maior que zero.", "error");
+                return;
+            }
+
+            let fileURL = null;
+            uploadStatus.textContent = ''; // Clear previous status
+
+            if (file) {
+                uploadStatus.textContent = 'Carregando arquivo...';
+                try {
+                    const storageRef = storage.ref(`invoices/${currentMonthYearId}/${file.name}`);
+                    const snapshot = await storageRef.put(file);
+                    fileURL = await snapshot.ref.getDownloadURL();
+                    uploadStatus.textContent = 'Arquivo carregado com sucesso!';
+                } catch (error) {
+                    console.error("Erro ao carregar arquivo da nota fiscal:", error);
+                    displayAlert("Erro ao carregar arquivo da nota fiscal. " + error.message, "error");
+                    uploadStatus.textContent = 'Erro ao carregar arquivo.';
+                    return; // Stop if file upload fails
+                }
+            }
+
+            try {
+                const invoiceDate = new Date(invoiceDateStr);
+                await firestore.collection('invoices').add({
+                    service: service,
+                    invoiceNumber: invoiceNumber,
+                    date: firebase.firestore.Timestamp.fromDate(invoiceDate),
+                    amount: amount,
+                    fileURL: fileURL,
+                    monthYear: currentMonthYearId,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                displayAlert("Nota fiscal adicionada com sucesso!", "success");
+                // Clear form fields
+                inputInvoiceService.value = '';
+                inputInvoiceNumber.value = '';
+                inputInvoiceDate.value = '';
+                inputInvoiceAmount.value = '';
+                invoiceFile.value = ''; // Clear file input
+                uploadStatus.textContent = '';
+                if (componentHandler) {
+                    componentHandler.upgradeDom();
+                    document.querySelectorAll('.mdl-textfield').forEach(field => {
+                        field.MaterialTextfield.checkDirty();
+                    });
+                }
+                loadInvoices(); // Reload invoices table
+            } catch (error) {
+                console.error("Erro ao adicionar nota fiscal:", error);
+                displayAlert("Erro ao adicionar nota fiscal. " + error.message, "error");
+            }
+        });
+
+        // --- Excluir Nota Fiscal ---
+        async function deleteInvoice(docId, fileURL) {
+            if (!confirm("Tem certeza que deseja excluir esta nota fiscal? Esta ação é irreversível.")) {
+                return;
+            }
+
+            try {
+                // Delete file from Storage if exists
+                if (fileURL) {
+                    const fileRef = storage.refFromURL(fileURL);
+                    await fileRef.delete();
+                    console.log("Arquivo da nota fiscal excluído do Storage.");
+                }
+                // Delete document from Firestore
+                await firestore.collection('invoices').doc(docId).delete();
+                displayAlert("Nota fiscal excluída com sucesso!", "success");
+                loadInvoices(); // Reload invoices table
+            } catch (error) {
+                console.error("Erro ao excluir nota fiscal:", error);
+                displayAlert("Erro ao excluir nota fiscal. " + error.message, "error");
+            }
+        }
+        async function loadCurrentFinancialData() {
+    // ... seu código ...
+    try {
+        const financialDoc = await firestore.collection('financialData').doc(currentMonthYearId).get();
+        if (financialDoc.exists) {
+            const data = financialDoc.data(); // Linha 42
+            inputTotalDonations.value = data.totalDonations || 0;
+            inputFirebaseCost.value = data.firebaseCost || 0;
+            inputWorkspaceCost.value = data.workspaceCost || 0;
+            inputStatusMessage.value = data.statusMessage || '';
+            inputConnectedServices.value = (data.connectedServices || []).join(', ');
+        } else {
+            // ... inicialização dos campos ...
+        }
+        // Temporariamente, comente este bloco para testar
+        // if (componentHandler) {
+        //     componentHandler.upgradeDom();
+        //     document.querySelectorAll('.mdl-textfield').forEach(field => {
+        //         field.MaterialTextfield.checkDirty();
+        //     });
+        // }
+    } catch (error) {
+        console.error("Erro ao carregar dados financeiros:", error);
+        displayAlert("Erro ao carregar dados financeiros.", "error");
     }
-
-    function isSignedIn() {
-      // Verifica se o usuário está autenticado
-      return request.auth != null;
-    }
-
-    function isEmailVerified() {
-      // Verifica se o e-mail do usuário autenticado foi verificado
-      return isSignedIn() && request.auth.token.email_verified == true;
-    }
-
-    function isOwner(userId) {
-      // Verifica se o usuário autenticado é o proprietário do documento (baseado no UID)
-      return isEmailVerified() && request.auth.uid == userId;
-    }
-
-    // --- Regras para Coleções ---
-
-    // Coleção 'users' (Perfis de Usuários, onde o isAdmin é verificado)
-    // O ID do documento 'userId' DEVE ser o UID do Firebase Auth.
-    match /users/{userId} {
-      // Permite criar o próprio perfil, se for o owner e não estiver tentando se tornar admin.
-      allow create: if isOwner(userId) && !("isAdmin" in request.resource.data);
-      // Permite leitura para o próprio usuário ou para um admin.
-      // Permite atualização para o próprio usuário (não pode mudar isAdmin) ou para um admin.
-      allow read, update: if isOwner(userId) || isAdmin();
-    }
-
-    // Coleção 'clients' (Perfis Detalhados do Cliente, vinculados ao UID do Google)
-    // O ID do documento 'clientId' DEVE ser o UID do Firebase Auth.
-    match /clients/{clientId} {
-      // Permite criar um perfil de cliente apenas se:
-      // 1. O usuário estiver logado E o e-mail verificado.
-      // 2. O ID do documento que está sendo criado for o UID do usuário logado.
-      // 3. O 'uidGoogle' no recurso também corresponder ao UID do usuário logado.
-      allow create: if isEmailVerified() && request.auth.uid == clientId && request.resource.data.uidGoogle == request.auth.uid;
-
-      // Permite ler/atualizar o próprio perfil de cliente, se o e-mail estiver verificado.
-      // Admins também podem ler/atualizar qualquer perfil de cliente.
-      allow read, update: if (isEmailVerified() && request.auth.uid == clientId) || isAdmin();
-    }
-
-    // Coleção 'clientPhones' (Telefones dos Clientes)
-    match /clientPhones/{phoneId} {
-      // Permite criar um registro de telefone se:
-      // 1. O usuário estiver logado E o e-mail verificado.
-      // 2. O 'clientId' no recurso que está sendo criado corresponder ao UID do usuário logado.
-      allow create: if isEmailVerified() && request.resource.data.clientId == request.auth.uid;
-
-      // Permite ler/atualizar/deletar um registro de telefone apenas se:
-      // 1. O e-mail do usuário estiver verificado.
-      // 2. O 'clientId' no documento existente corresponder ao UID do usuário logado.
-      // Admins também podem fazer tudo.
-      allow read, update, delete: if (isEmailVerified() && resource.data.clientId == request.auth.uid) || isAdmin();
-    }
-
-    // Coleção 'clientEmails' (Emails Adicionais dos Clientes, além do de autenticação)
-    match /clientEmails/{emailId} {
-      // Permite criar um registro de e-mail se:
-      // 1. O usuário estiver logado E o e-mail verificado.
-      // 2. O 'clientId' no recurso que está sendo criado corresponder ao UID do usuário logado.
-      allow create: if isEmailVerified() && request.resource.data.clientId == request.auth.uid;
-
-      // Permite ler/atualizar/deletar um registro de e-mail apenas se:
-      // 1. O e-mail do usuário estiver verificado.
-      // 2. O 'clientId' no documento existente corresponder ao UID do usuário logado.
-      // Admins também podem fazer tudo.
-      allow read, update, delete: if (isEmailVerified() && resource.data.clientId == request.auth.uid) || isAdmin();
-    }
-
-    // Coleção 'clientHistory' (Histórico de Alterações dos Clientes)
-    match /clientHistory/{historyId} {
-      // Permite criar um registro de histórico se o usuário estiver logado e o e-mail verificado.
-      // É importante que o 'editorId' ou 'clientId' no recurso corresponda ao UID logado, se relevante.
-      allow create: if isEmailVerified();
-      // Permite ler o histórico se for do próprio cliente ou se for um admin.
-      allow read: if (isEmailVerified() && resource.data.clientId == request.auth.uid) || isAdmin();
-      // Admins podem atualizar/deletar registros de histórico (raro, mas possível para correção).
-      allow update, delete: if isAdmin();
-    }
-
-    // Coleção 'minhapersona'
-    match /minhapersona/{documentId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn()
-                      && request.resource.data.name is string
-                      && request.resource.data.name.size() > 0;
-      allow update, delete: if (isOwner(resource.data.authorUid) && isEmailVerified()) || isAdmin();
-    }
-
-    // Coleção 'articles' (Se ainda estiver em uso - leitura pública, escrita apenas para admin)
-    match /articles/{documentId} {
-      allow read: if true; // Todos podem ler
-      allow create: if isEmailVerified() // Apenas usuários com email verificado podem criar
-                      && request.resource.data.title is string
-                      && request.resource.data.content is string
-                      && request.resource.data.title.size() > 0
-                      && request.resource.data.content.size() > 0;
-      allow update, delete: if isAdmin(); // Apenas admin pode atualizar/deletar
-    }
-
-    // Coleção 'articlesdoc' (Principal para Artigos - Leitura pública, criação/atualização/deleção para o autor ou admin)
-    match /articlesdoc/{articleDocId} {
-      allow read: if true; // Todos podem ler
-      allow create: if isEmailVerified()
-                      && request.resource.data.title is string
-                      && request.resource.data.title.size() > 0;
-      allow update, delete: if (isOwner(resource.data.userId) && isEmailVerified()) || isAdmin();
-    }
-
-    // Coleção 'articlesdoc_history' (Histórico de Edições de Artigos)
-    match /articlesdoc_history/{historyEntryId} {
-      allow read: if isSignedIn();
-      allow create: if isEmailVerified(); // Apenas usuários com email verificado podem criar
-      allow update, delete: if isAdmin();
-    }
-
-    // Coleção 'materials'
-    match /materials/{materialId} {
-      allow read: if isSignedIn();
-      allow create: if isEmailVerified()
-                      && request.resource.data.name is string
-                      && request.resource.data.url is string
-                      && request.resource.data.name.size() > 0;
-      allow update, delete: if (isOwner(resource.data.authorUid) && isEmailVerified()) || isAdmin();
-    }
-
-    // Coleção 'settings' (para configuracoes.html - Apenas Admin)
-    match /settings/{documentId} {
-      allow read, write: if isAdmin();
-    }
-
-    // Coleção 'views' (para estatisticas.html - Apenas Admin pode ler. Criação pode ser pública ou restrita)
-    match /views/{viewId} {
-      allow read: if isAdmin();
-      // Exemplo: Permitir que qualquer um crie uma 'view' (visita) - CUIDADO com abuso
-      // allow create: if true;
-    }
-
-    // Coleção aninhada 'WZZM/paginashtmlweb/paginas'
-    match /WZZM/paginashtmlweb/paginas/{pageId} {
-      allow read: if true;
-      allow write: if isAdmin()
-                      && request.resource.data.htmlContent is string
-                      && request.resource.data.htmlContent.size() > 0;
-    }
-
-    // Coleção 'userteatcher' (Professores - Leitura para todos logados, CRUD para Admin)
-    match /userteatcher/{teacherId} {
-      allow read: if isSignedIn();
-      allow create, update, delete: if isAdmin();
-    }
-
-    // Coleção 'reports' (Denúncias - Criação para o relator logado/verificado, CRUD para Admin)
-    match /reports/{reportId} {
-      allow create: if isEmailVerified()
-                      && request.resource.data.description is string
-                      && request.resource.data.description.size() > 0
-                      && request.resource.data.contentId is string
-                      && request.resource.data.contentId.size() > 0 // Adicionei validação de tamanho
-                      && request.resource.data.reporterUid == request.auth.uid;
-      allow read, update, delete: if isAdmin();
-    }
-
-    // Coleção 'userEmails' (Mensagens da Caixa de Entrada do Usuário)
-    match /userEmails/{messageId} {
-      // Permite leitura se for o recipiente, o remetente ou um admin.
-      allow read: if (isEmailVerified() && (isOwner(resource.data.recipientId) || isOwner(resource.data.senderId))) || isAdmin();
-      // Permite criação se for logado/verificado, o remetente for o próprio usuário, e os campos obrigatórios existirem.
-      allow create: if isEmailVerified()
-                      && request.resource.data.recipientId is string
-                      && request.resource.data.senderId is string
-                      && request.resource.data.subject is string
-                      && request.resource.data.message is string
-                      && request.resource.data.recipientId != request.resource.data.senderId
-                      && request.resource.data.senderId == request.auth.uid;
-      // Permite atualização pelo recipiente ou admin (para marcar como lido, por exemplo).
-      allow update: if (isEmailVerified() && isOwner(resource.data.recipientId)) || isAdmin();
-      // Permite deletar apenas por admin.
-      allow delete: if isAdmin();
-    }
-
-    // Coleção 'wikizero' (Notícias/Matérias - Leitura pública, CRUD para o autor ou admin)
-    match /wikizero/{newsId} {
-      allow read: if true;
-      allow create: if isEmailVerified()
-                      && request.resource.data.title is string
-                      && request.resource.data.description is string
-                      && request.resource.data.authorUid is string
-                      && request.resource.data.title.size() > 0
-                      && request.resource.data.description.size() > 0
-                      && request.resource.data.authorUid == request.auth.uid;
-      allow update, delete: if (isOwner(resource.data.authorUid) && isEmailVerified()) || isAdmin();
-    }
-
-    // Coleção 'news' (Notícias/Matérias do editordenoticias.html - Leitura pública, CRUD para o autor ou admin)
-    match /news/{newsId} {
-      allow read: if true;
-      allow create: if isEmailVerified()
-                      && request.resource.data.title is string
-                      && request.resource.data.description is string
-                      && request.resource.data.category is string
-                      && request.resource.data.authorUid is string
-                      && request.resource.data.title.size() > 0
-                      && request.resource.data.description.size() > 0
-                      && request.resource.data.category.size() > 0
-                      && request.resource.data.authorUid == request.auth.uid;
-      allow update, delete: if (isOwner(resource.data.authorUid) && isEmailVerified()) || isAdmin();
-    }
-
-    // Subcoleção 'docoffice/{userId}/documents'
-    // O ID do documento pai 'userId' DEVE ser o UID do Firebase Auth.
-    match /docoffice/{userId}/documents/{documentId} {
-      allow read: if isOwner(userId);
-      allow create, update: if isOwner(userId)
-                              && request.resource.data.title is string
-                              && request.resource.data.content is string
-                              && request.resource.data.title.size() > 0
-                              && request.resource.data.content.size() > 0;
-      allow delete: if isOwner(userId);
-    }
-
-    // Coleção 'forums' (Nível Superior - Leitura pública, criação/atualização/deleção para o autor ou admin)
-    match /forums/{forumId} {
-      allow read: if true; // Todos podem ler os fóruns (público)
-      allow create: if isEmailVerified()
-                        && request.resource.data.subject is string
-                        && request.resource.data.subject.size() > 0
-                        && request.resource.data.authorUid == request.auth.uid;
-      allow update, delete: if (isOwner(resource.data.authorUid) && isEmailVerified()) || isAdmin();
-
-      // Subcoleção 'messages' dentro de um fórum (Leitura pública, criação/atualização/deleção para o autor ou admin)
-      match /messages/{messageId} {
-        allow read: if true; // Todos podem ler as mensagens de um fórum
-        allow create: if isEmailVerified()
-                          && request.resource.data.content is string
-                          && request.resource.data.content.size() > 0
-                          && request.resource.data.userId == request.auth.uid;
-        allow update, delete: if (isOwner(resource.data.userId) && isEmailVerified()) || isAdmin();
-      }
-    }
-
-    // Coleção 'aplicativo' (Aplicativos de Usuários)
-    match /aplicativo/{appId} {
-      allow read: if isSignedIn(); // Apenas logados podem ler
-      allow create: if isEmailVerified(); // Apenas logados com email verificado podem criar
-      allow update, delete: if (isOwner(resource.data.criadorUID) && isEmailVerified()) || isAdmin(); // Apenas o criador ou admin podem atualizar/deletar
-    }
-
-    // Coleção 'materia' (Matérias - Leitura pública, criação para logados, sem update/delete específico)
-    match /materia/{materiaId} {
-      allow create: if isSignedIn(); // Permite a criação de matérias para usuários logados
-      allow read: if true; // Permite a leitura de todas as matérias por qualquer um (até não logado)
-      // Você pode escolher entre o criador ou apenas admin para update/delete:
-      allow update, delete: if (isOwner(resource.data.uidUsuario) && isEmailVerified()) || isAdmin(); // Permite o criador ou admin
-    }
-
-    // Coleção 'financialData' (Dados Financeiros mensais - Leitura pública, escrita apenas para admin)
-    match /financialData/{monthYear} {
-      allow read: if true; // Qualquer um pode ler os dados de transparência
-      allow write: if isAdmin(); // Apenas admins podem criar/atualizar/deletar
-    }
-
-    // Coleção 'invoices' (Notas Fiscais - Leitura pública, CRUD apenas para admin)
-    match /invoices/{invoiceId} {
-      allow read: if true; // Qualquer um pode ler as notas fiscais
-      allow write: if isAdmin(); // Apenas admins podem criar/atualizar/deletar
-    }
-
-    // --- Regra Padrão (Nega tudo o que não foi explicitamente permitido) ---
-    match /{document=**} {
-      allow read, write: if false;
-    }
-  }
 }
+
+        // --- Verificação de Admin e Carregamento Inicial ---
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                try {
+                    const userProfileRef = firestore.collection('users').doc(user.uid);
+                    const doc = await userProfileRef.get();
+
+                    if (doc.exists && doc.data() && doc.data().isAdmin === true) {
+                        authGuard.style.display = 'none';
+                        adminContent.style.display = 'block';
+                        await loadCurrentFinancialData();
+                        await loadInvoices();
+                    } else {
+                        authGuard.style.display = 'block';
+                        adminContent.style.display = 'none';
+                    }
+                } catch (error) {
+                    console.error("Erro ao verificar permissões de administrador:", error);
+                    authGuard.style.display = 'block';
+                    adminContent.style.display = 'none';
+                    displayAlert("Erro ao verificar suas permissões. Por favor, tente novamente.", "error");
+                }
+            } else {
+                authGuard.style.display = 'block';
+                adminContent.style.display = 'none';
+            }
+        });
+
+        // Carrega os componentes MDL
+        document.addEventListener('DOMContentLoaded', () => {
+            if (componentHandler) {
+                componentHandler.upgradeDom();
+            }
+        });
+
+          // const dadosRecebidos = /* sua lógica para obter os dados, por exemplo, de uma chamada ao Firestore */;
+
+  // if (dadosRecebidos) { // Verifica se não é null ou undefined
+    // const valores = Object.values(dadosRecebidos);
+    // ... (restante da sua lógica)
+//  } else {
+   // console.error("Dados recebidos são nulos ou indefinidos. Não foi possível carregar o conteúdo.");
+    // Você pode exibir uma mensagem de erro para o usuário ou lidar com isso de outra forma.
+ // }
+
+    </script>
+</body>
+</html>
