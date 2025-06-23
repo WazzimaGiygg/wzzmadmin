@@ -1,522 +1,396 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerenciar Usuário - WZZM Admin</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+    <title>Administração de Usuários</title>
     <style>
         body {
-            font-family: 'Roboto', 'Helvetica', Arial, sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 20px;
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
         }
         .container {
-            max-width: 800px; /* Aumentado para melhor visualização dos campos */
-            margin: 20px auto;
+            max-width: 800px;
+            margin: 0 auto;
             background-color: #fff;
-            padding: 30px;
+            padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-        h1 {
-            color: #3f51b5;
-            margin-bottom: 25px;
-            text-align: center;
+        h1, h2 {
+            color: #0056b3;
         }
-        h2 {
-            color: #3f51b5;
-            margin-top: 30px;
-            margin-bottom: 15px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 5px;
+        form {
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
         }
-        .mdl-textfield {
-            width: 100%;
-            margin-bottom: 20px;
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
         }
-        .mdl-textfield__input {
-            width: 100%;
-            box-sizing: border-box;
+        input[type="text"],
+        input[type="email"],
+        textarea,
+        button {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
-        .mdl-button {
-            margin-right: 10px;
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
         }
-        .actions {
-            text-align: right;
-            margin-top: 30px;
+        button:hover {
+            background-color: #218838;
+        }
+        button.red {
+            background-color: #dc3545;
+        }
+        button.red:hover {
+            background-color: #c82333;
+        }
+        #userDetails, #adminAccessDenied {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px dashed #ccc;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+        #userDetails p {
+            margin-bottom: 5px;
         }
         .error-message {
-            text-align: center;
-            padding: 15px;
-            color: #d32f2f;
-            background-color: #ffebee;
-            border: 1px solid #d32f2f;
-            border-radius: 5px;
-            margin-top: 20px;
-            display: none;
+            color: red;
+            font-weight: bold;
+            margin-top: 10px;
         }
         .success-message {
-            text-align: center;
-            padding: 15px;
-            color: #388e3c;
-            background-color: #e8f5e9;
-            border: 1px solid #388e3c;
-            border-radius: 5px;
-            margin-top: 20px;
-            display: none;
-        }
-        #user-data-section {
-            border: 1px solid #ddd;
-            padding: 15px;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-            margin-bottom: 20px;
-            display: none; /* Escondido por padrão */
-        }
-        #user-data-section .mdl-textfield {
-            margin-bottom: 10px; /* Reduz espaçamento entre campos de dados */
-        }
-        .mdl-selectfield { /* Estilo para select, se for usar */
-            width: 100%;
-            margin-bottom: 20px;
-        }
-        .mdl-selectfield label {
-            color: rgba(0,0,0,.26);
-            font-size: 16px;
-        }
-        .mdl-selectfield select {
-            border: none;
-            border-bottom: 1px solid rgba(0,0,0,.12);
-            padding: 5px 0;
-            width: 100%;
-            background-color: transparent;
-            font-size: 16px;
-            outline: none;
-            -webkit-appearance: none; /* Remove seta padrão em alguns navegadores */
-            -moz-appearance: none;
-            appearance: none;
-        }
-        .mdl-selectfield select:focus {
-            border-bottom: 2px solid #3f51b5;
+            color: green;
+            font-weight: bold;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-analytics-compat.js"></script>
-    <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
-
     <div class="container">
-        <h1>Gerenciar Usuário</h1>
+        <h1>Administração de Usuários</h1>
 
-        <div id="error-display" class="error-message"></div>
-        <div id="success-display" class="success-message"></div>
+        <div id="adminAccessDenied" style="display: none;">
+            <p>Acesso negado. Você não tem permissão de administrador para esta página.</p>
+            <p>Por favor, <a href="sua_pagina_de_login.html">faça login como administrador</a>.</p>
+        </div>
 
-        <form id="search-user-form">
-            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                <input class="mdl-textfield__input" type="text" id="search-uid" required>
-                <label class="mdl-textfield__label" for="search-uid">UID do Usuário *</label>
-                <span class="mdl-textfield__help">Insira o UID completo do usuário para gerenciar.</span>
-            </div>
-            <div class="actions" style="text-align: center;">
-                <button type="submit" id="search-user-btn"
-                        class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
-                    Buscar Usuário
-                </button>
-            </div>
-        </form>
-
-        <div id="user-data-section">
-            <h2>Dados do Usuário</h2>
-            <form id="update-user-form">
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    <input class="mdl-textfield__input" type="text" id="user-uid" readonly>
-                    <label class="mdl-textfield__label" for="user-uid">UID Google</label>
-                </div>
-                
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    <input class="mdl-textfield__input" type="text" id="user-firstname">
-                    <label class="mdl-textfield__label" for="user-firstname">Primeiro Nome</label>
-                </div>
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    <input class="mdl-textfield__input" type="text" id="user-lastname">
-                    <label class="mdl-textfield__label" for="user-lastname">Sobrenome</label>
-                </div>
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    <input class="mdl-textfield__input" type="email" id="user-email">
-                    <label class="mdl-textfield__label" for="user-email">Email (Primário)</label>
-                </div>
-                 <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    <input class="mdl-textfield__input" type="text" id="user-cpf">
-                    <label class="mdl-textfield__label" for="user-cpf">CPF</label>
-                </div>
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    <input class="mdl-textfield__input" type="text" id="user-rg">
-                    <label class="mdl-textfield__label" for="user-rg">RG</label>
-                </div>
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    <input class="mdl-textfield__input" type="text" id="user-socialname">
-                    <label class="mdl-textfield__label" for="user-socialname">Nome Social</label>
-                </div>
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    <input class="mdl-textfield__input" type="date" id="user-birthdate">
-                    <label class="mdl-textfield__label" for="user-birthdate">Data de Nascimento</label>
-                </div>
-                
-                <div class="mdl-selectfield mdl-js-selectfield mdl-textfield--floating-label">
-                    <label for="user-gender">Gênero</label>
-                    <select id="user-gender" class="mdl-textfield__input">
-                        <option value=""></option>
-                        <option value="Masculino">Masculino</option>
-                        <option value="Feminino">Feminino</option>
-                        <option value="Outro">Outro</option>
-                        <option value="Prefiro não informar">Prefiro não informar</option>
-                    </select>
-                </div>
-
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    <input class="mdl-textfield__input" type="text" id="user-address">
-                    <label class="mdl-textfield__label" for="user-address">Endereço</label>
-                </div>
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    <input class="mdl-textfield__input" type="text" id="user-zipcode">
-                    <label class="mdl-textfield__label" for="user-zipcode">CEP</label>
-                </div>
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    <input class="mdl-textfield__input" type="text" id="user-city">
-                    <label class="mdl-textfield__label" for="user-city">Cidade</label>
-                </div>
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    <input class="mdl-textfield__input" type="text" id="user-state">
-                    <label class="mdl-textfield__label" for="user-state">Estado</label>
-                </div>
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    <input class="mdl-textfield__input" type="text" id="user-country">
-                    <label class="mdl-textfield__label" for="user-country">País</label>
-                </div>
-                
-                <div class="mdl-selectfield mdl-js-selectfield mdl-textfield--floating-label">
-                    <label for="user-status">Status da Conta</label>
-                    <select id="user-status" class="mdl-textfield__input">
-                        <option value=""></option>
-                        <option value="active">Ativo</option>
-                        <option value="inactive">Inativo</option>
-                        <option value="banned">Banido</option>
-                    </select>
-                </div>
-
-                <div class="actions" style="text-align: center;">
-                    <button type="submit" id="update-user-btn"
-                            class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
-                        Atualizar Dados
-                    </button>
-                    <button type="button" id="cancel-update-btn"
-                            class="mdl-button mdl-js-button mdl-button--raised">
-                        Cancelar
-                    </button>
-                </div>
+        <div id="adminContent" style="display: none;">
+            <h2>Buscar Usuário por UID</h2>
+            <form id="searchUserForm">
+                <label for="searchUid">UID do Usuário:</label>
+                <input type="text" id="searchUid" placeholder="Digite o UID do usuário" required>
+                <button type="submit">Buscar Usuário</button>
             </form>
+            <p class="error-message" id="searchError"></p>
+
+            <hr>
+
+            <div id="userDetails" style="display: none;">
+                <h2>Informações do Usuário</h2>
+                <p><strong>UID:</strong> <span id="userUidDisplay"></span></p>
+                <p><strong>Email:</strong> <span id="userEmailDisplay"></span></p>
+                <p><strong>Admin:</strong> <span id="userIsAdminDisplay"></span></p>
+                <p><strong>Último Login:</strong> <span id="userLastLoginDisplay"></span></p>
+                <p><strong>Banido:</strong> <span id="userIsBannedDisplay"></span></p>
+
+                <form id="editUserForm">
+                    <label for="userName">Nome:</label>
+                    <input type="text" id="userName" required>
+
+                    <label for="userProfilePictureUrl">URL da Imagem de Perfil:</label>
+                    <input type="text" id="userProfilePictureUrl">
+
+                    <label for="userMotivoBan">Motivo do Banimento:</label>
+                    <textarea id="userMotivoBan" rows="3" placeholder="Motivo do banimento (obrigatório se banido)"></textarea>
+
+                    <button type="submit">Salvar Alterações</button>
+                    <button type="button" id="toggleBanButton" class="red">Banir Usuário</button>
+                    <p class="error-message" id="editError"></p>
+                    <p class="success-message" id="editSuccess"></p>
+                </form>
+            </div>
         </div>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
     <script>
-        // --- Configuração do Firebase com suas chaves e dados originais ---
+        // Substitua pelas suas credenciais do Firebase
         const firebaseConfig = {
-            apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0",
-            authDomain: "wzzm-ce3fc.firebaseapp.com",
-            projectId: "wzzm-ce3fc",
-            storageBucket: "wzzm-ce3fc.appspot.com",
-            messagingSenderId: "249427877153",
-            appId: "1:249427877153:web:0e4297294794a5aadeb260",
-            measurementId: "G-PLKNZNFCQ8"
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
 
-        let app;
-        try {
-            app = firebase.app();
-        } catch (e) {
-            app = firebase.initializeApp(firebaseConfig);
-        }
-        const firestore = firebase.firestore();
+        // Inicializar o Firebase
+        firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
+        const db = firebase.firestore();
 
-        let currentUser = null; // O usuário moderador logado
-        let currentManagingUserUid = null; // O UID do usuário que está sendo gerenciado/editado
+        // Elementos HTML
+        const adminAccessDeniedDiv = document.getElementById('adminAccessDenied');
+        const adminContentDiv = document.getElementById('adminContent');
+        const searchUserForm = document.getElementById('searchUserForm');
+        const searchUidInput = document.getElementById('searchUid');
+        const searchErrorDiv = document.getElementById('searchError');
+        const userDetailsDiv = document.getElementById('userDetails');
 
-        // Elementos HTML de busca e exibição/edição do usuário
-        const searchUserForm = document.getElementById('search-user-form');
-        const searchUidInput = document.getElementById('search-uid');
-        const searchUserBtn = document.getElementById('search-user-btn');
+        const userUidDisplay = document.getElementById('userUidDisplay');
+        const userEmailDisplay = document.getElementById('userEmailDisplay');
+        const userIsAdminDisplay = document.getElementById('userIsAdminDisplay');
+        const userLastLoginDisplay = document.getElementById('userLastLoginDisplay');
+        const userIsBannedDisplay = document.getElementById('userIsBannedDisplay');
 
-        const userDataSection = document.getElementById('user-data-section');
-        const updateUserForm = document.getElementById('update-user-form');
-        const userUidInput = document.getElementById('user-uid');
-        const userFirstNameInput = document.getElementById('user-firstname');
-        const userLastNameInput = document.getElementById('user-lastname');
-        const userEmailInput = document.getElementById('user-email');
-        const userCpfInput = document.getElementById('user-cpf');
-        const userRgInput = document.getElementById('user-rg');
-        const userSocialNameInput = document.getElementById('user-socialname');
-        const userBirthDateInput = document.getElementById('user-birthdate');
-        const userGenderSelect = document.getElementById('user-gender');
-        const userAddressInput = document.getElementById('user-address');
-        const userZipCodeInput = document.getElementById('user-zipcode');
-        const userCityInput = document.getElementById('user-city');
-        const userStateInput = document.getElementById('user-state');
-        const userCountryInput = document.getElementById('user-country');
-        const userStatusSelect = document.getElementById('user-status');
+        const editUserForm = document.getElementById('editUserForm');
+        const userNameInput = document.getElementById('userName');
+        const userProfilePictureUrlInput = document.getElementById('userProfilePictureUrl');
+        const userMotivoBanInput = document.getElementById('userMotivoBan');
+        const toggleBanButton = document.getElementById('toggleBanButton');
+        const editErrorDiv = document.getElementById('editError');
+        const editSuccessDiv = document.getElementById('editSuccess');
 
+        let currentAdminUser = null;
+        let selectedUserUid = null; // UID do usuário sendo editado
+        let selectedUserIsBanned = false; // Estado de banimento do usuário selecionado
 
-        const updateUserBtn = document.getElementById('update-user-btn');
-        const cancelUpdateBtn = document.getElementById('cancel-update-btn');
+        // --- Funções Auxiliares ---
 
-        const errorDisplay = document.getElementById('error-display');
-        const successDisplay = document.getElementById('success-display');
-
-        function displayMessage(element, message, isError = true) {
-            if (isError) {
-                errorDisplay.textContent = `Erro: ${message}`;
-                errorDisplay.style.display = 'block';
-                successDisplay.style.display = 'none';
-            } else {
-                successDisplay.textContent = message;
-                successDisplay.style.display = 'block';
-                errorDisplay.style.display = 'none';
-            }
-        }
-
-        function clearMessages() {
-            errorDisplay.style.display = 'none';
-            successDisplay.style.display = 'none';
-        }
-
-        function resetForm() {
-            searchUserForm.reset();
-            updateUserForm.reset();
-            userDataSection.style.display = 'none';
-            currentManagingUserUid = null;
-            clearMessages();
-            // Atualiza o MDL para os campos resetados
-            if (window.componentHandler) {
-                searchUserForm.querySelectorAll('.mdl-textfield').forEach(textfield => {
-                    if (textfield.MaterialTextfield) {
-                        textfield.MaterialTextfield.checkDirty();
-                        textfield.MaterialTextfield.checkValidity();
-                    }
-                });
-                updateUserForm.querySelectorAll('.mdl-textfield').forEach(textfield => {
-                    if (textfield.MaterialTextfield) {
-                        textfield.MaterialTextfield.checkDirty();
-                        textfield.MaterialTextfield.checkValidity();
-                    }
-                });
-                 updateUserForm.querySelectorAll('.mdl-selectfield').forEach(selectfield => {
-                    if (selectfield.MaterialTextfield) { // MaterialSelectfield não existe, é um textfield com select
-                        selectfield.MaterialTextfield.checkDirty();
-                        selectfield.MaterialTextfield.checkValidity();
-                    }
-                });
-            }
-        }
-
-        // Listener de autenticação para garantir que o usuário seja um MODERADOR
-        auth.onAuthStateChanged(async (user) => {
-            if (user) {
-                currentUser = user;
-                console.log("Usuário logado:", currentUser.uid, "Email:", currentUser.email);
-
-                // **Verificação de Moderador/Administrador (CRUCIAL)**
-                // Esta é uma verificação CLIENT-SIDE. Você DEVE ter REGRAS DE SEGURANÇA
-                // no Firebase Firestore que restrinjam o acesso à coleção 'users'
-                // e a modificação de dados apenas para moderadores/administradores.
-                try {
-                    const adminDoc = await firestore.collection('admins').doc(user.uid).get();
-                    if (!adminDoc.exists) { // Se o UID do usuário não está na coleção 'admins'
-                        displayMessage(errorDisplay, "Acesso negado. Você não tem permissão de administrador/moderador para esta funcionalidade.", true);
-                        alert("Acesso negado. Você não tem permissão de administrador/moderador para esta página.");
-                        if (window.parent !== window && window.parent.postMessage) {
-                            window.parent.postMessage({ type: 'navigateIframe', url: './login.html' }, window.location.origin);
-                        } else {
-                            window.location.href = './login.html'; // Redireciona para login ou página de erro
-                        }
-                    }
-                } catch (err) {
-                    console.error("Erro ao verificar status de administrador:", err);
-                    displayMessage(errorDisplay, "Erro ao verificar permissões: " + err.message, true);
-                    // Opcional: Redirecionar mesmo em caso de erro na verificação
-                    if (window.parent !== window && window.parent.postMessage) {
-                        window.parent.postMessage({ type: 'navigateIframe', url: './login.html' }, window.location.origin);
-                    } else {
-                        window.location.href = './login.html';
-                    }
-                }
-            } else {
-                currentUser = null;
-                displayMessage(errorDisplay, "Você precisa estar logado para gerenciar usuários.", true);
-                alert("Você precisa estar logado para acessar esta página.");
-                if (window.parent !== window && window.parent.postMessage) {
-                    window.parent.postMessage({ type: 'navigateIframe', url: './login.html' }, window.location.origin);
-                } else {
-                    window.location.href = './login.html';
-                }
-            }
-        });
-
-        // Função para buscar usuário pelo UID
-        searchUserForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            clearMessages();
-
-            if (!currentUser) {
-                displayMessage(errorDisplay, "Você precisa estar logado para buscar usuários.", true);
-                return;
-            }
-
-            const uidToSearch = searchUidInput.value.trim();
-            if (!uidToSearch) {
-                displayMessage(errorDisplay, "Por favor, insira um UID para buscar.", true);
-                return;
-            }
-            
-            // Impede que um moderador tente gerenciar a si mesmo (se a regra for essa)
-            if (uidToSearch === currentUser.uid) {
-                displayMessage(errorDisplay, "Você não pode gerenciar sua própria conta através desta ferramenta.", true);
-                userDataSection.style.display = 'none';
-                return;
-            }
-
-            searchUserBtn.disabled = true;
-
+        /**
+         * Verifica se o usuário logado é um administrador.
+         * Assume que existe uma coleção 'users' e um campo 'isAdmin: true' no documento do usuário.
+         * @returns {Promise<boolean>} True se for admin, false caso contrário.
+         */
+        async function checkAdminStatus(uid) {
+            if (!uid) return false;
             try {
-                // Busca o usuário na coleção 'users'
-                const userDoc = await firestore.collection('clients').doc(uidToSearch).get(); // Alterado para 'clients' como na sua outra página
+                const userDoc = await db.collection('users').doc(uid).get();
+                return userDoc.exists && userDoc.data().isAdmin === true;
+            } catch (error) {
+                console.error("Erro ao verificar status de admin:", error);
+                return false;
+            }
+        }
+
+        /**
+         * Limpa o formulário e a exibição de detalhes do usuário.
+         */
+        function clearUserDetails() {
+            userDetailsDiv.style.display = 'none';
+            userUidDisplay.textContent = '';
+            userEmailDisplay.textContent = '';
+            userIsAdminDisplay.textContent = '';
+            userLastLoginDisplay.textContent = '';
+            userIsBannedDisplay.textContent = '';
+            userNameInput.value = '';
+            userProfilePictureUrlInput.value = '';
+            userMotivoBanInput.value = '';
+            toggleBanButton.textContent = 'Banir Usuário';
+            toggleBanButton.classList.add('red');
+            editErrorDiv.textContent = '';
+            editSuccessDiv.textContent = '';
+            selectedUserUid = null;
+            selectedUserIsBanned = false;
+        }
+
+        /**
+         * Busca e exibe os detalhes de um usuário.
+         * @param {string} uid O UID do usuário a ser buscado.
+         */
+        async function fetchUserDetails(uid) {
+            clearUserDetails();
+            searchErrorDiv.textContent = '';
+            try {
+                // Obter dados do Firebase Authentication
+                // Observação: O Firebase Web SDK não permite obter dados de outros usuários do Auth diretamente.
+                // Para isso, seria necessário uma Cloud Function ou Admin SDK no backend.
+                // Aqui, vamos focar nos dados do Firestore.
+
+                const userDoc = await db.collection('users').doc(uid).get();
 
                 if (userDoc.exists) {
                     const userData = userDoc.data();
-                    currentManagingUserUid = uidToSearch; // Define o UID do usuário a ser gerenciado
+                    selectedUserUid = uid;
+                    selectedUserIsBanned = userData.isBanned || false;
 
-                    // Preenche os campos do formulário com os dados do usuário
-                    userUidInput.value = uidToSearch;
-                    userFirstNameInput.value = userData.firstName || '';
-                    userLastNameInput.value = userData.lastName || '';
-                    userEmailInput.value = userData.email || '';
-                    userCpfInput.value = userData.cpf || '';
-                    userRgInput.value = userData.rg || '';
-                    userSocialNameInput.value = userData.socialName || '';
-                    userBirthDateInput.value = userData.birthDate || ''; // Formato 'YYYY-MM-DD'
-                    userGenderSelect.value = userData.gender || '';
-                    userAddressInput.value = userData.address || '';
-                    userZipCodeInput.value = userData.zipCode || '';
-                    userCityInput.value = userData.city || '';
-                    userStateInput.value = userData.state || '';
-                    userCountryInput.value = userData.country || '';
+                    userUidDisplay.textContent = uid;
+                    userEmailDisplay.textContent = userData.email || 'N/A'; // Email não está no doc users por padrão
+                                                                             // Considere adicioná-lo ou buscá-lo do Auth no backend
+                    userIsAdminDisplay.textContent = userData.isAdmin ? 'Sim' : 'Não';
+                    userLastLoginDisplay.textContent = userData.lastLoginAt ? new Date(userData.lastLoginAt.toDate()).toLocaleString() : 'N/A';
+                    userIsBannedDisplay.textContent = userData.isBanned ? 'Sim' : 'Não';
 
-                    // Define o status da conta
-                    let statusValue = '';
-                    if (userData.isBanned) {
-                        statusValue = 'banned';
-                    } else if (userData.isActive) {
-                        statusValue = 'active';
-                    } else {
-                        statusValue = 'inactive';
-                    }
-                    userStatusSelect.value = statusValue;
-                    
-                    // Atualiza os componentes MDL para mostrar os valores preenchidos
-                    if (window.componentHandler) {
-                        updateUserForm.querySelectorAll('.mdl-textfield').forEach(textfield => {
-                            if (textfield.MaterialTextfield) {
-                                textfield.MaterialTextfield.checkDirty();
-                            }
-                        });
-                        updateUserForm.querySelectorAll('.mdl-selectfield').forEach(selectfield => {
-                            if (selectfield.MaterialTextfield) {
-                                selectfield.MaterialTextfield.checkDirty();
-                            }
-                        });
-                    }
+                    userNameInput.value = userData.name || '';
+                    userProfilePictureUrlInput.value = userData.profilePictureUrl || '';
+                    userMotivoBanInput.value = userData.motivoBan || '';
 
-                    userDataSection.style.display = 'block'; // Mostra a seção de dados do usuário
+                    toggleBanButton.textContent = selectedUserIsBanned ? 'Desbanir Usuário' : 'Banir Usuário';
+                    toggleBanButton.classList.toggle('red', !selectedUserIsBanned);
+
+                    userDetailsDiv.style.display = 'block';
                 } else {
-                    displayMessage(errorDisplay, `Usuário com UID '${uidToSearch}' não encontrado na coleção 'clients'.`, true);
-                    userDataSection.style.display = 'none';
+                    searchErrorDiv.textContent = 'Usuário não encontrado no Firestore.';
                 }
             } catch (error) {
-                displayMessage(errorDisplay, "Erro ao buscar usuário: " + error.message, true);
-                console.error("Erro ao buscar usuário:", error);
-            } finally {
-                searchUserBtn.disabled = false;
+                console.error("Erro ao buscar detalhes do usuário:", error);
+                searchErrorDiv.textContent = `Erro ao buscar usuário: ${error.message}`;
+            }
+        }
+
+        // --- Event Listeners ---
+
+        // Monitorar o estado de autenticação do administrador
+        auth.onAuthStateChanged(async (user) => {
+            currentAdminUser = user;
+            if (user) {
+                const isAdmin = await checkAdminStatus(user.uid);
+                if (isAdmin) {
+                    adminAccessDeniedDiv.style.display = 'none';
+                    adminContentDiv.style.display = 'block';
+                    // Você pode pré-preencher o searchUidInput com um UID de teste aqui, se quiser
+                } else {
+                    adminAccessDeniedDiv.style.display = 'block';
+                    adminContentDiv.style.display = 'none';
+                }
+            } else {
+                adminAccessDeniedDiv.style.display = 'block';
+                adminContentDiv.style.display = 'none';
+                clearUserDetails();
             }
         });
 
-        // Função para atualizar os dados do usuário
-        updateUserForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            clearMessages();
+        // Formulário de busca de usuário
+        searchUserForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const uidToSearch = searchUidInput.value.trim();
+            if (uidToSearch) {
+                fetchUserDetails(uidToSearch);
+            } else {
+                searchErrorDiv.textContent = 'Por favor, insira um UID para buscar.';
+            }
+        });
 
-            if (!currentUser) {
-                displayMessage(errorDisplay, "Você precisa estar logado para atualizar dados.", true);
+        // Formulário de edição de usuário
+        editUserForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            editErrorDiv.textContent = '';
+            editSuccessDiv.textContent = '';
+
+            if (!currentAdminUser || !(await checkAdminStatus(currentAdminUser.uid))) {
+                editErrorDiv.textContent = 'Você não tem permissão de administrador para salvar alterações.';
+                return;
+            }
+            if (!selectedUserUid) {
+                editErrorDiv.textContent = 'Nenhum usuário selecionado para edição.';
                 return;
             }
 
-            if (!currentManagingUserUid) {
-                displayMessage(errorDisplay, "Nenhum usuário selecionado para atualização.", true);
+            const newName = userNameInput.value.trim();
+            const newProfilePictureUrl = userProfilePictureUrlInput.value.trim();
+            const newMotivoBan = userMotivoBanInput.value.trim();
+
+            if (!newName) {
+                editErrorDiv.textContent = 'O nome é um campo obrigatório.';
                 return;
             }
-
-            updateUserBtn.disabled = true;
-
-            const updatedData = {
-                firstName: userFirstNameInput.value.trim(),
-                lastName: userLastNameInput.value.trim(),
-                email: userEmailInput.value.trim(),
-                cpf: userCpfInput.value.trim().replace(/\D/g, ''), // Remove não-dígitos do CPF
-                rg: userRgInput.value.trim(),
-                socialName: userSocialNameInput.value.trim(),
-                birthDate: userBirthDateInput.value.trim(),
-                gender: userGenderSelect.value,
-                address: userAddressInput.value.trim(),
-                zipCode: userZipCodeInput.value.trim(),
-                city: userCityInput.value.trim(),
-                state: userStateInput.value.trim(),
-                country: userCountryInput.value.trim(),
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
-
-            // Lógica para isActive e isBanned baseada no select de status
-            const selectedStatus = userStatusSelect.value;
-            updatedData.isActive = (selectedStatus === 'active');
-            updatedData.isBanned = (selectedStatus === 'banned');
-
 
             try {
-                await firestore.collection('clients').doc(currentManagingUserUid).update(updatedData);
-                displayMessage(successDisplay, "Dados do usuário atualizados com sucesso!", false);
-                // Opcional: Recarregar os dados para garantir que tudo esteja sincronizado
-                // searchUidInput.value = currentManagingUserUid;
-                // searchUserForm.dispatchEvent(new Event('submit'));
+                const updateData = {
+                    name: newName,
+                    profilePictureUrl: newProfilePictureUrl,
+                    // Não incluir isBanned e motivoBan aqui, pois são tratados pelo toggleBanButton
+                };
+
+                await db.collection('users').doc(selectedUserUid).update(updateData);
+                editSuccessDiv.textContent = 'Dados do usuário atualizados com sucesso!';
+                // Re-buscar para atualizar a exibição, caso os dados no Firestore tenham mudado
+                fetchUserDetails(selectedUserUid);
+
             } catch (error) {
-                displayMessage(errorDisplay, "Erro ao atualizar dados do usuário: " + error.message, true);
-                console.error("Erro ao atualizar dados do usuário:", error);
-            } finally {
-                updateUserBtn.disabled = false;
+                console.error("Erro ao salvar alterações do usuário:", error);
+                editErrorDiv.textContent = `Erro ao salvar alterações: ${error.message}`;
             }
         });
 
-        // Event listener para o botão Cancelar no formulário de atualização
-        cancelUpdateBtn.addEventListener('click', () => {
-            resetForm();
-        });
+        // Botão Banir/Desbanir
+        toggleBanButton.addEventListener('click', async () => {
+            editErrorDiv.textContent = '';
+            editSuccessDiv.textContent = '';
 
-        // Inicializa componentes MDL ao carregar a página
-        document.addEventListener('DOMContentLoaded', () => {
-            if (window.componentHandler) {
-                window.componentHandler.upgradeDom();
+            if (!currentAdminUser || !(await checkAdminStatus(currentAdminUser.uid))) {
+                editErrorDiv.textContent = 'Você não tem permissão de administrador para banir/desbanir.';
+                return;
+            }
+            if (!selectedUserUid) {
+                editErrorDiv.textContent = 'Nenhum usuário selecionado para banir/desbanir.';
+                return;
+            }
+
+            const newBanStatus = !selectedUserIsBanned;
+            let motivoBanValue = userMotivoBanInput.value.trim();
+
+            if (newBanStatus && !motivoBanValue) { // Se estiver banindo e o motivo estiver vazio
+                editErrorDiv.textContent = 'O motivo do banimento é obrigatório ao banir o usuário.';
+                return;
+            }
+
+            try {
+                const updateData = {
+                    isBanned: newBanStatus,
+                    motivoBan: newBanStatus ? motivoBanValue : firebase.firestore.FieldValue.delete() // Remove o campo se desbanindo
+                };
+
+                await db.collection('users').doc(selectedUserUid).update(updateData);
+
+                // IMPORTANTE: Para banir de fato (impedir login), você precisaria de uma Cloud Function
+                // que use o Admin SDK do Firebase para desabilitar o usuário no Firebase Authentication.
+                // O código abaixo atualiza apenas o status no Firestore.
+                // Exemplo de Cloud Function:
+                // exports.toggleUserBan = functions.firestore
+                //    .document('users/{userId}')
+                //    .onUpdate(async (change, context) => {
+                //        const newData = change.after.data();
+                //        const previousData = change.before.data();
+                //        if (newData.isBanned !== previousData.isBanned) {
+                //            const userId = context.params.userId;
+                //            await admin.auth().updateUser(userId, { disabled: newData.isBanned });
+                //            console.log(`Usuário ${userId} ${newData.isBanned ? 'desativado' : 'ativado'} no Auth.`);
+                //        }
+                //    });
+
+
+                editSuccessDiv.textContent = `Usuário ${newBanStatus ? 'banido' : 'desbanido'} com sucesso!`;
+                selectedUserIsBanned = newBanStatus; // Atualiza o estado local
+                toggleBanButton.textContent = selectedUserIsBanned ? 'Desbanir Usuário' : 'Banir Usuário';
+                toggleBanButton.classList.toggle('red', !selectedUserIsBanned);
+                userIsBannedDisplay.textContent = selectedUserIsBanned ? 'Sim' : 'Não';
+                if (!newBanStatus) {
+                    userMotivoBanInput.value = ''; // Limpa o motivo ao desbanir
+                }
+
+            } catch (error) {
+                console.error("Erro ao banir/desbanir usuário:", error);
+                editErrorDiv.textContent = `Erro ao banir/desbanir: ${error.message}`;
             }
         });
     </script>
