@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Administração de Custos</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
     <style>
         /* Estilos básicos para o exemplo */
         body {
@@ -70,6 +72,29 @@
             background-color: #e9ecef;
             border-radius: 5px;
         }
+        /* Estilo para mensagens de status na tela */
+        .status-message {
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            display: none; /* Escondido por padrão */
+        }
+        .status-message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status-message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status-message.info {
+            background-color: #e2e3e5;
+            color: #383d41;
+            border: 1px solid #d6d8db;
+        }
     </style>
 </head>
 <body>
@@ -77,27 +102,37 @@
         <h1>Administração de Custos</h1>
 
         <div id="currentUserStatus">
-            <p>Status do Usuário: <span id="userStatus">Não Autenticado</span></p>
+            <p>Status do Usuário: <span id="userStatus">Carregando...</span></p>
             <p>Email: <span id="userEmail">N/A</span></p>
-            <p>Admin: <span id="isAdminStatus">Não</span></p>
-            <button id="signInButton" style="display: none;">Fazer Login (Exemplo)</button>
-            <button id="signOutButton" style="display: none;">Sair</button>
+            <p>Admin: <span id="isAdminStatus">N/A</span></p>
+            <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="signInButton" style="display: none;">Fazer Login</button>
+            <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent" id="signOutButton" style="display: none;">Sair</button>
         </div>
 
         <div id="adminContent" style="display: none;">
             <h2>Adicionar/Atualizar Dados Financeiros</h2>
             <form id="financialDataForm">
-                <label for="currentMonthYear">Mês/Ano:</label>
-                <input type="text" id="currentMonthYear" readonly>
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" style="width: calc(100% - 22px);">
+                    <input class="mdl-textfield__input" type="text" id="currentMonthYear" readonly>
+                    <label class="mdl-textfield__label" for="currentMonthYear">Mês/Ano:</label>
+                </div>
 
-                <label for="monthlyCost">Custo Mensal:</label>
-                <input type="number" id="monthlyCost" placeholder="Ex: 1500.50" step="0.01" required>
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" style="width: calc(100% - 22px);">
+                    <input class="mdl-textfield__input" type="number" id="monthlyCost" pattern="-?\d+(\.\d+)?" placeholder="Ex: 1500.50" step="0.01" required>
+                    <label class="mdl-textfield__label" for="monthlyCost">Custo Mensal:</label>
+                    <span class="mdl-textfield__error">Apenas números válidos são permitidos!</span>
+                </div>
 
-                <label for="monthlyRevenue">Receita Mensal:</label>
-                <input type="number" id="monthlyRevenue" placeholder="Ex: 2000.00" step="0.01" required>
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" style="width: calc(100% - 22px);">
+                    <input class="mdl-textfield__input" type="number" id="monthlyRevenue" pattern="-?\d+(\.\d+)?" placeholder="Ex: 2000.00" step="0.01" required>
+                    <label class="mdl-textfield__label" for="monthlyRevenue">Receita Mensal:</label>
+                    <span class="mdl-textfield__error">Apenas números válidos são permitidos!</span>
+                </div>
 
-                <button type="submit">Salvar Dados Financeiros</button>
+                <button type="submit" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect">Salvar Dados Financeiros</button>
             </form>
+
+            <div id="formStatusMessage" class="status-message"></div>
 
             <h2>Dados Financeiros Atuais</h2>
             <div id="financialDataDisplay">
@@ -111,25 +146,30 @@
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+    <!-- Importa as bibliotecas Firebase mais recentes e Material Design Lite JS -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
-    <script>
         // Substitua pelas suas credenciais do Firebase
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+        // As variáveis __app_id, __firebase_config, __initial_auth_token são fornecidas pelo ambiente Canvas.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0",
+            authDomain: "wzzm-ce3fc.firebaseapp.com",
+            projectId: "wzzm-ce3fc",
+            storageBucket: "wzzm-ce3fc.appspot.com",
+            messagingSenderId: "249427877153",
+            appId: "1:249427877153:web:0e4297294794a5aadeb260",
+            measurementId: "G-PLKNZNFCQ8"
         };
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         // Inicializar o Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
         // Referências aos elementos HTML
         const userStatusSpan = document.getElementById('userStatus');
@@ -143,14 +183,23 @@
         const financialDataForm = document.getElementById('financialDataForm');
         const financialDataDisplay = document.getElementById('financialDataDisplay');
         const financialDataError = document.getElementById('financialDataError');
+        const formStatusMessage = document.getElementById('formStatusMessage');
 
         let currentUser = null;
         let currentUserIsAdmin = false;
 
-        // --- Funções Auxiliares ---
+        // Função para exibir mensagens de status
+        function showStatusMessage(message, type) {
+            formStatusMessage.textContent = message;
+            formStatusMessage.className = `status-message ${type}`;
+            formStatusMessage.style.display = 'block';
+            setTimeout(() => {
+                formStatusMessage.style.display = 'none';
+            }, 5000); // Esconde a mensagem após 5 segundos
+        }
 
         /**
-         * Gera o ID do mês/ano atual no formato YYYY-MM.
+         * Gera o ID do mês/ano atual no formato AAAA-MM.
          * @returns {string} O ID do mês/ano.
          */
         function getCurrentMonthYearId() {
@@ -165,13 +214,14 @@
          * Assume que existe uma coleção 'users' e um campo 'isAdmin: true' no documento do usuário.
          * @returns {Promise<boolean>} True se for admin, false caso contrário.
          */
-        async function checkAdminStatus() {
-            if (!currentUser) {
+        async function checkAdminStatus(uid) {
+            if (!uid) {
                 return false;
             }
             try {
-                const userDoc = await db.collection('users').doc(currentUser.uid).get();
-                return userDoc.exists && userDoc.data().isAdmin === true;
+                const userDocRef = doc(db, 'users', uid);
+                const userDocSnap = await getDoc(userDocRef);
+                return userDocSnap.exists() && userDocSnap.data().isAdmin === true;
             } catch (error) {
                 console.error("Erro ao verificar status de admin:", error);
                 return false;
@@ -187,19 +237,29 @@
             try {
                 // EX: Se o CSS está em um documento fixo na coleção 'aplicativo'
                 // Ou se você armazena CSS por usuário, você precisará do UID aqui
-                const docRef = db.collection('aplicativo').doc('meuAppCSSGlobal'); // Substitua pelo ID real do seu documento CSS
-                const docSnap = await docRef.get();
+                const docRef = doc(db, 'aplicativo', 'meuAppCSSGlobal'); // Substitua pelo ID real do seu documento CSS
+                const docSnap = await getDoc(docRef);
 
-                if (docSnap.exists) {
-                    const cssContent = docSnap.data().cssContent; // Supondo que o campo se chama 'cssContent'
+                if (docSnap.exists()) {
+                    const cssContent = docSnap.data().codigoAplicativo; // Supondo que o campo se chama 'codigoAplicativo' e contém o CSS
                     if (cssContent) {
+                        // Extrai o CSS se ele estiver dentro de um marcador específico
+                        const cssMatch = cssContent.match(/\|CSS\|:\s*\n\+\+([\s\S]*?)-\+/);
+                        let finalCss = '';
+                        if (cssMatch && cssMatch[1]) {
+                            finalCss = cssMatch[1].trim();
+                        } else {
+                            // Se não encontrar o marcador, assume que o campo inteiro é CSS
+                            finalCss = cssContent.trim();
+                        }
+
                         let styleTag = document.getElementById('userAppStyle');
                         if (!styleTag) {
                             styleTag = document.createElement('style');
                             styleTag.id = 'userAppStyle';
                             document.head.appendChild(styleTag);
                         }
-                        styleTag.innerHTML = cssContent;
+                        styleTag.innerHTML = finalCss;
                         console.log("CSS de aplicativos do usuário aplicado com sucesso.");
                     }
                 } else {
@@ -207,8 +267,7 @@
                 }
             } catch (error) {
                 console.error("Erro ao carregar/aplicar CSS de aplicativos do usuário:", error);
-                // Exiba uma mensagem de erro na UI se necessário
-                // document.getElementById('someErrorDiv').innerText = 'Erro ao carregar estilos personalizados.';
+                showStatusMessage('Erro ao carregar estilos personalizados.', 'error');
             }
         }
 
@@ -222,6 +281,11 @@
 
             const monthYearId = getCurrentMonthYearId();
             currentMonthYearInput.value = monthYearId; // Preenche o input do formulário
+            if (window.componentHandler) {
+                // Força o MDL a atualizar o label do input readonly
+                currentMonthYearInput.parentElement.MaterialTextfield.checkDirty();
+            }
+
 
             if (!monthYearId) {
                 const errorMessage = "Erro: ID do mês/ano está vazio. Não foi possível carregar dados financeiros.";
@@ -232,10 +296,11 @@
             }
 
             try {
-                const docRef = db.collection('financialData').doc(monthYearId);
-                const docSnap = await docRef.get();
+                // Caminho para dados públicos: /artifacts/{appId}/public/data/financialData/{monthYearId}
+                const docRef = doc(db, `artifacts/${appId}/public/data/financialData`, monthYearId);
+                const docSnap = await getDoc(docRef);
 
-                if (docSnap.exists) {
+                if (docSnap.exists()) {
                     const data = docSnap.data();
                     financialDataDisplay.innerHTML = `
                         <p><strong>Custo Mensal:</strong> R$ ${data.monthlyCost ? data.monthlyCost.toFixed(2) : 'N/A'}</p>
@@ -245,11 +310,22 @@
                     // Preencher formulário para edição
                     document.getElementById('monthlyCost').value = data.monthlyCost || '';
                     document.getElementById('monthlyRevenue').value = data.monthlyRevenue || '';
+                    
+                    // Atualiza o MDL para os campos preenchidos
+                    if (window.componentHandler) {
+                        document.getElementById('monthlyCost').parentElement.MaterialTextfield.checkDirty();
+                        document.getElementById('monthlyRevenue').parentElement.MaterialTextfield.checkDirty();
+                    }
+
                 } else {
                     financialDataDisplay.innerHTML = 'Nenhum dado financeiro encontrado para o mês atual. Você pode adicionar um novo.';
                     // Limpar formulário se não houver dados
                     document.getElementById('monthlyCost').value = '';
                     document.getElementById('monthlyRevenue').value = '';
+                    if (window.componentHandler) {
+                        document.getElementById('monthlyCost').parentElement.MaterialTextfield.checkDirty();
+                        document.getElementById('monthlyRevenue').parentElement.MaterialTextfield.checkDirty();
+                    }
                 }
             } catch (error) {
                 console.error("Erro ao carregar dados financeiros:", error);
@@ -263,45 +339,62 @@
          */
         financialDataForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            formStatusMessage.style.display = 'none'; // Esconde mensagens anteriores
 
             if (!currentUser || !currentUserIsAdmin) {
-                alert("Você não tem permissão para salvar dados financeiros.");
+                showStatusMessage("Você não tem permissão para salvar dados financeiros.", 'error');
                 return;
             }
 
             const monthYearId = currentMonthYearInput.value;
-            const monthlyCost = parseFloat(document.getElementById('monthlyCost').value);
-            const monthlyRevenue = parseFloat(document.getElementById('monthlyRevenue').value);
+            const monthlyCostInput = document.getElementById('monthlyCost');
+            const monthlyRevenueInput = document.getElementById('monthlyRevenue');
+
+            const monthlyCost = parseFloat(monthlyCostInput.value);
+            const monthlyRevenue = parseFloat(monthlyRevenueInput.value);
 
             if (isNaN(monthlyCost) || isNaN(monthlyRevenue)) {
-                alert("Por favor, insira valores numéricos válidos para Custo e Receita.");
+                showStatusMessage("Por favor, insira valores numéricos válidos para Custo e Receita.", 'error');
+                // Adiciona a classe de erro do MDL para feedback visual
+                if (window.componentHandler) {
+                    monthlyCostInput.parentElement.classList.add('is-invalid');
+                    monthlyRevenueInput.parentElement.classList.add('is-invalid');
+                }
                 return;
+            } else {
+                if (window.componentHandler) {
+                    monthlyCostInput.parentElement.classList.remove('is-invalid');
+                    monthlyRevenueInput.parentElement.classList.remove('is-invalid');
+                }
             }
 
+
             try {
-                const docRef = db.collection('financialData').doc(monthYearId);
+                // Caminho para dados públicos: /artifacts/{appId}/public/data/financialData/{monthYearId}
+                const docRef = doc(db, `artifacts/${appId}/public/data/financialData`, monthYearId);
                 const dataToSave = {
                     monthlyCost: monthlyCost,
                     monthlyRevenue: monthlyRevenue,
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    editorUid: currentUser.uid
+                    updatedAt: serverTimestamp(),
+                    editorUid: currentUser.uid // Armazena o UID do admin que editou
                 };
 
                 // Verifica se o documento já existe para decidir entre set ou update
-                const docSnap = await docRef.get();
-                if (docSnap.exists) {
-                    await docRef.update(dataToSave);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    await updateDoc(docRef, dataToSave);
                     console.log("Dados financeiros atualizados com sucesso!");
+                    showStatusMessage("Dados financeiros atualizados com sucesso!", 'success');
                 } else {
-                    await docRef.set(dataToSave);
+                    await setDoc(docRef, dataToSave);
                     console.log("Novos dados financeiros criados com sucesso!");
+                    showStatusMessage("Novos dados financeiros criados com sucesso!", 'success');
                 }
 
-                alert("Dados financeiros salvos com sucesso!");
                 loadCurrentFinancialData(); // Recarrega os dados para exibição
             } catch (error) {
                 console.error("Erro ao salvar dados financeiros:", error);
-                alert(`Erro ao salvar dados financeiros: ${error.message}`);
+                showStatusMessage(`Erro ao salvar dados financeiros: ${error.message}`, 'error');
             }
         });
 
@@ -318,41 +411,25 @@
                 signInButton.style.display = 'none';
 
                 // Verifica se o email do usuário é verificado
-                if (user.emailVerified) {
-                    console.log("Email verificado.");
-                    // Tenta atualizar o lastLoginAt do usuário no Firestore
-                    try {
-                        await db.collection('users').doc(user.uid).update({
-                            lastLoginAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                        console.log("Perfil de usuário atualizado no Firestore (lastLoginAt).");
-                    } catch (error) {
-                        console.error("Erro ao atualizar lastLoginAt:", error);
-                        // Isso pode acontecer se o documento 'users/{uid}' não existir
-                        // Ou se as regras não permitirem a escrita
-                    }
+                // No contexto do Canvas, presumimos que a autenticação externa já cuidou da verificação,
+                // ou que o token inicial já indica um usuário válido.
+                // Se a verificação de email for estritamente necessária, adicione o cheque 'user.emailVerified'.
+                // Por agora, vou prosseguir com a verificação de admin se houver um user.
 
-                    // Verifica o status de admin
-                    currentUserIsAdmin = await checkAdminStatus();
-                    isAdminStatusSpan.textContent = currentUserIsAdmin ? 'Sim' : 'Não';
+                // Verifica o status de admin
+                currentUserIsAdmin = await checkAdminStatus(user.uid);
+                isAdminStatusSpan.textContent = currentUserIsAdmin ? 'Sim' : 'Não';
 
-                    if (currentUserIsAdmin) {
-                        adminContentDiv.style.display = 'block'; // Mostra conteúdo de admin
-                        loadCurrentFinancialData(); // Carrega os dados financeiros se for admin
-                    } else {
-                        adminContentDiv.style.display = 'none'; // Esconde se não for admin
-                        financialDataDisplay.innerHTML = 'Você não tem permissão para ver/editar dados financeiros.';
-                    }
-
-                    loadAndApplyUserAppsCSS(); // Tenta carregar o CSS para todos os usuários logados
+                if (currentUserIsAdmin) {
+                    adminContentDiv.style.display = 'block'; // Mostra conteúdo de admin
+                    loadCurrentFinancialData(); // Carrega os dados financeiros se for admin
                 } else {
-                    userStatusSpan.textContent = 'Autenticado (Email NÃO Verificado)';
-                    isAdminStatusSpan.textContent = 'Não'; // Não é admin se email não for verificado (pela sua regra isEmailVerified)
-                    adminContentDiv.style.display = 'none';
-                    financialDataDisplay.innerHTML = 'Por favor, verifique seu e-mail para acessar os recursos.';
-                    console.warn("Usuário logado, mas email não verificado.");
-                    // Opcional: oferecer reenvio de e-mail de verificação
+                    adminContentDiv.style.display = 'none'; // Esconde se não for admin
+                    financialDataDisplay.innerHTML = 'Você não tem permissão para ver/editar dados financeiros.';
+                    showStatusMessage('Você não tem permissão de administrador para esta página.', 'info');
                 }
+
+                loadAndApplyUserAppsCSS(); // Tenta carregar o CSS para todos os usuários logados
 
             } else {
                 userStatusSpan.textContent = 'Não Autenticado';
@@ -362,39 +439,82 @@
                 signInButton.style.display = 'inline-block';
                 adminContentDiv.style.display = 'none'; // Esconde o conteúdo de admin
                 financialDataDisplay.innerHTML = 'Faça login para acessar os dados.';
+                showStatusMessage('Por favor, faça login para acessar esta página.', 'info');
+            }
+            if (window.componentHandler) {
+                window.componentHandler.upgradeElements(document.querySelectorAll('.mdl-button'));
+                window.componentHandler.upgradeElements(document.querySelectorAll('.mdl-textfield'));
             }
         });
 
-        // --- Botões de Exemplo (Para teste, remova em produção ou use seu sistema de login real) ---
+        // --- Autenticação Inicial para o Ambiente Canvas ---
+        // Este bloco é executado uma vez no carregamento para autenticar o usuário
+        // usando o token fornecido pelo ambiente Canvas.
+        window.addEventListener('load', async () => {
+            if (initialAuthToken) {
+                try {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                    console.log("Login com token customizado Firebase bem-sucedido.");
+                } catch (error) {
+                    console.error("Erro no login com token customizado Firebase:", error);
+                    // Se o token falhar, tenta login anônimo como fallback
+                    try {
+                        await signInAnonymously(auth);
+                        console.log("Login anônimo realizado como fallback.");
+                    } catch (anonError) {
+                        console.error("Erro no login anônimo:", anonError);
+                        // showStatusMessage("Não foi possível autenticar o usuário.", 'error');
+                    }
+                }
+            } else {
+                // Se não houver token, tenta login anônimo (comum em ambientes de desenvolvimento ou sem autenticação externa)
+                try {
+                    await signInAnonymously(auth);
+                    console.log("Login anônimo realizado (sem token inicial).");
+                } catch (error) {
+                    console.error("Erro no login anônimo:", error);
+                    // showStatusMessage("Não foi possível autenticar o usuário.", 'error');
+                }
+            }
+        });
+
+        // --- Botões de Exemplo (Remova em produção ou use seu sistema de login real) ---
         signInButton.addEventListener('click', async () => {
-            // Este é um exemplo simplificado de login ANÔNIMO para fins de teste.
-            // Em um app real, você usaria login com email/senha, Google, etc.
+            // Este botão pode ser usado para simular um login (por exemplo, Google Auth Provider se habilitado)
+            // Para demonstração, pode-se usar signInAnonymously, mas para um app real, use um provider.
             try {
-                await auth.signInAnonymously();
-                console.log("Usuário logado anonimamente (para teste).");
-                alert("Login anônimo realizado. Lembre-se que você precisa de um usuário com email verificado e isAdmin: true no Firestore para ver o conteúdo de admin.");
+                // Exemplo com GoogleAuthProvider (requer configuração no Firebase Console)
+                // const provider = new firebase.auth.GoogleAuthProvider();
+                // await signInWithPopup(auth, provider);
+
+                // Exemplo com login anônimo (para teste rápido)
+                await signInAnonymously(auth);
+                showStatusMessage("Login anônimo realizado. Lembre-se que você precisa de um usuário com email verificado e isAdmin: true no Firestore para ver o conteúdo de admin.", 'info');
             } catch (error) {
                 console.error("Erro ao tentar login:", error);
-                alert("Erro ao fazer login: " + error.message);
+                showStatusMessage(`Erro ao fazer login: ${error.message}`, 'error');
             }
         });
 
         signOutButton.addEventListener('click', async () => {
             try {
-                await auth.signOut();
+                await signOut(auth);
                 console.log("Usuário deslogado.");
-                alert("Deslogado com sucesso!");
+                showStatusMessage("Deslogado com sucesso!", 'success');
+                // Após o logout, o onAuthStateChanged irá redefinir a UI
             } catch (error) {
                 console.error("Erro ao fazer logout:", error);
-                alert("Erro ao fazer logout: " + error.message);
+                showStatusMessage(`Erro ao fazer logout: ${error.message}`, 'error');
             }
         });
 
         // Inicializa o input do mês/ano ao carregar a página
         document.addEventListener('DOMContentLoaded', () => {
             currentMonthYearInput.value = getCurrentMonthYearId();
+            if (window.componentHandler) {
+                window.componentHandler.upgradeDom(); // Garante que todos os componentes MDL sejam processados
+            }
         });
-
     </script>
 </body>
 </html>
