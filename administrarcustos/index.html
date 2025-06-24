@@ -1,504 +1,209 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Administração de Custos</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
-    <style>
-        /* Estilos básicos para o exemplo */
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f4f4f4;
-            color: #333;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        h1, h2 {
-            color: #0056b3;
-        }
-        form {
-            margin-top: 20px;
-            border-top: 1px solid #eee;
-            padding-top: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        input[type="number"],
-        input[type="text"],
-        button {
-            width: calc(100% - 22px);
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        button {
-            background-color: #28a745;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        button:hover {
-            background-color: #218838;
-        }
-        #financialDataDisplay {
-            margin-top: 20px;
-            padding: 15px;
-            border: 1px dashed #ccc;
-            background-color: #f9f9f9;
-            border-radius: 4px;
-        }
-        .error-message {
-            color: red;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-        #currentUserStatus {
-            margin-bottom: 20px;
-            padding: 10px;
-            background-color: #e9ecef;
-            border-radius: 5px;
-        }
-        /* Estilo para mensagens de status na tela */
-        .status-message {
-            padding: 10px;
-            margin-top: 10px;
-            border-radius: 5px;
-            font-weight: bold;
-            display: none; /* Escondido por padrão */
-        }
-        .status-message.success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .status-message.error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        .status-message.info {
-            background-color: #e2e3e5;
-            color: #383d41;
-            border: 1px solid #d6d8db;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transparência Financeira - WZZM</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .mdl-card {
+      width: 100%;
+      max-width: 900px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+    .mdl-list__item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    input.mdl-textfield__input {
+      padding: 4px 8px;
+      font-size: 1em;
+    }
+    .summary-card {
+      margin-top: 30px;
+      padding: 20px;
+      background-color: #e8eaf6;
+      color: #3f51b5;
+      font-size: 1.2em;
+      font-weight: bold;
+      text-align: center;
+      border-radius: 4px;
+    }
+    .summary-card.positive {
+      background-color: #e0f2f1;
+      color: #00796b;
+    }
+    .summary-card.negative {
+      background-color: #ffebee;
+      color: #d32f2f;
+    }
+    .status-message {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      background-color: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeeba;
+      text-align: center;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Administração de Custos</h1>
 
-        <div id="currentUserStatus">
-            <p>Status do Usuário: <span id="userStatus">Carregando...</span></p>
-            <p>Email: <span id="userEmail">N/A</span></p>
-            <p>Admin: <span id="isAdminStatus">N/A</span></p>
-            <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="signInButton" style="display: none;">Fazer Login</button>
-            <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent" id="signOutButton" style="display: none;">Sair</button>
-        </div>
+<div class="mdl-card mdl-shadow--2dp">
+  <div class="mdl-card__title mdl-card--expand">
+    <h2 class="mdl-card__title-text">Transparência Financeira WZZM</h2>
+  </div>
+  <div class="mdl-card__supporting-text">
+    <p>O projeto WZZM opera sem fins lucrativos e depende de doações para cobrir seus custos de infraestrutura.</p>
 
-        <div id="adminContent" style="display: none;">
-            <h2>Adicionar/Atualizar Dados Financeiros</h2>
-            <form id="financialDataForm">
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" style="width: calc(100% - 22px);">
-                    <input class="mdl-textfield__input" type="text" id="currentMonthYear" readonly>
-                    <label class="mdl-textfield__label" for="currentMonthYear">Mês/Ano:</label>
-                </div>
+    <div id="statusMessage" class="status-message" style="display: none;"></div>
 
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" style="width: calc(100% - 22px);">
-                    <input class="mdl-textfield__input" type="number" id="monthlyCost" pattern="-?\d+(\.\d+)?" placeholder="Ex: 1500.50" step="0.01" required>
-                    <label class="mdl-textfield__label" for="monthlyCost">Custo Mensal:</label>
-                    <span class="mdl-textfield__error">Apenas números válidos são permitidos!</span>
-                </div>
+    <h3>Resumo Mensal (<span id="currentMonthYear"></span>)</h3>
+    <ul class="mdl-list">
+      <li class="mdl-list__item">
+        <span class="mdl-list__item-primary-content">Doações Recebidas:</span>
+        <input type="number" id="inputTotalDonations" class="mdl-textfield__input" />
+      </li>
+      <li class="mdl-list__item">
+        <span class="mdl-list__item-primary-content">Custo Firebase (Previsão):</span>
+        <input type="number" id="inputCostFirebase" class="mdl-textfield__input" />
+      </li>
+      <li class="mdl-list__item">
+        <span class="mdl-list__item-primary-content">Custo Google Workspace (Previsão):</span>
+        <input type="number" id="inputCostWorkspace" class="mdl-textfield__input" />
+      </li>
+    </ul>
 
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" style="width: calc(100% - 22px);">
-                    <input class="mdl-textfield__input" type="number" id="monthlyRevenue" pattern="-?\d+(\.\d+)?" placeholder="Ex: 2000.00" step="0.01" required>
-                    <label class="mdl-textfield__label" for="monthlyRevenue">Receita Mensal:</label>
-                    <span class="mdl-textfield__error">Apenas números válidos são permitidos!</span>
-                </div>
-
-                <button type="submit" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect">Salvar Dados Financeiros</button>
-            </form>
-
-            <div id="formStatusMessage" class="status-message"></div>
-
-            <h2>Dados Financeiros Atuais</h2>
-            <div id="financialDataDisplay">
-                Carregando dados...
-            </div>
-            <p class="error-message" id="financialDataError"></p>
-        </div>
-
-        <div id="loadingMessage">
-            <p>Carregando Firebase e verificando autenticação...</p>
-        </div>
+    <div id="balanceCard" class="summary-card">
+      Saldo Atual: <span id="currentBalance">R$ 0,00</span>
     </div>
 
-    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+    <div style="text-align: center; margin-top: 20px;">
+      <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" onclick="salvarDadosFinanceiros()">Salvar Alterações</button>
+    </div>
+  </div>
+</div>
 
-        // Substitua pelas suas credenciais do Firebase
-        // As variáveis __app_id, __firebase_config, __initial_auth_token são fornecidas pelo ambiente Canvas.
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'; // Use um ID padrão razoável para desenvolvimento local
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0",
-            authDomain: "wzzm-ce3fc.firebaseapp.com",
-            projectId: "wzzm-ce3fc",
-            storageBucket: "wzzm-ce3fc.appspot.com",
-            messagingSenderId: "249427877153",
-            appId: "1:249427877153:web:0e4297294794a5aadeb260",
-            measurementId: "G-PLKNZNFCQ8"
-        };
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+<script src="https://code.getmdl.io/1.3.0/material.min.js" defer></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0",
+    authDomain: "wzzm-ce3fc.firebaseapp.com",
+    projectId: "wzzm-ce3fc",
+    storageBucket: "wzzm-ce3fc.appspot.com",
+    messagingSenderId: "249427877153",
+    appId: "1:249427877153:web:0e4297294794a5aadeb260",
+    measurementId: "G-PLKNZNFCQ8"
+  };
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  const firestore = firebase.firestore();
 
-        // Inicializar o Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+  const inputTotalDonations = document.getElementById('inputTotalDonations');
+  const inputCostFirebase = document.getElementById('inputCostFirebase');
+  const inputCostWorkspace = document.getElementById('inputCostWorkspace');
+  const currentBalanceEl = document.getElementById('currentBalance');
+  const balanceCardEl = document.getElementById('balanceCard');
+  const currentMonthYearEl = document.getElementById('currentMonthYear');
+  const statusMessageDiv = document.getElementById('statusMessage');
 
-        // Referências aos elementos HTML
-        const userStatusSpan = document.getElementById('userStatus');
-        const userEmailSpan = document.getElementById('userEmail');
-        const isAdminStatusSpan = document.getElementById('isAdminStatus');
-        const signInButton = document.getElementById('signInButton');
-        const signOutButton = document.getElementById('signOutButton');
-        const adminContentDiv = document.getElementById('adminContent');
-        const loadingMessageDiv = document.getElementById('loadingMessage');
-        const currentMonthYearInput = document.getElementById('currentMonthYear');
-        const financialDataForm = document.getElementById('financialDataForm');
-        const financialDataDisplay = document.getElementById('financialDataDisplay');
-        const financialDataError = document.getElementById('financialDataError');
-        const formStatusMessage = document.getElementById('formStatusMessage');
+  function formatCurrency(value) {
+    return `R$ ${value.toFixed(2).replace('.', ',')}`;
+  }
 
-        let currentUser = null;
-        let currentUserIsAdmin = false;
+  async function loadFinancialData() {
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1;
+    const currentYear = now.getFullYear();
+    const monthYearId = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
+    const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+    currentMonthYearEl.textContent = `${monthNames[now.getMonth()]} de ${currentYear}`;
 
-        // Função para exibir mensagens de status
-        function showStatusMessage(message, type) {
-            formStatusMessage.textContent = message;
-            formStatusMessage.className = `status-message ${type}`;
-            formStatusMessage.style.display = 'block';
-            setTimeout(() => {
-                formStatusMessage.style.display = 'none';
-            }, 5000); // Esconde a mensagem após 5 segundos
-        }
+    try {
+      const docRef = firestore.collection('financialData').doc(monthYearId);
+      const doc = await docRef.get();
 
-        /**
-         * Gera o ID do mês/ano atual no formato AAAA-MM.
-         * @returns {string} O ID do mês/ano.
-         */
-        function getCurrentMonthYearId() {
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = (today.getMonth() + 1).toString().padStart(2, '0'); // Mês de 01 a 12
-            return `${year}-${month}`;
-        }
+      let total = 0, firebaseCost = 0, workspaceCost = 0, statusText = "";
 
-        /**
-         * Verifica se o usuário logado é um administrador.
-         * Assume que existe uma coleção 'users' e um campo 'isAdmin: true' no documento do usuário.
-         * @returns {Promise<boolean>} True se for admin, false caso contrário.
-         */
-        async function checkAdminStatus(uid) {
-            if (!uid) {
-                return false;
-            }
-            try {
-                const userDocRef = doc(db, 'users', uid);
-                const userDocSnap = await getDoc(userDocRef);
-                return userDocSnap.exists() && userDocSnap.data().isAdmin === true;
-            } catch (error) {
-                console.error("Erro ao verificar status de admin:", error);
-                return false;
-            }
-        }
+      if (doc.exists) {
+        const data = doc.data();
+        total = data.totalDonations || 0;
+        firebaseCost = data.firebaseCost || 0;
+        workspaceCost = data.workspaceCost || 0;
+        statusText = data.statusMessage || "";
+      }
 
-        /**
-         * Carrega e aplica CSS personalizado de aplicativos do usuário.
-         * Este é um exemplo. Adapte com base na sua estrutura de dados.
-         */
-        async function loadAndApplyUserAppsCSS() {
-            console.log("Tentando carregar/aplicar CSS de aplicativos do usuário...");
-            try {
-                const docRef = doc(db, 'aplicativo', 'meuAppCSSGlobal'); 
-                const docSnap = await getDoc(docRef);
+      inputTotalDonations.value = total;
+      inputCostFirebase.value = firebaseCost;
+      inputCostWorkspace.value = workspaceCost;
 
-                if (docSnap.exists()) {
-                    const cssContent = docSnap.data().codigoAplicativo; 
-                    if (cssContent) {
-                        const cssMatch = cssContent.match(/\|CSS\|:\s*\n\+\+([\s\S]*?)-\+/);
-                        let finalCss = '';
-                        if (cssMatch && cssMatch[1]) {
-                            finalCss = cssMatch[1].trim();
-                        } else {
-                            finalCss = cssContent.trim();
-                        }
+      const balance = total - (firebaseCost + workspaceCost);
+      currentBalanceEl.textContent = formatCurrency(balance);
 
-                        let styleTag = document.getElementById('userAppStyle');
-                        if (!styleTag) {
-                            styleTag = document.createElement('style');
-                            styleTag.id = 'userAppStyle';
-                            document.head.appendChild(styleTag);
-                        }
-                        styleTag.innerHTML = finalCss;
-                        console.log("CSS de aplicativos do usuário aplicado com sucesso.");
-                    }
-                } else {
-                    console.log("Documento de CSS de aplicativos não encontrado.");
-                }
-            } catch (error) {
-                console.error("Erro ao carregar/aplicar CSS de aplicativos do usuário:", error);
-                showStatusMessage('Erro ao carregar estilos personalizados.', 'error');
-            }
-        }
+      if (balance >= 0) {
+        balanceCardEl.classList.add('positive');
+        balanceCardEl.classList.remove('negative');
+      } else {
+        balanceCardEl.classList.add('negative');
+        balanceCardEl.classList.remove('positive');
+      }
 
+      if (statusText) {
+        statusMessageDiv.textContent = statusText;
+        statusMessageDiv.style.display = 'block';
+      } else {
+        statusMessageDiv.style.display = 'none';
+      }
 
-        /**
-         * Carrega os dados financeiros do mês atual.
-         */
-        async function loadCurrentFinancialData() {
-            financialDataError.textContent = ''; // Limpa mensagens de erro anteriores
-            financialDataDisplay.innerHTML = 'Carregando dados...';
+    } catch (e) {
+      console.error("Erro ao carregar dados:", e);
+      statusMessageDiv.textContent = "Erro ao carregar dados financeiros.";
+      statusMessageDiv.style.display = 'block';
+    }
+  }
 
-            const monthYearId = getCurrentMonthYearId();
-            currentMonthYearInput.value = monthYearId; // Preenche o input do formulário
-            if (window.componentHandler) {
-                // Força o MDL a atualizar o label do input readonly
-                currentMonthYearInput.parentElement.MaterialTextfield.checkDirty();
-            }
+  async function salvarDadosFinanceiros() {
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1;
+    const currentYear = now.getFullYear();
+    const monthYearId = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
 
+    const totalDonations = parseFloat(inputTotalDonations.value) || 0;
+    const firebaseCost = parseFloat(inputCostFirebase.value) || 0;
+    const workspaceCost = parseFloat(inputCostWorkspace.value) || 0;
 
-            if (!monthYearId) {
-                const errorMessage = "Erro: ID do mês/ano está vazio. Não foi possível carregar dados financeiros.";
-                console.error(errorMessage);
-                financialDataError.textContent = errorMessage;
-                financialDataDisplay.innerHTML = 'Nenhum dado disponível.';
-                return;
-            }
+    try {
+      await firestore.collection("financialData").doc(monthYearId).set({
+        totalDonations,
+        firebaseCost,
+        workspaceCost
+      }, { merge: true });
 
-            try {
-                const docRef = doc(db, `artifacts/${appId}/public/data/financialData`, monthYearId);
-                const docSnap = await getDoc(docRef);
+      alert("Dados atualizados com sucesso!");
+      loadFinancialData();
+    } catch (e) {
+      console.error("Erro ao salvar dados:", e);
+      alert("Erro ao salvar os dados.");
+    }
+  }
 
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    financialDataDisplay.innerHTML = `
-                        <p><strong>Custo Mensal:</strong> R$ ${data.monthlyCost ? data.monthlyCost.toFixed(2) : 'N/A'}</p>
-                        <p><strong>Receita Mensal:</strong> R$ ${data.monthlyRevenue ? data.monthlyRevenue.toFixed(2) : 'N/A'}</p>
-                        <p><strong>Última Atualização:</strong> ${data.updatedAt ? new Date(data.updatedAt.toDate()).toLocaleString() : 'N/A'}</p>
-                    `;
-                    // Preencher formulário para edição
-                    document.getElementById('monthlyCost').value = data.monthlyCost || '';
-                    document.getElementById('monthlyRevenue').value = data.monthlyRevenue || '';
-                    
-                    // Atualiza o MDL para os campos preenchidos
-                    if (window.componentHandler) {
-                        document.getElementById('monthlyCost').parentElement.MaterialTextfield.checkDirty();
-                        document.getElementById('monthlyRevenue').parentElement.MaterialTextfield.checkDirty();
-                    }
-
-                } else {
-                    financialDataDisplay.innerHTML = 'Nenhum dado financeiro encontrado para o mês atual. Você pode adicionar um novo.';
-                    // Limpar formulário se não houver dados
-                    document.getElementById('monthlyCost').value = '';
-                    document.getElementById('monthlyRevenue').value = '';
-                    if (window.componentHandler) {
-                        document.getElementById('monthlyCost').parentElement.MaterialTextfield.checkDirty();
-                        document.getElementById('monthlyRevenue').parentElement.MaterialTextfield.checkDirty();
-                    }
-                }
-            } catch (error) {
-                console.error("Erro ao carregar dados financeiros:", error);
-                financialDataError.textContent = `Erro ao carregar dados financeiros: ${error.message}`;
-                financialDataDisplay.innerHTML = 'Erro ao carregar dados.';
-            }
-        }
-
-        /**
-         * Lida com o envio do formulário de dados financeiros.
-         */
-        financialDataForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            formStatusMessage.style.display = 'none'; // Esconde mensagens anteriores
-
-            if (!currentUser || !currentUserIsAdmin) {
-                showStatusMessage("Você não tem permissão para salvar dados financeiros.", 'error');
-                return;
-            }
-
-            const monthYearId = currentMonthYearInput.value;
-            const monthlyCostInput = document.getElementById('monthlyCost');
-            const monthlyRevenueInput = document.getElementById('monthlyRevenue');
-
-            const monthlyCost = parseFloat(monthlyCostInput.value);
-            const monthlyRevenue = parseFloat(monthlyRevenueInput.value);
-
-            if (isNaN(monthlyCost) || isNaN(monthlyRevenue)) {
-                showStatusMessage("Por favor, insira valores numéricos válidos para Custo e Receita.", 'error');
-                // Adiciona a classe de erro do MDL para feedback visual
-                if (window.componentHandler) {
-                    monthlyCostInput.parentElement.classList.add('is-invalid');
-                    monthlyRevenueInput.parentElement.classList.add('is-invalid');
-                }
-                return;
-            } else {
-                if (window.componentHandler) {
-                    monthlyCostInput.parentElement.classList.remove('is-invalid');
-                    monthlyRevenueInput.parentElement.classList.remove('is-invalid');
-                }
-            }
-
-
-            try {
-                const docRef = doc(db, `artifacts/${appId}/public/data/financialData`, monthYearId);
-                const dataToSave = {
-                    monthlyCost: monthlyCost,
-                    monthlyRevenue: monthlyRevenue,
-                    updatedAt: serverTimestamp(),
-                    editorUid: currentUser.uid 
-                };
-
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    await updateDoc(docRef, dataToSave);
-                    console.log("Dados financeiros atualizados com sucesso!");
-                    showStatusMessage("Dados financeiros atualizados com sucesso!", 'success');
-                } else {
-                    await setDoc(docRef, dataToSave);
-                    console.log("Novos dados financeiros criados com sucesso!");
-                    showStatusMessage("Novos dados financeiros criados com sucesso!", 'success');
-                }
-
-                loadCurrentFinancialData(); // Recarrega os dados para exibição
-            } catch (error) {
-                console.error("Erro ao salvar dados financeiros:", error);
-                showStatusMessage(`Erro ao salvar dados financeiros: ${error.message}`, 'error');
-            }
-        });
-
-        // --- Gerenciamento de Autenticação ---
-
-        auth.onAuthStateChanged(async (user) => {
-            currentUser = user;
-            loadingMessageDiv.style.display = 'none'; // Esconde a mensagem de carregamento
-
-            if (user) {
-                userStatusSpan.textContent = 'Autenticado';
-                userEmailSpan.textContent = user.email || 'N/A'; // Pode ser null para usuários anônimos
-                signOutButton.style.display = 'inline-block';
-                signInButton.style.display = 'none';
-
-                currentUserIsAdmin = await checkAdminStatus(user.uid);
-                isAdminStatusSpan.textContent = currentUserIsAdmin ? 'Sim' : 'Não';
-
-                if (currentUserIsAdmin) {
-                    adminContentDiv.style.display = 'block'; // Mostra conteúdo de admin
-                    loadCurrentFinancialData(); // Carrega os dados financeiros se for admin
-                } else {
-                    adminContentDiv.style.display = 'none'; // Esconde se não for admin
-                    financialDataDisplay.innerHTML = 'Você não tem permissão para ver/editar dados financeiros.';
-                    showStatusMessage('Você não tem permissão de administrador para esta página.', 'info');
-                }
-
-                loadAndApplyUserAppsCSS(); 
-
-            } else {
-                userStatusSpan.textContent = 'Não Autenticado';
-                userEmailSpan.textContent = 'N/A';
-                isAdminStatusSpan.textContent = 'Não';
-                signOutButton.style.display = 'none';
-                signInButton.style.display = 'inline-block';
-                adminContentDiv.style.display = 'none'; // Esconde o conteúdo de admin
-                financialDataDisplay.innerHTML = 'Faça login para acessar os dados.';
-                showStatusMessage('Por favor, faça login para acessar esta página.', 'info');
-            }
-            // Garante que os componentes MDL sejam atualizados após as mudanças na UI
-            if (window.componentHandler) {
-                window.componentHandler.upgradeElements(document.querySelectorAll('.mdl-button'));
-                window.componentHandler.upgradeElements(document.querySelectorAll('.mdl-textfield'));
-            }
-        });
-
-        // --- Autenticação Inicial para o Ambiente Canvas ---
-        // Este bloco é executado uma vez no carregamento para autenticar o usuário
-        // usando o token fornecido pelo ambiente Canvas.
-        window.addEventListener('load', async () => {
-            if (initialAuthToken && initialAuthToken !== 'null') { // Adiciona verificação para 'null' como string
-                try {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                    console.log("Login com token customizado Firebase bem-sucedido.");
-                } catch (error) {
-                    console.error("Erro no login com token customizado Firebase:", error);
-                    // IMPORTANTE: Se você NÃO quer login anônimo como fallback, remova o bloco catch abaixo
-                    // e considere exibir uma mensagem de erro clara para o usuário.
-                    console.warn("Tentando login anônimo como fallback devido à falha do token customizado.");
-                    try {
-                        await signInAnonymously(auth);
-                        console.log("Login anônimo realizado como fallback.");
-                        showStatusMessage("Não foi possível autenticar totalmente. Você está logado anonimamente.", 'info');
-                    } catch (anonError) {
-                        console.error("Erro no login anônimo:", anonError);
-                        showStatusMessage("Não foi possível autenticar o usuário.", 'error');
-                    }
-                }
-            } else {
-                console.warn("Nenhum token de autenticação inicial fornecido pelo ambiente Canvas. Tentando login anônimo.");
-                try {
-                    await signInAnonymously(auth);
-                    console.log("Login anônimo realizado (sem token inicial).");
-                    showStatusMessage("Você está logado anonimamente. Para funcionalidades completas, um login com credenciais pode ser necessário.", 'info');
-                } catch (error) {
-                    console.error("Erro no login anônimo:", error);
-                    showStatusMessage("Não foi possível autenticar o usuário.", 'error');
-                }
-            }
-        });
-
-        // --- Botões de Exemplo (Remova em produção ou use seu sistema de login real) ---
-        signInButton.addEventListener('click', async () => {
-            try {
-                // Se a intenção é que o iframe SEMPRE receba um token do Canvas, este botão pode não ser necessário.
-                // Se for para um cenário onde o usuário pode iniciar o login manualmente,
-                // substitua signInAnonymously por um provedor de autenticação real (e.g., GoogleAuthProvider).
-                await signInAnonymously(auth);
-                showStatusMessage("Login anônimo realizado. Lembre-se que você precisa de um usuário com email verificado e isAdmin: true no Firestore para ver o conteúdo de admin.", 'info');
-            } catch (error) {
-                console.error("Erro ao tentar login:", error);
-                showStatusMessage(`Erro ao fazer login: ${error.message}`, 'error');
-            }
-        });
-
-        signOutButton.addEventListener('click', async () => {
-            try {
-                await signOut(auth);
-                console.log("Usuário deslogado.");
-                showStatusMessage("Deslogado com sucesso!", 'success');
-            } catch (error) {
-                console.error("Erro ao fazer logout:", error);
-                showStatusMessage(`Erro ao fazer logout: ${error.message}`, 'error');
-            }
-        });
-
-        document.addEventListener('DOMContentLoaded', () => {
-            currentMonthYearInput.value = getCurrentMonthYearId();
-            // A inicialização do MDL agora é tratada pelo script defer e pelo onAuthStateChanged
-            // Não é necessário chamar upgradeDom aqui novamente, a menos que haja elementos que não são atualizados pelo onAuthStateChanged
-        });
-    </script>
+  document.addEventListener('DOMContentLoaded', loadFinancialData);
+</script>
 </body>
 </html>
