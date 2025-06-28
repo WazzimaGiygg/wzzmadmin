@@ -285,51 +285,40 @@
 
         // Carrega dados do artigo para edição
         async function loadArticleData(articleId) {
-            try {
-                const docRef = firestore.collection('articlesdoc').doc(articleId);
-                const doc = await docRef.get();
+           // ... dentro de loadArticleData
+    // ... carregar e criar todas as seções dinâmicas ...
 
-                if (doc.exists) {
-                    const data = doc.data();
-                    articleTitleInput.value = data.title || '';
-                    articleDescriptionInput.value = data.description || '';
-                    articleSummaryInput.value = data.summary || '';
-                    articleAbstractInput.value = data.abstract || '';
-                    articleIntroductionInput.value = data.introduction || '';
-                    articleMethodologyInput.value = data.methodology || '';
-                    articleDiscussionInput.value = data.discussion || '';
-                    articleConclusionInput.value = data.conclusion || '';
-                    articleSourcesInput.value = (data.sources && Array.isArray(data.sources)) ? data.sources.join(', ') : '';
-                    articleLanguageSelect.value = data.language || '';
-                    articleTypeSelect.value = data.articleType || '';
-                    // Carrega o valor para o novo campo de URL original
-                    articleOriginalUrlInput.value = data.originalUrl || '';
+    // ATUALIZAÇÃO REFORÇADA AQUI PARA O ERRO 'checkDirty'
+    if (window.componentHandler) {
+        // Primeiro, garantir que todos os elementos MDL (incluindo os dinâmicos) sejam processados
+        window.componentHandler.upgradeDom(); 
 
-
-                    // Atualiza o MDL para os campos pré-preenchidos
-                    if (window.componentHandler) {
-                        articleForm.querySelectorAll('.mdl-textfield').forEach(textfield => {
-                            if (textfield.MaterialTextfield) {
-                                textfield.MaterialTextfield.checkDirty();
-                                textfield.MaterialTextfield.checkValidity();
-                            }
-                        });
-                        articleForm.querySelectorAll('.mdl-selectfield').forEach(selectfield => {
-                            if (selectfield.MaterialTextfield) {
-                                selectfield.MaterialTextfield.checkDirty();
-                                selectfield.MaterialTextfield.checkValidity();
-                            }
-                        });
-                    }
-                } else {
-                    displayError("Artigo não encontrado.");
-                    console.error("Artigo com ID", articleId, "não encontrado na coleção 'articlesdoc'.");
+        // Depois, iterar sobre os textfields e selectfields para forçar o estado "dirty" se houver valor
+        articleForm.querySelectorAll('.mdl-textfield').forEach(textfield => {
+            const input = textfield.querySelector('.mdl-textfield__input');
+            if (input && input.value !== '') {
+                // Para textfields, o checkDirty funciona normalmente após upgradeDom
+                if (textfield.MaterialTextfield && typeof textfield.MaterialTextfield.checkDirty === 'function') {
+                    textfield.MaterialTextfield.checkDirty();
                 }
-            } catch (error) {
-                displayError("Erro ao carregar dados do artigo: " + error.message);
-                console.error("Erro ao carregar dados do artigo da coleção 'articlesdoc':", error);
             }
+        });
+
+        articleForm.querySelectorAll('.mdl-selectfield').forEach(selectfield => {
+            const selectElement = selectfield.querySelector('select');
+            if (selectElement && selectElement.value !== '') {
+                // Para selectfields, adicione a classe 'is-dirty' diretamente ao pai
+                // Isso força o label a subir, já que MaterialTextfield pode ser undefined aqui
+                selectfield.classList.add('is-dirty'); 
+            }
+        });
+
+        // Para o checkbox, use o método específico do MDL
+        if (plagiarismCheckConfirmedCheckbox.parentElement.MaterialCheckbox) {
+            plagiarismCheckConfirmedCheckbox.parentElement.MaterialCheckbox.checkToggleState();
         }
+    }
+// ...
 
         // Função para salvar (adicionar ou atualizar) o artigo
         async function saveArticle(event) {
