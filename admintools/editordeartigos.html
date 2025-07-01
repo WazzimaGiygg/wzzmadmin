@@ -116,7 +116,7 @@
         <h1 id="form-title">Adicionar Novo Artigo</h1>
 
         <div id="error-display" class="error-message"></div>
-        
+
         <form id="article-form">
             <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                 <input class="mdl-textfield__input" type="text" id="article-title" required>
@@ -162,7 +162,6 @@
                 <input class="mdl-textfield__input" type="url" id="article-original-url">
                 <label class="mdl-textfield__label" for="article-original-url">URL do Artigo Original (PDF/HTML)</label>
                 <span class="mdl-textfield__help">Link para o artigo completo em PDF ou HTML externo.</span>
-                <a href="./versãoemtestes/" </a>
             </div>
 
             <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
@@ -285,40 +284,51 @@
 
         // Carrega dados do artigo para edição
         async function loadArticleData(articleId) {
-           // ... dentro de loadArticleData
-    // ... carregar e criar todas as seções dinâmicas ...
+            try {
+                const docRef = firestore.collection('articlesdoc').doc(articleId);
+                const doc = await docRef.get();
 
-    // ATUALIZAÇÃO REFORÇADA AQUI PARA O ERRO 'checkDirty'
-    if (window.componentHandler) {
-        // Primeiro, garantir que todos os elementos MDL (incluindo os dinâmicos) sejam processados
-        window.componentHandler.upgradeDom(); 
+                if (doc.exists) {
+                    const data = doc.data();
+                    articleTitleInput.value = data.title || '';
+                    articleDescriptionInput.value = data.description || '';
+                    articleSummaryInput.value = data.summary || '';
+                    articleAbstractInput.value = data.abstract || '';
+                    articleIntroductionInput.value = data.introduction || '';
+                    articleMethodologyInput.value = data.methodology || '';
+                    articleDiscussionInput.value = data.discussion || '';
+                    articleConclusionInput.value = data.conclusion || '';
+                    articleSourcesInput.value = (data.sources && Array.isArray(data.sources)) ? data.sources.join(', ') : '';
+                    articleLanguageSelect.value = data.language || '';
+                    articleTypeSelect.value = data.articleType || '';
+                    // Carrega o valor para o novo campo de URL original
+                    articleOriginalUrlInput.value = data.originalUrl || '';
 
-        // Depois, iterar sobre os textfields e selectfields para forçar o estado "dirty" se houver valor
-        articleForm.querySelectorAll('.mdl-textfield').forEach(textfield => {
-            const input = textfield.querySelector('.mdl-textfield__input');
-            if (input && input.value !== '') {
-                // Para textfields, o checkDirty funciona normalmente após upgradeDom
-                if (textfield.MaterialTextfield && typeof textfield.MaterialTextfield.checkDirty === 'function') {
-                    textfield.MaterialTextfield.checkDirty();
+
+                    // Atualiza o MDL para os campos pré-preenchidos
+                    if (window.componentHandler) {
+                        articleForm.querySelectorAll('.mdl-textfield').forEach(textfield => {
+                            if (textfield.MaterialTextfield) {
+                                textfield.MaterialTextfield.checkDirty();
+                                textfield.MaterialTextfield.checkValidity();
+                            }
+                        });
+                        articleForm.querySelectorAll('.mdl-selectfield').forEach(selectfield => {
+                            if (selectfield.MaterialTextfield) {
+                                selectfield.MaterialTextfield.checkDirty();
+                                selectfield.MaterialTextfield.checkValidity();
+                            }
+                        });
+                    }
+                } else {
+                    displayError("Artigo não encontrado.");
+                    console.error("Artigo com ID", articleId, "não encontrado na coleção 'articlesdoc'.");
                 }
+            } catch (error) {
+                displayError("Erro ao carregar dados do artigo: " + error.message);
+                console.error("Erro ao carregar dados do artigo da coleção 'articlesdoc':", error);
             }
-        });
-
-        articleForm.querySelectorAll('.mdl-selectfield').forEach(selectfield => {
-            const selectElement = selectfield.querySelector('select');
-            if (selectElement && selectElement.value !== '') {
-                // Para selectfields, adicione a classe 'is-dirty' diretamente ao pai
-                // Isso força o label a subir, já que MaterialTextfield pode ser undefined aqui
-                selectfield.classList.add('is-dirty'); 
-            }
-        });
-
-        // Para o checkbox, use o método específico do MDL
-        if (plagiarismCheckConfirmedCheckbox.parentElement.MaterialCheckbox) {
-            plagiarismCheckConfirmedCheckbox.parentElement.MaterialCheckbox.checkToggleState();
         }
-    }
-// ...
 
         // Função para salvar (adicionar ou atualizar) o artigo
         async function saveArticle(event) {
@@ -414,6 +424,6 @@
             }
         });
     </script>
-
+<a href="./versãoemtestes/" </a>
 </body>
 </html>
