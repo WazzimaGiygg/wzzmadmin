@@ -300,8 +300,14 @@
             }
         }
 
-        // --- Salvar Dados Financeiros ---
+        // --- Salvar Dados Financeiros (COM UID DO ADMINISTRADOR) ---
         saveFinancialDataBtn.addEventListener('click', async () => {
+            const user = firebase.auth().currentUser;
+            if (!user) {
+                displayAlert("Você precisa estar logado para salvar dados financeiros.", "error");
+                return;
+            }
+
             const totalDonations = parseFloat(inputTotalDonations.value || 0);
             const firebaseCost = parseFloat(inputFirebaseCost.value || 0);
             const workspaceCost = parseFloat(inputWorkspaceCost.value || 0);
@@ -320,8 +326,10 @@
                     workspaceCost: workspaceCost,
                     statusMessage: statusMessage,
                     connectedServices: connectedServices,
-                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-                }, { merge: true }); // Use merge para não sobrescrever outros campos se existirem
+                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+                    // ADICIONADO: UID do usuário que salvou/atualizou os dados
+                    savedByUid: user.uid
+                }, { merge: true });
 
                 displayAlert("Dados financeiros salvos com sucesso!", "success");
             } catch (error) {
@@ -338,7 +346,6 @@
                                                           .where('monthYear', '==', currentMonthYearId)
                                                           .orderBy('date', 'desc')
                                                           .get();
-                
                 if (!invoicesSnapshot.empty) {
                     invoicesTableBodyAdmin.innerHTML = '';
                     invoicesSnapshot.forEach(doc => {
@@ -348,7 +355,7 @@
                         row.insertCell(1).textContent = invoice.invoiceNumber || 'N/A';
                         row.insertCell(2).textContent = invoice.date ? new Date(invoice.date.seconds * 1000).toLocaleDateString() : 'N/A';
                         row.insertCell(3).textContent = formatCurrency(invoice.amount || 0);
-                        
+
                         const linkCell = row.insertCell(4);
                         if (invoice.fileURL) {
                             const link = document.createElement('a');
@@ -392,8 +399,7 @@
             }
 
             let fileURL = null;
-            uploadStatus.textContent = ''; // Clear previous status
-
+            uploadStatus.textContent = ''; // Limpa status anterior
             if (file) {
                 uploadStatus.textContent = 'Carregando arquivo...';
                 try {
@@ -405,12 +411,12 @@
                     console.error("Erro ao carregar arquivo da nota fiscal:", error);
                     displayAlert("Erro ao carregar arquivo da nota fiscal. " + error.message, "error");
                     uploadStatus.textContent = 'Erro ao carregar arquivo.';
-                    return; // Stop if file upload fails
+                    return; // Para a execução se o upload falhar
                 }
             }
 
             try {
-                const invoiceDate = new Date(invoiceDateStr);
+                const invoiceDate = new Date(invoiceDateStr + 'T12:00:00'); // Adiciona um horário para evitar problemas de fuso horário
                 await firestore.collection('invoices').add({
                     service: service,
                     invoiceNumber: invoiceNumber,
@@ -422,12 +428,12 @@
                 });
 
                 displayAlert("Nota fiscal adicionada com sucesso!", "success");
-                // Clear form fields
+                // Limpa campos do formulário
                 inputInvoiceService.value = '';
                 inputInvoiceNumber.value = '';
                 inputInvoiceDate.value = '';
                 inputInvoiceAmount.value = '';
-                invoiceFile.value = ''; // Clear file input
+                invoiceFile.value = ''; // Limpa o input de arquivo
                 uploadStatus.textContent = '';
                 if (componentHandler) {
                     componentHandler.upgradeDom();
@@ -435,7 +441,7 @@
                         field.MaterialTextfield.checkDirty();
                     });
                 }
-                loadInvoices(); // Reload invoices table
+                loadInvoices(); // Recarrega a tabela de notas fiscais
             } catch (error) {
                 console.error("Erro ao adicionar nota fiscal:", error);
                 displayAlert("Erro ao adicionar nota fiscal. " + error.message, "error");
@@ -449,47 +455,21 @@
             }
 
             try {
-                // Delete file from Storage if exists
+                // Exclui arquivo do Storage se existir
                 if (fileURL) {
                     const fileRef = storage.refFromURL(fileURL);
                     await fileRef.delete();
                     console.log("Arquivo da nota fiscal excluído do Storage.");
                 }
-                // Delete document from Firestore
+                // Exclui documento do Firestore
                 await firestore.collection('invoices').doc(docId).delete();
                 displayAlert("Nota fiscal excluída com sucesso!", "success");
-                loadInvoices(); // Reload invoices table
+                loadInvoices(); // Recarrega a tabela de notas fiscais
             } catch (error) {
                 console.error("Erro ao excluir nota fiscal:", error);
                 displayAlert("Erro ao excluir nota fiscal. " + error.message, "error");
             }
         }
-        async function loadCurrentFinancialData() {
-    // ... seu código ...
-    try {
-        const financialDoc = await firestore.collection('financialData').doc(currentMonthYearId).get();
-        if (financialDoc.exists) {
-            const data = financialDoc.data(); // Linha 42
-            inputTotalDonations.value = data.totalDonations || 0;
-            inputFirebaseCost.value = data.firebaseCost || 0;
-            inputWorkspaceCost.value = data.workspaceCost || 0;
-            inputStatusMessage.value = data.statusMessage || '';
-            inputConnectedServices.value = (data.connectedServices || []).join(', ');
-        } else {
-            // ... inicialização dos campos ...
-        }
-        // Temporariamente, comente este bloco para testar
-        // if (componentHandler) {
-        //     componentHandler.upgradeDom();
-        //     document.querySelectorAll('.mdl-textfield').forEach(field => {
-        //         field.MaterialTextfield.checkDirty();
-        //     });
-        // }
-    } catch (error) {
-        console.error("Erro ao carregar dados financeiros:", error);
-        displayAlert("Erro ao carregar dados financeiros.", "error");
-    }
-}
 
         // --- Verificação de Admin e Carregamento Inicial ---
         auth.onAuthStateChanged(async (user) => {
@@ -525,17 +505,6 @@
                 componentHandler.upgradeDom();
             }
         });
-
-          // const dadosRecebidos = /* sua lógica para obter os dados, por exemplo, de uma chamada ao Firestore */;
-
-  // if (dadosRecebidos) { // Verifica se não é null ou undefined
-    // const valores = Object.values(dadosRecebidos);
-    // ... (restante da sua lógica)
-//  } else {
-   // console.error("Dados recebidos são nulos ou indefinidos. Não foi possível carregar o conteúdo.");
-    // Você pode exibir uma mensagem de erro para o usuário ou lidar com isso de outra forma.
- // }
-
     </script>
 </body>
 </html>
