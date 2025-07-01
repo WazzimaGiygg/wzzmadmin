@@ -149,48 +149,35 @@
                 </div>
 
                 <div class="form-section">
-                    <h3>Adicionar Nova Nota Fiscal</h3>
+                    <h3>Adicionar Nova Nota/Gasto</h3>
                     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                        <input class="mdl-textfield__input" type="text" id="inputInvoiceService">
-                        <label class="mdl-textfield__label" for="inputInvoiceService">Serviço (Ex: Firebase, Google Workspace)</label>
-                    </div>
-                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                        <input class="mdl-textfield__input" type="text" id="inputInvoiceNumber">
-                        <label class="mdl-textfield__label" for="inputInvoiceNumber">Número da Nota Fiscal</label>
-                    </div>
-                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                        <input class="mdl-textfield__input" type="date" id="inputInvoiceDate">
-                        <label class="mdl-textfield__label" for="inputInvoiceDate"></label>
-                    </div>
-                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                        <input class="mdl-textfield__input" type="number" step="0.01" id="inputInvoiceAmount">
-                        <label class="mdl-textfield__label" for="inputInvoiceAmount">Valor (R$)</label>
+                        <textarea class="mdl-textfield__input" type="text" rows="4" id="inputFormattedCostText"></textarea>
+                        <label class="mdl-textfield__label" for="inputFormattedCostText">Detalhes do Gasto (Texto Formatado pelo Usuário)</label>
+                        <span class="mdl-textfield__help">Ex: "Serviço: Firebase Hosting, Nota: NF-12345, Data: 01/07/2025, Valor: R$ 50,00 - Descrição adicional"</span>
                     </div>
                     <div class="file-upload-section">
-                        <h4>Upload do Arquivo da Nota Fiscal (PDF)</h4>
+                        <h4>Upload do Arquivo (PDF Opcional)</h4>
                         <input type="file" id="invoiceFile" accept="application/pdf">
                         <p id="uploadStatus"></p>
                     </div>
                     <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="addInvoice">
-                        Adicionar Nota Fiscal
+                        Adicionar Gasto
                     </button>
                 </div>
 
                 <div class="form-section">
-                    <h3>Notas Fiscais Cadastradas</h3>
+                    <h3>Gastos Cadastrados</h3>
                     <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp" style="width: 100%;">
                         <thead>
                             <tr>
-                                <th class="mdl-data-table__cell--non-numeric">Serviço</th>
-                                <th class="mdl-data-table__cell--non-numeric">Nº Nota Fiscal</th>
-                                <th class="mdl-data-table__cell--non-numeric">Data</th>
-                                <th>Valor (R$)</th>
-                                <th class="mdl-data-table__cell--non-numeric">Link</th>
-                                <th class="mdl-data-table__cell--non-numeric">Ações</th>
+                                <th class="mdl-data-table__cell--non-numeric" style="width: 60%;">Detalhes do Gasto</th>
+                                <th class="mdl-data-table__cell--non-numeric" style="width: 15%;">Data de Registro</th>
+                                <th class="mdl-data-table__cell--non-numeric" style="width: 10%;">Arquivo</th>
+                                <th class="mdl-data-table__cell--non-numeric" style="width: 15%;">Ações</th>
                             </tr>
                         </thead>
                         <tbody id="invoicesTableBodyAdmin">
-                            <tr><td colspan="6" style="text-align: center;">Carregando notas fiscais...</td></tr>
+                            <tr><td colspan="4" style="text-align: center;">Carregando gastos...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -232,10 +219,8 @@
         const inputConnectedServices = document.getElementById('inputConnectedServices');
         const saveFinancialDataBtn = document.getElementById('saveFinancialData');
 
-        const inputInvoiceService = document.getElementById('inputInvoiceService');
-        const inputInvoiceNumber = document.getElementById('inputInvoiceNumber');
-        const inputInvoiceDate = document.getElementById('inputInvoiceDate');
-        const inputInvoiceAmount = document.getElementById('inputInvoiceAmount');
+        // Modificado para o campo de texto formatado
+        const inputFormattedCostText = document.getElementById('inputFormattedCostText');
         const invoiceFile = document.getElementById('invoiceFile');
         const uploadStatus = document.getElementById('uploadStatus');
         const addInvoiceBtn = document.getElementById('addInvoice');
@@ -300,7 +285,7 @@
             }
         }
 
-        // --- Salvar Dados Financeiros (COM UID DO ADMINISTRADOR) ---
+        // --- Salvar Dados Financeiros ---
         saveFinancialDataBtn.addEventListener('click', async () => {
             const user = firebase.auth().currentUser;
             if (!user) {
@@ -327,7 +312,6 @@
                     statusMessage: statusMessage,
                     connectedServices: connectedServices,
                     lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
-                    // ADICIONADO: UID do usuário que salvou/atualizou os dados
                     savedByUid: user.uid
                 }, { merge: true });
 
@@ -338,68 +322,69 @@
             }
         });
 
-        // --- Carregar e Exibir Notas Fiscais ---
+        // --- Carregar e Exibir Notas Fiscais (AGORA COM CAMPO DE TEXTO FORMATADO) ---
         async function loadInvoices() {
-            invoicesTableBodyAdmin.innerHTML = '<tr><td colspan="6" style="text-align: center;">Carregando notas fiscais...</td></tr>';
+            invoicesTableBodyAdmin.innerHTML = '<tr><td colspan="4" style="text-align: center;">Carregando gastos...</td></tr>';
             try {
                 const invoicesSnapshot = await firestore.collection('invoices')
                                                           .where('monthYear', '==', currentMonthYearId)
-                                                          .orderBy('date', 'desc')
+                                                          .orderBy('createdAt', 'desc') // Ordenar pela data de criação
                                                           .get();
                 if (!invoicesSnapshot.empty) {
                     invoicesTableBodyAdmin.innerHTML = '';
                     invoicesSnapshot.forEach(doc => {
                         const invoice = doc.data();
                         const row = invoicesTableBodyAdmin.insertRow();
-                        row.insertCell(0).textContent = invoice.service || 'N/A';
-                        row.insertCell(1).textContent = invoice.invoiceNumber || 'N/A';
-                        row.insertCell(2).textContent = invoice.date ? new Date(invoice.date.seconds * 1000).toLocaleDateString() : 'N/A';
-                        row.insertCell(3).textContent = formatCurrency(invoice.amount || 0);
+                        // Coluna para o texto formatado do gasto
+                        row.insertCell(0).textContent = invoice.formattedText || 'N/A';
 
-                        const linkCell = row.insertCell(4);
+                        // Coluna para a data de registro
+                        const createdAtDate = invoice.createdAt ? new Date(invoice.createdAt.seconds * 1000) : null;
+                        row.insertCell(1).textContent = createdAtDate ? createdAtDate.toLocaleDateString('pt-BR') : 'N/A';
+
+                        // Coluna para o link do arquivo
+                        const linkCell = row.insertCell(2);
                         if (invoice.fileURL) {
                             const link = document.createElement('a');
                             link.href = invoice.fileURL;
-                            link.textContent = 'Ver Nota';
+                            link.textContent = 'Ver Arquivo';
                             link.target = '_blank';
                             linkCell.appendChild(link);
                         } else {
                             linkCell.textContent = 'N/A';
                         }
 
-                        const actionsCell = row.insertCell(5);
+                        // Coluna de Ações
+                        const actionsCell = row.insertCell(3);
                         const deleteBtn = document.createElement('button');
                         deleteBtn.className = 'mdl-button mdl-js-button mdl-button--icon mdl-button--colored';
                         deleteBtn.innerHTML = '<i class="material-icons">delete</i>';
-                        deleteBtn.title = 'Excluir Nota Fiscal';
+                        deleteBtn.title = 'Excluir Gasto';
                         deleteBtn.addEventListener('click', () => deleteInvoice(doc.id, invoice.fileURL));
                         actionsCell.appendChild(deleteBtn);
                     });
                 } else {
-                    invoicesTableBodyAdmin.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhuma nota fiscal encontrada para este mês.</td></tr>';
+                    invoicesTableBodyAdmin.innerHTML = '<tr><td colspan="4" style="text-align: center;">Nenhum gasto encontrado para este mês.</td></tr>';
                 }
             } catch (error) {
-                console.error("Erro ao carregar notas fiscais:", error);
-                displayAlert("Erro ao carregar notas fiscais. " + error.message, "error");
-                invoicesTableBodyAdmin.innerHTML = '<tr><td colspan="6" style="text-align: center; color: red;">Erro ao carregar notas fiscais.</td></tr>';
+                console.error("Erro ao carregar gastos:", error);
+                displayAlert("Erro ao carregar gastos. " + error.message, "error");
+                invoicesTableBodyAdmin.innerHTML = '<tr><td colspan="4" style="text-align: center; color: red;">Erro ao carregar gastos.</td></tr>';
             }
         }
 
-        // --- Adicionar Nova Nota Fiscal ---
+        // --- Adicionar Nova Nota/Gasto (AGORA COM CAMPO DE TEXTO FORMATADO) ---
         addInvoiceBtn.addEventListener('click', async () => {
-            const service = inputInvoiceService.value.trim();
-            const invoiceNumber = inputInvoiceNumber.value.trim();
-            const invoiceDateStr = inputInvoiceDate.value; // YYYY-MM-DD
-            const amount = parseFloat(inputInvoiceAmount.value || 0);
+            const formattedText = inputFormattedCostText.value.trim();
             const file = invoiceFile.files[0];
 
-            if (!service || !invoiceNumber || !invoiceDateStr || isNaN(amount) || amount <= 0) {
-                displayAlert("Por favor, preencha todos os campos da nota fiscal e o valor deve ser maior que zero.", "error");
+            if (!formattedText) {
+                displayAlert("Por favor, insira os detalhes do gasto no campo de texto.", "error");
                 return;
             }
 
             let fileURL = null;
-            uploadStatus.textContent = ''; // Limpa status anterior
+            uploadStatus.textContent = ''; // Clear previous status
             if (file) {
                 uploadStatus.textContent = 'Carregando arquivo...';
                 try {
@@ -408,32 +393,25 @@
                     fileURL = await snapshot.ref.getDownloadURL();
                     uploadStatus.textContent = 'Arquivo carregado com sucesso!';
                 } catch (error) {
-                    console.error("Erro ao carregar arquivo da nota fiscal:", error);
-                    displayAlert("Erro ao carregar arquivo da nota fiscal. " + error.message, "error");
+                    console.error("Erro ao carregar arquivo do gasto:", error);
+                    displayAlert("Erro ao carregar arquivo do gasto. " + error.message, "error");
                     uploadStatus.textContent = 'Erro ao carregar arquivo.';
-                    return; // Para a execução se o upload falhar
+                    return; // Stop if file upload fails
                 }
             }
 
             try {
-                const invoiceDate = new Date(invoiceDateStr + 'T12:00:00'); // Adiciona um horário para evitar problemas de fuso horário
                 await firestore.collection('invoices').add({
-                    service: service,
-                    invoiceNumber: invoiceNumber,
-                    date: firebase.firestore.Timestamp.fromDate(invoiceDate),
-                    amount: amount,
+                    formattedText: formattedText, // Novo campo para o texto formatado
                     fileURL: fileURL,
                     monthYear: currentMonthYearId,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp() // Data de registro
                 });
 
-                displayAlert("Nota fiscal adicionada com sucesso!", "success");
-                // Limpa campos do formulário
-                inputInvoiceService.value = '';
-                inputInvoiceNumber.value = '';
-                inputInvoiceDate.value = '';
-                inputInvoiceAmount.value = '';
-                invoiceFile.value = ''; // Limpa o input de arquivo
+                displayAlert("Gasto adicionado com sucesso!", "success");
+                // Clear form fields
+                inputFormattedCostText.value = '';
+                invoiceFile.value = ''; // Clear file input
                 uploadStatus.textContent = '';
                 if (componentHandler) {
                     componentHandler.upgradeDom();
@@ -441,33 +419,33 @@
                         field.MaterialTextfield.checkDirty();
                     });
                 }
-                loadInvoices(); // Recarrega a tabela de notas fiscais
+                loadInvoices(); // Reload invoices table
             } catch (error) {
-                console.error("Erro ao adicionar nota fiscal:", error);
-                displayAlert("Erro ao adicionar nota fiscal. " + error.message, "error");
+                console.error("Erro ao adicionar gasto:", error);
+                displayAlert("Erro ao adicionar gasto. " + error.message, "error");
             }
         });
 
-        // --- Excluir Nota Fiscal ---
+        // --- Excluir Nota/Gasto ---
         async function deleteInvoice(docId, fileURL) {
-            if (!confirm("Tem certeza que deseja excluir esta nota fiscal? Esta ação é irreversível.")) {
+            if (!confirm("Tem certeza que deseja excluir este gasto? Esta ação é irreversível.")) {
                 return;
             }
 
             try {
-                // Exclui arquivo do Storage se existir
+                // Delete file from Storage if exists
                 if (fileURL) {
                     const fileRef = storage.refFromURL(fileURL);
                     await fileRef.delete();
-                    console.log("Arquivo da nota fiscal excluído do Storage.");
+                    console.log("Arquivo do gasto excluído do Storage.");
                 }
-                // Exclui documento do Firestore
+                // Delete document from Firestore
                 await firestore.collection('invoices').doc(docId).delete();
-                displayAlert("Nota fiscal excluída com sucesso!", "success");
-                loadInvoices(); // Recarrega a tabela de notas fiscais
+                displayAlert("Gasto excluído com sucesso!", "success");
+                loadInvoices(); // Reload invoices table
             } catch (error) {
-                console.error("Erro ao excluir nota fiscal:", error);
-                displayAlert("Erro ao excluir nota fiscal. " + error.message, "error");
+                console.error("Erro ao excluir gasto:", error);
+                displayAlert("Erro ao excluir gasto. " + error.message, "error");
             }
         }
 
