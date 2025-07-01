@@ -4,8 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Adicionar/Editar Artigo - WZZM Admin</title>
+    <a href="./beta/"></a>
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+    
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    
     <style>
         body {
             font-family: 'Roboto', 'Helvetica', Arial, sans-serif;
@@ -28,16 +32,16 @@
         }
         .mdl-textfield {
             width: 100%;
-            margin-bottom: 20px; /* Adiciona espaço entre os campos */
+            margin-bottom: 20px;
         }
         .mdl-textfield__input {
             width: 100%;
-            box-sizing: border-box; /* Garante que padding e border não aumentem a largura */
+            box-sizing: border-box;
         }
         textarea.mdl-textfield__input {
-            height: 120px; /* Altura padrão para textareas */
-            min-height: 80px; /* Altura mínima para textareas */
-            resize: vertical; /* Permite redimensionamento vertical */
+            height: 120px;
+            min-height: 80px;
+            resize: vertical;
         }
         .mdl-button {
             margin-right: 10px;
@@ -71,7 +75,7 @@
             font-size: 16px;
             color: rgba(0,0,0,.87);
             cursor: pointer;
-            appearance: none; /* Remove a seta padrão do select */
+            appearance: none;
             -webkit-appearance: none;
             -moz-appearance: none;
         }
@@ -103,22 +107,28 @@
         .mdl-selectfield select:invalid ~ .mdl-textfield__error {
             display: block;
         }
-        /* Estilo para o campo de upload de arquivo */
-        .mdl-file-input {
+
+        /* Estilos para o Quill Editor */
+        #editor-container {
+            height: 300px; /* Altura padrão para o editor */
             margin-bottom: 20px;
+            border: 1px solid rgba(0,0,0,.12); /* Adiciona borda para combinar com MDL */
+            border-radius: 4px;
         }
-        .mdl-file-input input[type="file"] {
-            display: none; /* Esconde o input file padrão */
+        .ql-toolbar.ql-snow {
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
         }
-        .mdl-file-input .mdl-button {
-            margin-right: 8px;
+        .ql-container.ql-snow {
+            border-bottom-left-radius: 4px;
+            border-bottom-right-radius: 4px;
         }
-        .mdl-file-input .file-name {
-            display: inline-block;
-            vertical-align: middle;
-            line-height: 36px; /* Altura do botão MDL */
-            color: rgba(0,0,0,.54);
+        /* Ajusta o rótulo para o editor de texto rico */
+        .rich-text-label {
+            color: rgba(0,0,0,.26);
             font-size: 16px;
+            margin-bottom: 10px;
+            display: block;
         }
     </style>
 </head>
@@ -126,15 +136,15 @@
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-storage-compat.js"></script> <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-analytics-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-analytics-compat.js"></script>
     <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+    
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 
     <div class="container">
         <h1 id="form-title">Adicionar Novo Artigo</h1>
 
         <div id="error-display" class="error-message"></div>
-        <div id="success-message" class="mdl-typography--body-2 mdl-color-text--green-800" style="text-align: center; margin-bottom: 20px; display: none;"></div>
-
 
         <form id="article-form">
             <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
@@ -147,36 +157,8 @@
                 <label class="mdl-textfield__label" for="article-description">Descrição Curta</label>
             </div>
 
-            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                <textarea class="mdl-textfield__input" type="text" rows="3" id="article-summary"></textarea>
-                <label class="mdl-textfield__label" for="article-summary">Resumo (Max 250 palavras)</label>
-            </div>
-
-            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                <textarea class="mdl-textfield__input" type="text" rows="5" id="article-abstract"></textarea>
-                <label class="mdl-textfield__label" for="article-abstract">Abstract</label>
-            </div>
-
-            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                <textarea class="mdl-textfield__input" type="text" rows="5" id="article-introduction"></textarea>
-                <label class="mdl-textfield__label" for="article-introduction">Introdução</label>
-            </div>
-
-            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                <textarea class="mdl-textfield__input" type="text" rows="5" id="article-methodology"></textarea>
-                <label class="mdl-textfield__label" for="article-methodology">Metodologia</label>
-            </div>
-
-            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                <textarea class="mdl-textfield__input" type="text" rows="5" id="article-discussion"></textarea>
-                <label class="mdl-textfield__label" for="article-discussion">Discussão</label>
-            </div>
-
-            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                <textarea class="mdl-textfield__input" type="text" rows="5" id="article-conclusion"></textarea>
-                <label class="mdl-textfield__label" for="article-conclusion">Conclusão</label>
-            </div>
-
+            <label class="rich-text-label">Conteúdo do Artigo *</label>
+            <div id="editor-container"></div>
             <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                 <input class="mdl-textfield__input" type="url" id="article-original-url">
                 <label class="mdl-textfield__label" for="article-original-url">URL do Artigo Original (PDF/HTML)</label>
@@ -214,33 +196,6 @@
                 <span class="mdl-textfield__error">Por favor, selecione um tipo de artigo.</span>
             </div>
 
-            <hr>
-            <h3>Upload de PDF</h3>
-
-            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="pdf-uid-display-wrapper" style="display: none;">
-                <input class="mdl-textfield__input" type="text" id="pdf-article-uid" readonly>
-                <label class="mdl-textfield__label" for="pdf-article-uid">UID do Artigo (para associar ao PDF)</label>
-                <span class="mdl-textfield__help">Use este UID para enviar o PDF associado.</span>
-            </div>
-
-            <div class="mdl-file-input">
-                <input type="file" id="pdf-upload-input" accept="application/pdf">
-                <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="select-pdf-btn">
-                    Selecionar PDF
-                </button>
-                <span class="file-name" id="selected-pdf-name">Nenhum arquivo selecionado</span>
-                <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent" id="upload-pdf-btn" style="display: none;">
-                    Enviar PDF
-                </button>
-            </div>
-            <div id="pdf-upload-progress" style="display: none; margin-top: 10px;">
-                <div class="mdl-progress mdl-js-progress is-configured" style="width: 100%;"></div>
-                <span id="progress-text"></span>
-            </div>
-            <p id="pdf-download-url-display" style="display: none; margin-top: 10px;">
-                URL do PDF: <a id="pdf-download-link" href="#" target="_blank"></a>
-            </p>
-
             <div class="actions">
                 <button type="submit" id="save-article-btn"
                         class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
@@ -273,62 +228,47 @@
             app = firebase.initializeApp(firebaseConfig);
         }
         const firestore = firebase.firestore();
-        const auth = firebase.auth();
-        const storage = firebase.storage(); // Inicializa o Firebase Storage
+        const auth = firebase.auth(); // Inicializa o Auth
 
-        let currentUser = null;
-        let currentArticleId = null;
-        let uploadedPdfUrl = null; // Para armazenar a URL do PDF após o upload
+        let currentUser = null; // Para armazenar o usuário logado
+        let currentArticleId = null; // Para armazenar o ID do artigo em edição
 
         const formTitle = document.getElementById('form-title');
         const articleForm = document.getElementById('article-form');
         const errorDisplay = document.getElementById('error-display');
-        const successMessage = document.getElementById('success-message'); // Elemento para mensagens de sucesso
         const saveArticleBtn = document.getElementById('save-article-btn');
         const cancelBtn = document.getElementById('cancel-btn');
 
         const articleTitleInput = document.getElementById('article-title');
         const articleDescriptionInput = document.getElementById('article-description');
-        const articleSummaryInput = document.getElementById('article-summary');
-        const articleAbstractInput = document.getElementById('article-abstract');
-        const articleIntroductionInput = document.getElementById('article-introduction');
-        const articleMethodologyInput = document.getElementById('article-methodology');
-        const articleDiscussionInput = document.getElementById('article-discussion');
-        const articleConclusionInput = document.getElementById('article-conclusion');
+        const articleOriginalUrlInput = document.getElementById('article-original-url');
         const articleSourcesInput = document.getElementById('article-sources');
         const articleLanguageSelect = document.getElementById('article-language');
         const articleTypeSelect = document.getElementById('article-type');
-        const articleOriginalUrlInput = document.getElementById('article-original-url');
 
-        // Novos elementos para upload de PDF
-        const pdfUidDisplayWrapper = document.getElementById('pdf-uid-display-wrapper');
-        const pdfArticleUidInput = document.getElementById('pdf-article-uid');
-        const pdfUploadInput = document.getElementById('pdf-upload-input');
-        const selectPdfBtn = document.getElementById('select-pdf-btn');
-        const selectedPdfName = document.getElementById('selected-pdf-name');
-        const uploadPdfBtn = document.getElementById('upload-pdf-btn');
-        const pdfUploadProgress = document.getElementById('pdf-upload-progress');
-        const progressBar = pdfUploadProgress.querySelector('.mdl-progress');
-        const progressText = document.getElementById('progress-text');
-        const pdfDownloadUrlDisplay = document.getElementById('pdf-download-url-display');
-        const pdfDownloadLink = document.getElementById('pdf-download-link');
+        // --- Inicialização do Quill Editor ---
+        const quill = new Quill('#editor-container', {
+            theme: 'snow', // Tema 'snow' para uma barra de ferramentas visual
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    [{ 'script': 'sub'}, { 'script': 'super' }],
+                    [{ 'indent': '-1'}, { 'indent': '+1' }],
+                    [{ 'direction': 'rtl' }],
+                    [{ 'align': [] }],
+                    ['link', 'image', 'video'], // Adicione se quiser suporte a imagens/vídeos
+                    ['clean'] // Remove formatação
+                ]
+            },
+            placeholder: 'Digite o conteúdo completo do artigo aqui...'
+        });
 
 
         function displayError(message) {
             errorDisplay.textContent = `Erro: ${message}`;
             errorDisplay.style.display = 'block';
-            successMessage.style.display = 'none'; // Esconde mensagem de sucesso em caso de erro
-        }
-
-        function displaySuccess(message) {
-            successMessage.textContent = message;
-            successMessage.style.display = 'block';
-            errorDisplay.style.display = 'none'; // Esconde mensagem de erro em caso de sucesso
-        }
-
-        function hideMessages() {
-            errorDisplay.style.display = 'none';
-            successMessage.style.display = 'none';
         }
 
         // Listener para o estado de autenticação
@@ -342,8 +282,6 @@
                     currentArticleId = id;
                     formTitle.textContent = 'Editar Artigo';
                     loadArticleData(id); // Carrega os dados do artigo para edição
-                    pdfUidDisplayWrapper.style.display = 'block'; // Mostra o UID
-                    pdfArticleUidInput.value = id; // Preenche o UID do artigo
                 }
             } else {
                 currentUser = null;
@@ -367,26 +305,25 @@
                     const data = doc.data();
                     articleTitleInput.value = data.title || '';
                     articleDescriptionInput.value = data.description || '';
-                    articleSummaryInput.value = data.summary || '';
-                    articleAbstractInput.value = data.abstract || '';
-                    articleIntroductionInput.value = data.introduction || '';
-                    articleMethodologyInput.value = data.methodology || '';
-                    articleDiscussionInput.value = data.discussion || '';
-                    articleConclusionInput.value = data.conclusion || '';
+                    articleOriginalUrlInput.value = data.originalUrl || '';
                     articleSourcesInput.value = (data.sources && Array.isArray(data.sources)) ? data.sources.join(', ') : '';
                     articleLanguageSelect.value = data.language || '';
                     articleTypeSelect.value = data.articleType || '';
-                    articleOriginalUrlInput.value = data.originalUrl || '';
 
-                    // Carrega a URL do PDF se existir e exibe
-                    if (data.pdfUrl) {
-                        uploadedPdfUrl = data.pdfUrl;
-                        pdfDownloadLink.href = uploadedPdfUrl;
-                        pdfDownloadLink.textContent = "Ver PDF Atual";
-                        pdfDownloadUrlDisplay.style.display = 'block';
-                    } else {
-                        pdfDownloadUrlDisplay.style.display = 'none';
+                    // Carrega o conteúdo formatado no Quill
+                    if (data.formattedContent) {
+                        // Se o conteúdo foi salvo como HTML:
+                        quill.root.innerHTML = data.formattedContent;
+                        
+                        // Se o conteúdo foi salvo como Base64 (assumindo que é HTML codificado):
+                        // const decodedContent = atob(data.formattedContent); // Decodifica de Base64
+                        // quill.root.innerHTML = decodedContent;
+
+                        // Se o conteúdo foi salvo como Delta JSON stringificado:
+                        // const delta = JSON.parse(data.formattedContent);
+                        // quill.setContents(delta);
                     }
+
 
                     // Atualiza o MDL para os campos pré-preenchidos
                     if (window.componentHandler) {
@@ -397,10 +334,10 @@
                             }
                         });
                         articleForm.querySelectorAll('.mdl-selectfield').forEach(selectfield => {
-                            if (selectfield.MaterialTextfield) {
-                                selectfield.MaterialTextfield.checkDirty();
-                                selectfield.MaterialTextfield.checkValidity();
-                            }
+                            // Aqui o MDL não tem um método direto para 'checkDirty' em select,
+                            // mas o preenchimento do value já deve ser suficiente.
+                            // Para garantir que o label flutue, podemos forçar o upgrade.
+                            componentHandler.upgradeElement(selectfield); 
                         });
                     }
                 } else {
@@ -416,7 +353,6 @@
         // Função para salvar (adicionar ou atualizar) o artigo
         async function saveArticle(event) {
             event.preventDefault();
-            hideMessages();
 
             if (!currentUser) {
                 displayError("Você precisa estar logado para salvar artigos.");
@@ -427,6 +363,12 @@
             if (!articleTitleInput.value.trim()) {
                 displayError("O Título do Artigo é obrigatório.");
                 articleTitleInput.focus();
+                return;
+            }
+            if (quill.root.innerHTML.trim() === '<p><br></p>') { // Verifica se o editor está vazio (HTML padrão do Quill vazio)
+                displayError("O Conteúdo do Artigo é obrigatório.");
+                // Não há um .focus() direto no Quill, mas você pode rolar para o editor.
+                document.getElementById('editor-container').scrollIntoView({ behavior: 'smooth', block: 'center' });
                 return;
             }
             if (!articleLanguageSelect.value) {
@@ -440,46 +382,57 @@
                 return;
             }
 
+            errorDisplay.style.display = 'none';
             saveArticleBtn.disabled = true;
+
+            // Obter o conteúdo do Quill. Você pode escolher entre HTML, Delta ou texto.
+            // HTML é geralmente o mais fácil para exibir diretamente em um navegador.
+            const articleContent = quill.root.innerHTML;
+            // Para Base64 (se for o caso):
+            // const articleContent = btoa(quill.root.innerHTML); // Codifica para Base64
+
+            // Para Delta JSON (para reverter para o Quill ou renderizar em outro lugar com Quill):
+            // const articleContent = JSON.stringify(quill.getContents());
 
             const articleData = {
                 userId: currentUser.uid,
                 title: articleTitleInput.value.trim(),
                 description: articleDescriptionInput.value.trim(),
-                summary: articleSummaryInput.value.trim(),
-                abstract: articleAbstractInput.value.trim(),
-                introduction: articleIntroductionInput.value.trim(),
-                methodology: articleMethodologyInput.value.trim(),
-                discussion: articleDiscussionInput.value.trim(),
-                conclusion: articleConclusionInput.value.trim(),
+                formattedContent: articleContent, // Novo campo para o conteúdo formatado
+                originalUrl: articleOriginalUrlInput.value.trim(),
                 sources: articleSourcesInput.value.split(',').map(s => s.trim()).filter(s => s),
                 language: articleLanguageSelect.value,
                 articleType: articleTypeSelect.value,
-                originalUrl: articleOriginalUrlInput.value.trim(),
-                lastModified: firebase.firestore.FieldValue.serverTimestamp(),
-                pdfUrl: uploadedPdfUrl || null // Adiciona a URL do PDF se existir
+                lastModified: firebase.firestore.FieldValue.serverTimestamp()
             };
+
+            // Adiciona status de verificação apenas se for um novo artigo
+            if (!currentArticleId) {
+                articleData.verificationStatus = 'pending';
+                articleData.timestamp = firebase.firestore.FieldValue.serverTimestamp();
+            }
 
             try {
                 const articlesCollectionRef = firestore.collection('articlesdoc');
 
                 if (currentArticleId) {
                     await articlesCollectionRef.doc(currentArticleId).update(articleData);
-                    displaySuccess("Artigo atualizado com sucesso!");
+                    alert("Artigo atualizado com sucesso!");
                     console.log("Artigo atualizado na coleção 'articlesdoc':", currentArticleId);
                 } else {
-                    articleData.timestamp = firebase.firestore.FieldValue.serverTimestamp();
                     const newDocRef = await articlesCollectionRef.add(articleData);
                     currentArticleId = newDocRef.id;
-                    displaySuccess("Artigo adicionado com sucesso! ID: " + newDocRef.id);
+                    alert("Artigo adicionado com sucesso! ID: " + newDocRef.id);
                     console.log("Novo artigo adicionado na coleção 'articlesdoc' com ID:", newDocRef.id);
                     formTitle.textContent = 'Editar Artigo';
-                    pdfUidDisplayWrapper.style.display = 'block'; // Mostra o UID
-                    pdfArticleUidInput.value = newDocRef.id; // Preenche o UID do artigo
                 }
 
                 if (window.parent !== window && window.parent.postMessage) {
                     window.parent.postMessage({ type: 'refreshArticlesList' }, window.location.origin);
+                } else {
+                    alert("Artigo salvo! (Em ambiente de desenvolvimento sem iframe)");
+                    // Para fins de teste, pode redirecionar se não estiver em iframe
+                    // window.location.href = './index.html'; 
                 }
 
             } catch (error) {
@@ -489,96 +442,6 @@
                 saveArticleBtn.disabled = false;
             }
         }
-
-        // --- Funções para upload de PDF ---
-        selectPdfBtn.addEventListener('click', () => {
-            pdfUploadInput.click(); // Simula o clique no input file escondido
-        });
-
-        pdfUploadInput.addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            if (file) {
-                selectedPdfName.textContent = file.name;
-                uploadPdfBtn.style.display = 'inline-block'; // Mostra o botão de upload
-                pdfUploadProgress.style.display = 'none'; // Esconde a barra de progresso se um novo arquivo for selecionado
-                pdfDownloadUrlDisplay.style.display = 'none'; // Esconde a URL anterior
-                uploadedPdfUrl = null; // Limpa a URL do PDF anterior
-                hideMessages();
-            } else {
-                selectedPdfName.textContent = "Nenhum arquivo selecionado";
-                uploadPdfBtn.style.display = 'none';
-            }
-        });
-
-        uploadPdfBtn.addEventListener('click', async () => {
-            const file = pdfUploadInput.files[0];
-            hideMessages();
-
-            if (!file) {
-                displayError("Por favor, selecione um arquivo PDF para enviar.");
-                return;
-            }
-
-            if (!currentArticleId) {
-                displayError("Por favor, **salve o artigo primeiro** para gerar um UID antes de enviar o PDF.");
-                return;
-            }
-
-            const storageRef = storage.ref();
-            // Caminho para o arquivo no Storage: articles_pdfs/<UID_do_artigo>/nome_do_arquivo.pdf
-            const pdfRef = storageRef.child(`articles_pdfs/${currentArticleId}/${file.name}`);
-
-            pdfUploadProgress.style.display = 'block'; // Mostra a barra de progresso
-            progressBar.MaterialProgress.setProgress(0); // Reinicia o progresso
-            progressText.textContent = "Iniciando upload...";
-            uploadPdfBtn.disabled = true; // Desabilita o botão de upload
-
-            try {
-                const uploadTask = pdfRef.put(file);
-
-                uploadTask.on('state_changed',
-                    (snapshot) => {
-                        // Calcula e exibe o progresso do upload
-                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                        progressBar.MaterialProgress.setProgress(progress);
-                        progressText.textContent = `Upload: ${Math.round(progress)}%`;
-                    },
-                    (error) => {
-                        console.error("Erro no upload do PDF:", error);
-                        displayError("Erro ao fazer upload do PDF: " + error.message);
-                        uploadPdfBtn.disabled = false;
-                        pdfUploadProgress.style.display = 'none';
-                    },
-                    async () => {
-                        // Upload completo, obtém a URL de download
-                        uploadedPdfUrl = await pdfRef.getDownloadURL();
-                        console.log("PDF enviado com sucesso! URL:", uploadedPdfUrl);
-                        displaySuccess("PDF enviado com sucesso! Clique em 'Salvar Artigo' para registrar a URL.");
-
-                        // Exibe a URL de download
-                        pdfDownloadLink.href = uploadedPdfUrl;
-                        pdfDownloadLink.textContent = "Abrir PDF";
-                        pdfDownloadUrlDisplay.style.display = 'block';
-
-                        uploadPdfBtn.disabled = false;
-                        pdfUploadProgress.style.display = 'none';
-
-                        // Atualiza o Firestore com a URL do PDF
-                        await firestore.collection('articlesdoc').doc(currentArticleId).update({
-                            pdfUrl: uploadedPdfUrl,
-                            lastModified: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                        console.log("URL do PDF atualizada no Firestore para o artigo:", currentArticleId);
-                    }
-                );
-            } catch (error) {
-                console.error("Erro ao iniciar upload do PDF:", error);
-                displayError("Erro ao iniciar upload do PDF: " + error.message);
-                uploadPdfBtn.disabled = false;
-                pdfUploadProgress.style.display = 'none';
-            }
-        });
-
 
         // --- Event Listeners ---
         document.addEventListener('DOMContentLoaded', () => {
@@ -597,6 +460,6 @@
             }
         });
     </script>
-<a href="./versãoemtestes/" </a>
+<a href="./versãoemtestes/"></a>
 </body>
 </html>
