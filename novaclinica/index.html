@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CICO - Recepção e Administração</title>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; color: #333; }
+        .container { max-width: 900px; margin: 0 auto; background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
+        h1, h2 { color: #0056b3; }
+        form { margin-bottom: 20px; padding: 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; }
+        input[type="text"], input[type="email"], input[type="datetime-local"], select {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover { background-color: #0056b3; }
+        ul { list-style: none; padding: 0; }
+        li { background-color: #e9e9e9; margin-bottom: 10px; padding: 15px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; }
+        li span { flex-grow: 1; }
+        li button { margin-left: 10px; background-color: #dc3545; }
+        li button:hover { background-color: #c82333; }
+        .success-message { color: green; font-weight: bold; margin-top: 10px; }
+        .error-message { color: red; font-weight: bold; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CICO - Página da Recepção</h1>
+        <p>Bem-vindo à página de gestão da clínica.</p>
+
+        <hr>
+
+        <h2>Configuração da Clínica</h2>
+        <form id="clinicConfigForm">
+            <label for="clinicName">Nome da Clínica:</label>
+            <input type="text" id="clinicName" placeholder="Centro de Terapia" required>
+
+            <label for="clinicAddress">Endereço:</label>
+            <input type="text" id="clinicAddress" placeholder="Rua Exemplo, 123" required>
+
+            <label for="clinicPhone">Telefone:</label>
+            <input type="text" id="clinicPhone" placeholder="(XX) XXXXX-XXXX" required>
+
+            <label for="clinicEmail">E-mail:</label>
+            <input type="email" id="clinicEmail" placeholder="contato@clinicacico.com" required>
+
+            <label for="mainAdminUid">UID do Administrador Principal (Google UID):</label>
+            <input type="text" id="mainAdminUid" placeholder="Insira o UID do Google do admin principal" required>
+
+            <button type="submit">Salvar Configuração da Clínica</button>
+            <p id="configMessage" class="success-message"></p>
+        </form>
+
+        <hr>
+
+        <h2>Gestão de Administradores</h2>
+        <form id="adminForm">
+            <label for="adminUid">UID do Administrador (Google UID):</label>
+            <input type="text" id="adminUid" placeholder="UID do Google" required>
+
+            <label for="adminName">Nome Completo:</label>
+            <input type="text" id="adminName" placeholder="Nome do Administrador" required>
+
+            <label for="adminEmail">E-mail:</label>
+            <input type="email" id="adminEmail" placeholder="email@dominio.com" required>
+
+            <label for="accessLevel">Nível de Acesso:</label>
+            <select id="accessLevel" required>
+                <option value="Administrador Total">Administrador Total</option>
+                <option value="Administrador Parcial">Administrador Parcial</option>
+                <option value="Recepcionista">Recepcionista</option>
+            </select>
+
+            <button type="submit">Adicionar/Atualizar Administrador</button>
+            <p id="adminMessage" class="success-message"></p>
+        </form>
+
+        <h3>Administradores Cadastrados</h3>
+        <ul id="adminList">
+            </ul>
+
+        <hr>
+
+        <h2>Agenda da Clínica</h2>
+        <form id="agendaForm">
+            <label for="agendaClienteUid">UID do Cliente:</label>
+            <input type="text" id="agendaClienteUid" placeholder="UID do Cliente (da coleção Clientes)" required>
+
+            <label for="agendaProfissionalUid">UID do Profissional (Opcional):</label>
+            <input type="text" id="agendaProfissionalUid" placeholder="UID do Profissional (se aplicável)">
+
+            <label for="agendaDateTimeStart">Data e Hora de Início:</label>
+            <input type="datetime-local" id="agendaDateTimeStart" required>
+
+            <label for="agendaDateTimeEnd">Data e Hora de Fim:</label>
+            <input type="datetime-local" id="agendaDateTimeEnd" required>
+
+            <label for="agendaEventType">Tipo de Evento:</label>
+            <select id="agendaEventType" required>
+                <option value="Consulta">Consulta</option>
+                <option value="Sessão de Terapia">Sessão de Terapia</option>
+                <option value="Reunião">Reunião</option>
+                <option value="Procedimento">Procedimento</option>
+            </select>
+
+            <label for="agendaStatus">Status:</label>
+            <select id="agendaStatus" required>
+                <option value="Agendado">Agendado</option>
+                <option value="Confirmado">Confirmado</option>
+                <option value="Cancelado">Cancelado</option>
+                <option value="Realizado">Realizado</option>
+            </select>
+
+            <label for="agendaNotes">Observações:</label>
+            <input type="text" id="agendaNotes" placeholder="Observações do agendamento">
+
+            <button type="submit">Adicionar/Atualizar Agendamento</button>
+            <p id="agendaMessage" class="success-message"></p>
+        </form>
+
+        <h3>Agendamentos Futuros</h3>
+        <ul id="agendaList">
+            </ul>
+    </div>
+
+    <script>
+        // Suas credenciais do Firebase (ATENÇÃO: Mantenha seguras em produção!)
+        const firebaseConfig = {
+            apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0", // Use sua própria chave! /* cite: 79 */
+            authDomain: "wzzm-ce3fc.firebaseapp.com", /* cite: 79 */
+            projectId: "wzzm-ce3fc", /* cite: 79 */
+            storageBucket: "wzzm-ce3fc.appspot.com", /* cite: 79 */
+            messagingSenderId: "249427877153", /* cite: 79 */
+            appId: "1:249427877153:web:0e4297294794a5aadeb260", /* cite: 79 */
+            measurementId: "G-PLKNZNFCQ8" /* cite: 79 */
+        };
+
+        // Inicializa o Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Referências às coleções
+        const clinicRef = db.collection('CentroDeTerapia').doc('configuracao'); // Documento de configuração da clínica
+        const adminsCollection = db.collection('CentroDeTerapia').doc('configuracao').collection('Administradores');
+        const agendaCollection = db.collection('CentroDeTerapia').doc('configuracao').collection('Agenda');
+
+
+        // --- Funções para Configuração da Clínica ---
+        const clinicConfigForm = document.getElementById('clinicConfigForm');
+        const configMessage = document.getElementById('configMessage');
+
+        clinicConfigForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const clinicName = document.getElementById('clinicName').value;
+            const clinicAddress = document.getElementById('clinicAddress').value;
+            const clinicPhone = document.getElementById('clinicPhone').value;
+            const clinicEmail = document.getElementById('clinicEmail').value;
+            const mainAdminUid = document.getElementById('mainAdminUid').value;
+
+            try {
+                await clinicRef.set({
+                    NomeClinica: clinicName,
+                    EnderecoClinica: clinicAddress,
+                    TelefoneClinica: clinicPhone,
+                    EmailClinica: clinicEmail,
+                    UIDAdministradorPrincipal: mainAdminUid
+                });
+                configMessage.textContent = 'Configuração da clínica salva com sucesso!';
+                setTimeout(() => configMessage.textContent = '', 3000);
+            } catch (error) {
+                console.error("Erro ao salvar configuração da clínica: ", error);
+                configMessage.textContent = 'Erro ao salvar configuração: ' + error.message;
+                configMessage.classList.remove('success-message');
+                configMessage.classList.add('error-message');
+            }
+        });
+
+        // Carregar configuração da clínica ao carregar a página
+        async function loadClinicConfig() {
+            try {
+                const doc = await clinicRef.get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    document.getElementById('clinicName').value = data.NomeClinica || '';
+                    document.getElementById('clinicAddress').value = data.EnderecoClinica || '';
+                    document.getElementById('clinicPhone').value = data.TelefoneClinica || '';
+                    document.getElementById('clinicEmail').value = data.EmailClinica || '';
+                    document.getElementById('mainAdminUid').value = data.UIDAdministradorPrincipal || '';
+                } else {
+                    console.log("Nenhuma configuração de clínica encontrada.");
+                }
+            } catch (error) {
+                console.error("Erro ao carregar configuração da clínica: ", error);
+            }
+        }
+
+        // --- Funções para Gestão de Administradores ---
+        const adminForm = document.getElementById('adminForm');
+        const adminList = document.getElementById('adminList');
+        const adminMessage = document.getElementById('adminMessage');
+
+        adminForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const adminUid = document.getElementById('adminUid').value;
+            const adminName = document.getElementById('adminName').value;
+            const adminEmail = document.getElementById('adminEmail').value;
+            const accessLevel = document.getElementById('accessLevel').value;
+
+            try {
+                await adminsCollection.doc(adminUid).set({
+                    NomeCompleto: adminName,
+                    Email: adminEmail,
+                    NivelAcesso: accessLevel,
+                    Ativo: true // Por padrão, o administrador é ativo
+                });
+                adminMessage.textContent = 'Administrador adicionado/atualizado com sucesso!';
+                setTimeout(() => adminMessage.textContent = '', 3000);
+                adminForm.reset();
+            } catch (error) {
+                console.error("Erro ao adicionar/atualizar administrador: ", error);
+                adminMessage.textContent = 'Erro ao salvar administrador: ' + error.message;
+                adminMessage.classList.remove('success-message');
+                adminMessage.classList.add('error-message');
+            }
+        });
+
+        // Listar administradores em tempo real
+        adminsCollection.onSnapshot((snapshot) => {
+            adminList.innerHTML = ''; // Limpa a lista
+            snapshot.forEach((doc) => {
+                const admin = doc.data();
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>
+                        <strong>UID:</strong> ${doc.id} <br>
+                        <strong>Nome:</strong> ${admin.NomeCompleto} <br>
+                        <strong>Email:</strong> ${admin.Email} <br>
+                        <strong>Nível:</strong> ${admin.NivelAcesso}
+                    </span>
+                    <button onclick="deleteAdmin('${doc.id}')">Excluir</button>
+                `;
+                adminList.appendChild(li);
+            });
+        }, (error) => {
+            console.error("Erro ao carregar administradores: ", error);
+        });
+
+        async function deleteAdmin(uid) {
+            if (confirm('Tem certeza que deseja excluir este administrador?')) {
+                try {
+                    await adminsCollection.doc(uid).delete();
+                    alert('Administrador excluído com sucesso!');
+                } catch (error) {
+                    console.error("Erro ao excluir administrador: ", error);
+                    alert('Erro ao excluir administrador: ' + error.message);
+                }
+            }
+        }
+
+        // --- Funções para Gestão da Agenda ---
+        const agendaForm = document.getElementById('agendaForm');
+        const agendaList = document.getElementById('agendaList');
+        const agendaMessage = document.getElementById('agendaMessage');
+
+        agendaForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const uidCliente = document.getElementById('agendaClienteUid').value;
+            const uidProfissional = document.getElementById('agendaProfissionalUid').value;
+            const dateTimeStart = new Date(document.getElementById('agendaDateTimeStart').value);
+            const dateTimeEnd = new Date(document.getElementById('agendaDateTimeEnd').value);
+            const eventType = document.getElementById('agendaEventType').value;
+            const status = document.getElementById('agendaStatus').value;
+            const notes = document.getElementById('agendaNotes').value;
+
+            try {
+                // Para criar um novo documento com UID automático
+                await agendaCollection.add({
+                    UIDCliente: uidCliente,
+                    UIDProfissional: uidProfissional || null, // Permite nulo se não houver profissional
+                    DataHoraInicio: firebase.firestore.Timestamp.fromDate(dateTimeStart),
+                    DataHoraFim: firebase.firestore.Timestamp.fromDate(dateTimeEnd),
+                    TipoEvento: eventType,
+                    Status: status,
+                    Observacoes: notes || null
+                });
+                agendaMessage.textContent = 'Agendamento adicionado/atualizado com sucesso!';
+                setTimeout(() => agendaMessage.textContent = '', 3000);
+                agendaForm.reset();
+            } catch (error) {
+                console.error("Erro ao adicionar/atualizar agendamento: ", error);
+                agendaMessage.textContent = 'Erro ao salvar agendamento: ' + error.message;
+                agendaMessage.classList.remove('success-message');
+                agendaMessage.classList.add('error-message');
+            }
+        });
+
+        // Listar agendamentos futuros em tempo real
+        agendaCollection.where('DataHoraFim', '>=', firebase.firestore.Timestamp.now())
+                        .orderBy('DataHoraFim', 'asc') // Ordena por data e hora de término para agendamentos futuros
+                        .onSnapshot((snapshot) => {
+            agendaList.innerHTML = ''; // Limpa a lista
+            snapshot.forEach((doc) => {
+                const agenda = doc.data();
+                const li = document.createElement('li');
+                const startDate = agenda.DataHoraInicio.toDate().toLocaleString('pt-BR');
+                const endDate = agenda.DataHoraFim.toDate().toLocaleString('pt-BR');
+                li.innerHTML = `
+                    <span>
+                        <strong>Evento:</strong> ${agenda.TipoEvento} <br>
+                        <strong>Cliente UID:</strong> ${agenda.UIDCliente} <br>
+                        <strong>Profissional UID:</strong> ${agenda.UIDProfissional || 'N/A'} <br>
+                        <strong>Início:</strong> ${startDate} <br>
+                        <strong>Fim:</strong> ${endDate} <br>
+                        <strong>Status:</strong> ${agenda.Status} <br>
+                        <strong>Obs:</strong> ${agenda.Observacoes || 'N/A'}
+                    </span>
+                    <button onclick="deleteAppointment('${doc.id}')">Excluir</button>
+                    `;
+                agendaList.appendChild(li);
+            });
+        }, (error) => {
+            console.error("Erro ao carregar agenda: ", error);
+        });
+
+        async function deleteAppointment(uid) {
+            if (confirm('Tem certeza que deseja excluir este agendamento?')) {
+                try {
+                    await agendaCollection.doc(uid).delete();
+                    alert('Agendamento excluído com sucesso!');
+                } catch (error) {
+                    console.error("Erro ao excluir agendamento: ", error);
+                    alert('Erro ao excluir agendamento: ' + error.message);
+                }
+            }
+        }
+
+
+        // Carregar configurações iniciais ao carregar a página
+        document.addEventListener('DOMContentLoaded', () => {
+            loadClinicConfig();
+        });
+
+    </script>
+</body>
+</html>
