@@ -3,47 +3,266 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastro de Cliente Firebase</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Configurações Firebase Firestore</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: 30px auto;
+        }
+        h1, h2 {
+            color: #0056b3;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input[type="text"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
 </head>
 <body>
+
     <div class="container">
-        <h1>Cadastrar Configurações do Cliente</h1>
-        
-        <form id="clientForm">
-            <p>UID do Cliente Google Logado: <strong id="loggedInUserUID">Carregando...</strong></p>
+        <h1>Teste de Configurações Firebase</h1>
+
+        <div id="auth-status">
+            <p>Status de Autenticação: <span id="user-status">Deslogado</span></p>
+            <p>UID do Usuário: <span id="user-uid">N/A</span></p>
+            <p>E-mail Verificado: <span id="email-verified">N/A</span></p>
+            <button id="loginButton">Login com Google</button>
+            <button id="logoutButton" style="display: none;">Sair</button>
+        </div>
+
+        <hr>
+
+        <h2>Salvar Configurações (Coleção 'cliente')</h2>
+        <form id="configForm">
+            <p>Aqui você pode simular o salvamento de configurações do aplicativo no Firestore.</p>
+            <p>O `apiKey` é apenas um exemplo de campo para as configurações dinâmicas.</p>
 
             <label for="apiKey">API Key:</label>
-            <input type="text" id="apiKey" name="apiKey" required>
+            <input type="text" id="apiKey" value="SUA_API_KEY_AQUI" required>
 
             <label for="authDomain">Auth Domain:</label>
-            <input type="text" id="authDomain" name="authDomain" required>
+            <input type="text" id="authDomain" value="SEU_AUTH_DOMAIN_AQUI" required>
 
             <label for="projectId">Project ID:</label>
-            <input type="text" id="projectId" name="projectId" required>
-
-            <label for="storageBucket">Storage Bucket:</label>
-            <input type="text" id="storageBucket" name="storageBucket" required>
-
-            <label for="messagingSenderId">Messaging Sender ID:</label>
-            <input type="text" id="messagingSenderId" name="messagingSenderId" required>
-
-            <label for="appId">App ID:</label>
-            <input type="text" id="appId" name="appId" required>
-
-            <label for="measurementId">Measurement ID:</label>
-            <input type="text" id="measurementId" name="measurementId" required>
-
-            <button type="submit">Salvar Configurações</button>
+            <input type="text" id="projectId" value="SEU_PROJECT_ID_AQUI" required>
+            
+            <button type="submit" id="saveButton" disabled>Salvar Configurações</button>
         </form>
 
-        <p id="message" class="message"></p>
+        <div id="message" class="message" style="display: none;"></div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-    
-    <script src="script.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore-compat.js"></script>
+
+    <script>
+        // Suas configurações do projeto Firebase
+        const firebaseConfig = {
+            apiKey: "SUA_API_KEY_DO_FIREBASE",
+            authDomain: "SEU_AUTH_DOMAIN_DO_FIREBASE",
+            projectId: "SEU_PROJECT_ID_DO_FIREBASE",
+            storageBucket: "SEU_STORAGE_BUCKET_DO_FIREBASE",
+            messagingSenderId: "SEU_MESSAGING_SENDER_ID_DO_FIREBASE",
+            appId: "SEU_APP_ID_DO_FIREBASE",
+            measurementId: "SEU_MEASUREMENT_ID_DO_FIREBASE" // Opcional
+        };
+
+        // Inicialize o Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Obtenha instâncias dos serviços
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+        // Referências aos elementos HTML
+        const userStatusSpan = document.getElementById('user-status');
+        const userUidSpan = document.getElementById('user-uid');
+        const emailVerifiedSpan = document.getElementById('email-verified');
+        const loginButton = document.getElementById('loginButton');
+        const logoutButton = document.getElementById('logoutButton');
+        const saveButton = document.getElementById('saveButton');
+        const configForm = document.getElementById('configForm');
+        const messageDiv = document.getElementById('message');
+
+        let currentUserUID = null; // Armazena o UID do usuário logado
+
+        // --- Funções de UI ---
+        function updateUI(user) {
+            if (user) {
+                userStatusSpan.textContent = 'Logado';
+                userUidSpan.textContent = user.uid;
+                emailVerifiedSpan.textContent = user.emailVerified ? 'Sim' : 'Não (Verifique seu e-mail!)';
+                loginButton.style.display = 'none';
+                logoutButton.style.display = 'inline-block';
+                // Habilita o botão de salvar SOMENTE se o e-mail estiver verificado
+                saveButton.disabled = !user.emailVerified; 
+            } else {
+                userStatusSpan.textContent = 'Deslogado';
+                userUidSpan.textContent = 'N/A';
+                emailVerifiedSpan.textContent = 'N/A';
+                loginButton.style.display = 'inline-block';
+                logoutButton.style.display = 'none';
+                saveButton.disabled = true;
+            }
+        }
+
+        function showMessage(msg, type) {
+            messageDiv.textContent = msg;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000); // Esconde a mensagem após 5 segundos
+        }
+
+        // --- Funções de Autenticação ---
+
+        // Lida com o resultado do redirecionamento de login
+        auth.getRedirectResult().then((result) => {
+            if (result.credential) {
+                // Aqui você pode acessar o token de acesso do Google, se precisar.
+                // const token = result.credential.accessToken;
+            }
+            if (result.user) {
+                // O usuário foi logado via redirecionamento
+                console.log("Usuário logado via redirecionamento:", result.user.uid);
+                updateUI(result.user);
+                currentUserUID = result.user.uid;
+                // Não chame salvarConfiguracoes aqui automaticamente,
+                // pois o usuário pode não querer salvar ao retornar do login.
+                // A ação de salvar deve ser disparada pelo botão "Salvar Configurações".
+            }
+        }).catch((error) => {
+            console.error("Erro no redirecionamento ou autenticação:", error);
+            showMessage(`Erro de autenticação: ${error.message}`, 'error');
+            updateUI(null);
+        });
+
+        // Observa o estado de autenticação (usado para login inicial ou logout)
+        auth.onAuthStateChanged((user) => {
+            updateUI(user);
+            if (user) {
+                currentUserUID = user.uid;
+            } else {
+                currentUserUID = null;
+            }
+        });
+
+        loginButton.addEventListener('click', () => {
+            auth.signInWithRedirect(googleProvider)
+                .catch((error) => {
+                    console.error("Erro ao iniciar login com Google:", error);
+                    showMessage(`Erro ao logar: ${error.message}`, 'error');
+                });
+        });
+
+        logoutButton.addEventListener('click', () => {
+            auth.signOut().then(() => {
+                console.log("Usuário deslogado.");
+                showMessage('Você foi desconectado.', 'success');
+                updateUI(null);
+            }).catch((error) => {
+                console.error("Erro ao fazer logout:", error);
+                showMessage(`Erro ao fazer logout: ${error.message}`, 'error');
+            });
+        });
+
+        // --- Função para Salvar Configurações no Firestore ---
+        configForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); // Impede o recarregamento da página
+
+            if (!currentUserUID) {
+                showMessage('Você precisa estar logado para salvar configurações.', 'error');
+                console.error("Tentativa de salvar sem usuário logado.");
+                return;
+            }
+
+            // Certifique-se de que o e-mail do usuário está verificado antes de tentar salvar
+            if (!auth.currentUser || !auth.currentUser.emailVerified) {
+                showMessage('Seu e-mail precisa ser verificado para salvar configurações. Verifique sua caixa de entrada.', 'error');
+                console.error("Tentativa de salvar com e-mail não verificado.");
+                return;
+            }
+
+            const formData = {
+                apiKey: document.getElementById('apiKey').value,
+                authDomain: document.getElementById('authDomain').value,
+                projectId: document.getElementById('projectId').value,
+                // Adicione outros campos do seu formulário aqui
+                // Este campo 'userUID' é CRUCIAL e deve corresponder ao UID do usuário logado
+                userUID: currentUserUID
+            };
+
+            try {
+                // O ID do documento na coleção 'cliente' é o próprio UID do usuário
+                await db.collection('cliente').doc(currentUserUID).set(formData);
+                showMessage('Configurações salvas com sucesso!', 'success');
+                console.log('Configurações salvas:', formData);
+            } catch (error) {
+                console.error('Erro ao salvar configurações:', error);
+                // Exibe o erro específico de permissão
+                if (error.code === 'permission-denied') {
+                    showMessage('Erro de permissão: Você não tem autorização para salvar estas configurações. Verifique suas regras de segurança ou se seu e-mail foi verificado.', 'error');
+                } else {
+                    showMessage(`Erro ao salvar configurações: ${error.message}`, 'error');
+                }
+            }
+        });
+
+    </script>
 </body>
 </html>
