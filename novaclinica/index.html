@@ -1,146 +1,49 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Salvar Dados Firebase no Firestore</title>
-    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
-    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
-    <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background-color: #f5f5f5;
-            margin: 0;
-        }
-        .container {
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            text-align: center;
-            max-width: 500px;
-            width: 90%;
-        }
-        h2 {
-            color: #3f51b5;
-            margin-bottom: 20px;
-        }
-        button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            background-color: #4CAF50;
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        #statusMessage {
-            margin-top: 20px;
-            font-weight: bold;
-            color: #333;
-        }
-        .error {
-            color: #f44336;
-        }
-        .success {
-            color: #4CAF50;
-        }
-    </style>
+    <title>Cadastro de Cliente Firebase</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h2>Salvar Configurações e UID no Firestore</h2>
-        <p>Clique no botão para salvar os dados da configuração do Firebase e o UID do usuário logado (se houver) na coleção "cliente" do Firestore.</p>
-        <button id="saveDataButton" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">Salvar Dados</button>
-        <div id="statusMessage"></div>
+        <h1>Cadastrar Configurações do Cliente</h1>
+        
+        <form id="clientForm">
+            <p>UID do Cliente Google Logado: <strong id="loggedInUserUID">Carregando...</strong></p>
+
+            <label for="apiKey">API Key:</label>
+            <input type="text" id="apiKey" name="apiKey" required>
+
+            <label for="authDomain">Auth Domain:</label>
+            <input type="text" id="authDomain" name="authDomain" required>
+
+            <label for="projectId">Project ID:</label>
+            <input type="text" id="projectId" name="projectId" required>
+
+            <label for="storageBucket">Storage Bucket:</label>
+            <input type="text" id="storageBucket" name="storageBucket" required>
+
+            <label for="messagingSenderId">Messaging Sender ID:</label>
+            <input type="text" id="messagingSenderId" name="messagingSenderId" required>
+
+            <label for="appId">App ID:</label>
+            <input type="text" id="appId" name="appId" required>
+
+            <label for="measurementId">Measurement ID:</label>
+            <input type="text" id="measurementId" name="measurementId" required>
+
+            <button type="submit">Salvar Configurações</button>
+        </form>
+
+        <p id="message" class="message"></p>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-analytics-compat.js"></script>
-
-    <script>
-        // --- Firebase Configuration ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0", // Your API Key
-            authDomain: "wzzm-ce3fc.firebaseapp.com",
-            projectId: "wzzm-ce3fc",
-            storageBucket: "wzzm-ce3fc.appspot.com",
-            messagingSenderId: "249427877153",
-            appId: "1:249427877153:web:0e4297294794a5aadeb260",
-            measurementId: "G-PLKNZNFCQ8"
-        };
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-
-        // Get elements
-        const saveDataButton = document.getElementById('saveDataButton');
-        const statusMessage = document.getElementById('statusMessage');
-
-        saveDataButton.addEventListener('click', async () => {
-            statusMessage.textContent = 'Salvando dados...';
-            statusMessage.className = ''; // Clear previous classes
-
-            let uid = null;
-            // Check if a user is logged in
-            if (auth.currentUser) {
-                uid = auth.currentUser.uid;
-                console.log("Usuário logado. UID:", uid);
-            } else {
-                console.log("Nenhum usuário logado. UID será nulo.");
-                statusMessage.textContent = 'Nenhum usuário logado. Apenas os dados de configuração serão salvos. Por favor, faça login com o Google primeiro.';
-                statusMessage.className = 'error';
-                // Optionally, you might want to prompt for login here
-                // For this example, we'll proceed to save without a UID
-            }
-
-            const dataToSave = {
-                authDomain: firebaseConfig.authDomain,
-                projectId: firebaseConfig.projectId,
-                storageBucket: firebaseConfig.storageBucket,
-                messagingSenderId: firebaseConfig.messagingSenderId,
-                appId: firebaseConfig.appId,
-                measurementId: firebaseConfig.measurementId,
-                userUID: uid, // Will be null if no user is logged in
-                timestamp: firebase.firestore.FieldValue.serverTimestamp() // Adds a server-generated timestamp
-            };
-
-            try {
-                // Add a new document to the "cliente" collection
-                // Using add() will create a new document with an auto-generated ID
-                await db.collection("cliente").add(dataToSave);
-                statusMessage.textContent = 'Dados salvos com sucesso no Firestore!';
-                statusMessage.className = 'success';
-                console.log("Dados salvos:", dataToSave);
-            } catch (error) {
-                statusMessage.textContent = `Erro ao salvar dados: ${error.message}`;
-                statusMessage.className = 'error';
-                console.error("Erro ao salvar dados:", error);
-            }
-        });
-
-        // Optional: Listen for auth state changes to update the UID dynamically
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                console.log("Estado de autenticação alterado: Usuário logado com UID:", user.uid);
-                // You could update the UI here to show the logged-in user
-            } else {
-                console.log("Estado de autenticação alterado: Nenhum usuário logado.");
-            }
-        });
-    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    
+    <script src="script.js"></script>
 </body>
 </html>
