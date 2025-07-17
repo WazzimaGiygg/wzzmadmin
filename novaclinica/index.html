@@ -1,268 +1,249 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Configurações Firebase Firestore</title>
+    <title>Configurações Firebase - WZZM Admin</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f4f4f4;
-            color: #333;
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
         }
         .container {
-            background-color: #fff;
+            max-width: 800px;
+            margin: 20px auto;
             padding: 30px;
+            background-color: #ffffff;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
-            margin: 30px auto;
+            box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12);
         }
-        h1, h2 {
-            color: #0056b3;
+        h2 {
+            color: #3f51b5;
+            margin-bottom: 25px;
+            text-align: center;
         }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
+        .mdl-textfield {
+            width: 100%;
+            margin-bottom: 20px;
         }
-        input[type="text"] {
-            width: calc(100% - 20px);
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        button {
-            background-color: #007bff;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-right: 10px;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
-        .message {
+        .mdl-button {
             margin-top: 20px;
-            padding: 10px;
-            border-radius: 4px;
+            width: 100%;
         }
-        .message.success {
+        .message-box {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-align: center;
+            display: none; /* Escondido por padrão */
+        }
+        .message-box.success {
             background-color: #d4edda;
             color: #155724;
             border: 1px solid #c3e6cb;
         }
-        .message.error {
+        .message-box.error {
             background-color: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
+        textarea {
+            resize: vertical; /* Permite redimensionar verticalmente */
+            min-height: 100px; /* Altura mínima para a descrição */
+        }
     </style>
 </head>
 <body>
-
     <div class="container">
-        <h1>Teste de Configurações Firebase</h1>
+        <h2>Registrar Configurações Firebase</h2>
 
-        <div id="auth-status">
-            <p>Status de Autenticação: <span id="user-status">Deslogado</span></p>
-            <p>UID do Usuário: <span id="user-uid">N/A</span></p>
-            <p>E-mail Verificado: <span id="email-verified">N/A</span></p>
-            <button id="loginButton">Login com Google</button>
-            <button id="logoutButton" style="display: none;">Sair</button>
-        </div>
+        <form id="firebase-config-form">
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="text" id="api-key-input" required>
+                <label class="mdl-textfield__label" for="api-key-input">API Key</label>
+            </div>
 
-        <hr>
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="text" id="auth-domain-input" required>
+                <label class="mdl-textfield__label" for="auth-domain-input">Auth Domain</label>
+            </div>
 
-        <h2>Salvar Configurações (Coleção 'cliente')</h2>
-        <form id="configForm">
-            <p>Aqui você pode simular o salvamento de configurações do aplicativo no Firestore.</p>
-            <p>O `apiKey` é apenas um exemplo de campo para as configurações dinâmicas.</p>
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="text" id="project-id-input" required>
+                <label class="mdl-textfield__label" for="project-id-input">Project ID</label>
+            </div>
 
-            <label for="apiKey">API Key:</label>
-            <input type="text" id="apiKey" value="SUA_API_KEY_AQUI" required>
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="text" id="storage-bucket-input">
+                <label class="mdl-textfield__label" for="storage-bucket-input">Storage Bucket (Opcional)</label>
+            </div>
 
-            <label for="authDomain">Auth Domain:</label>
-            <input type="text" id="authDomain" value="SEU_AUTH_DOMAIN_AQUI" required>
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="text" id="messaging-sender-id-input">
+                <label class="mdl-textfield__label" for="messaging-sender-id-input">Messaging Sender ID (Opcional)</label>
+            </div>
 
-            <label for="projectId">Project ID:</label>
-            <input type="text" id="projectId" value="SEU_PROJECT_ID_AQUI" required>
-            
-            <button type="submit" id="saveButton" disabled>Salvar Configurações</button>
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="text" id="app-id-input">
+                <label class="mdl-textfield__label" for="app-id-input">App ID (Opcional)</label>
+            </div>
+
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="text" id="measurement-id-input">
+                <label class="mdl-textfield__label" for="measurement-id-input">Measurement ID (Opcional)</label>
+            </div>
+
+            <button type="submit" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                <i class="material-icons">save</i> Salvar Configurações
+            </button>
         </form>
 
-        <div id="message" class="message" style="display: none;"></div>
+        <div id="message-box" class="message-box"></div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore-compat.js"></script>
+    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-analytics-compat.js"></script>
 
     <script>
-        // Suas configurações do projeto Firebase
+        // --- Configuração do Firebase (REPETIR AQUI OU PASSAR POR POSTMESSAGE SE ESTIVER EM DOMÍNIOS DIFERENTES) ---
+        // É importante que o `register-material.html` tenha acesso à configuração do Firebase.
+        // Se este arquivo for servido do mesmo domínio do index.html, você pode reutilizar a config.
+        // Caso contrário, ou se houver um problema de CORS, a configuração precisa estar aqui.
         const firebaseConfig = {
-            apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0", // Use sua própria chave! /* cite: 79 */
-            authDomain: "wzzm-ce3fc.firebaseapp.com", /* cite: 79 */
-            projectId: "wzzm-ce3fc", /* cite: 79 */
-            storageBucket: "wzzm-ce3fc.appspot.com", /* cite: 79 */
-            messagingSenderId: "249427877153", /* cite: 79 */
-            appId: "1:249427877153:web:0e4297294794a5aadeb260", /* cite: 79 */
-            measurementId: "G-PLKNZNFCQ8" /* cite: 79 */
+            apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0", // Use sua própria chave!
+            authDomain: "wzzm-ce3fc.firebaseapp.com",
+            projectId: "wzzm-ce3fc",
+            storageBucket: "wzzm-ce3fc.appspot.com",
+            messagingSenderId: "249427877153",
+            appId: "1:249427877153:web:0e4297294794a5aadeb260",
+            measurementId: "G-PLKNZNFCQ8"
         };
 
-        // Inicialize o Firebase
-        firebase.initializeApp(firebaseConfig);
-
-        // Obtenha instâncias dos serviços
+        // Inicialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
-        const db = firebase.firestore();
-        const googleProvider = new firebase.auth.GoogleAuthProvider();
+        const firestore = firebase.firestore();
 
-        // Referências aos elementos HTML
-        const userStatusSpan = document.getElementById('user-status');
-        const userUidSpan = document.getElementById('user-uid');
-        const emailVerifiedSpan = document.getElementById('email-verified');
-        const loginButton = document.getElementById('loginButton');
-        const logoutButton = document.getElementById('logoutButton');
-        const saveButton = document.getElementById('saveButton');
-        const configForm = document.getElementById('configForm');
-        const messageDiv = document.getElementById('message');
+        // Referências aos elementos do formulário e mensagem
+        const firebaseConfigForm = document.getElementById('firebase-config-form');
+        const apiKeyInput = document.getElementById('api-key-input');
+        const authDomainInput = document.getElementById('auth-domain-input');
+        const projectIdInput = document.getElementById('project-id-input');
+        const storageBucketInput = document.getElementById('storage-bucket-input');
+        const messagingSenderIdInput = document.getElementById('messaging-sender-id-input');
+        const appIdInput = document.getElementById('app-id-input');
+        const measurementIdInput = document.getElementById('measurement-id-input');
+        const messageBox = document.getElementById('message-box');
 
-        let currentUserUID = null; // Armazena o UID do usuário logado
-
-        // --- Funções de UI ---
-        function updateUI(user) {
-            if (user) {
-                userStatusSpan.textContent = 'Logado';
-                userUidSpan.textContent = user.uid;
-                emailVerifiedSpan.textContent = user.emailVerified ? 'Sim' : 'Não (Verifique seu e-mail!)';
-                loginButton.style.display = 'none';
-                logoutButton.style.display = 'inline-block';
-                // Habilita o botão de salvar SOMENTE se o e-mail estiver verificado
-                saveButton.disabled = !user.emailVerified; 
-            } else {
-                userStatusSpan.textContent = 'Deslogado';
-                userUidSpan.textContent = 'N/A';
-                emailVerifiedSpan.textContent = 'N/A';
-                loginButton.style.display = 'inline-block';
-                logoutButton.style.display = 'none';
-                saveButton.disabled = true;
-            }
-        }
-
+        // Função para exibir mensagens
         function showMessage(msg, type) {
-            messageDiv.textContent = msg;
-            messageDiv.className = `message ${type}`;
-            messageDiv.style.display = 'block';
+            messageBox.textContent = msg;
+            messageBox.className = 'message-box ' + type; // Adiciona a classe success ou error
+            messageBox.style.display = 'block';
             setTimeout(() => {
-                messageDiv.style.display = 'none';
+                messageBox.style.display = 'none';
             }, 5000); // Esconde a mensagem após 5 segundos
         }
 
-        // --- Funções de Autenticação ---
+        // Lidar com o envio do formulário
+        firebaseConfigForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); // Impede o envio padrão do formulário
 
-        // Lida com o resultado do redirecionamento de login
-        auth.getRedirectResult().then((result) => {
-            if (result.credential) {
-                // Aqui você pode acessar o token de acesso do Google, se precisar.
-                // const token = result.credential.accessToken;
-            }
-            if (result.user) {
-                // O usuário foi logado via redirecionamento
-                console.log("Usuário logado via redirecionamento:", result.user.uid);
-                updateUI(result.user);
-                currentUserUID = result.user.uid;
-                // Não chame salvarConfiguracoes aqui automaticamente,
-                // pois o usuário pode não querer salvar ao retornar do login.
-                // A ação de salvar deve ser disparada pelo botão "Salvar Configurações".
-            }
-        }).catch((error) => {
-            console.error("Erro no redirecionamento ou autenticação:", error);
-            showMessage(`Erro de autenticação: ${error.message}`, 'error');
-            updateUI(null);
-        });
-
-        // Observa o estado de autenticação (usado para login inicial ou logout)
-        auth.onAuthStateChanged((user) => {
-            updateUI(user);
-            if (user) {
-                currentUserUID = user.uid;
-            } else {
-                currentUserUID = null;
-            }
-        });
-
-        loginButton.addEventListener('click', () => {
-            auth.signInWithRedirect(googleProvider)
-                .catch((error) => {
-                    console.error("Erro ao iniciar login com Google:", error);
-                    showMessage(`Erro ao logar: ${error.message}`, 'error');
-                });
-        });
-
-        logoutButton.addEventListener('click', () => {
-            auth.signOut().then(() => {
-                console.log("Usuário deslogado.");
-                showMessage('Você foi desconectado.', 'success');
-                updateUI(null);
-            }).catch((error) => {
-                console.error("Erro ao fazer logout:", error);
-                showMessage(`Erro ao fazer logout: ${error.message}`, 'error');
-            });
-        });
-
-        // --- Função para Salvar Configurações no Firestore ---
-        configForm.addEventListener('submit', async (e) => {
-            e.preventDefault(); // Impede o recarregamento da página
-
-            if (!currentUserUID) {
-                showMessage('Você precisa estar logado para salvar configurações.', 'error');
-                console.error("Tentativa de salvar sem usuário logado.");
+            const currentUser = auth.currentUser;
+            if (!currentUser) {
+                showMessage('Você precisa estar logado para registrar configurações.', 'error');
                 return;
             }
 
-            // Certifique-se de que o e-mail do usuário está verificado antes de tentar salvar
-            if (!auth.currentUser || !auth.currentUser.emailVerified) {
-                showMessage('Seu e-mail precisa ser verificado para salvar configurações. Verifique sua caixa de entrada.', 'error');
-                console.error("Tentativa de salvar com e-mail não verificado.");
+            // Opcional: Verificar permissão de administrador novamente (bom para redundância)
+            // Para maior segurança, você pode buscar o perfil do usuário aqui e verificar isAdmin.
+            // Ex:
+            // const userProfile = await firestore.collection('users').doc(currentUser.uid).get();
+            // if (!userProfile.exists || !userProfile.data().isAdmin) {
+            //     showMessage('Você não tem permissão para registrar configurações.', 'error');
+            //     return;
+            // }
+
+            const apiKey = apiKeyInput.value.trim();
+            const authDomain = authDomainInput.value.trim();
+            const projectId = projectIdInput.value.trim();
+            const storageBucket = storageBucketInput.value.trim();
+            const messagingSenderId = messagingSenderIdInput.value.trim();
+            const appId = appIdInput.value.trim();
+            const measurementId = measurementIdInput.value.trim();
+
+            if (!apiKey || !authDomain || !projectId) {
+                showMessage('Por favor, preencha os campos obrigatórios (API Key, Auth Domain, Project ID).', 'error');
                 return;
             }
-
-            const formData = {
-                apiKey: document.getElementById('apiKey').value,
-                authDomain: document.getElementById('authDomain').value,
-                projectId: document.getElementById('projectId').value,
-                // Adicione outros campos do seu formulário aqui
-                // Este campo 'userUID' é CRUCIAL e deve corresponder ao UID do usuário logado
-                userUID: currentUserUID
-            };
 
             try {
-                // O ID do documento na coleção 'cliente' é o próprio UID do usuário
-                await db.collection('cliente').doc(currentUserUID).set(formData);
-                showMessage('Configurações salvas com sucesso!', 'success');
-                console.log('Configurações salvas:', formData);
+                // Adicionar um novo documento à coleção 'firebaseConfigs' no Firestore
+                // Note que estou usando 'firebaseConfigs' como nome da coleção, 
+                // pois 'client' pode não ser claro para o que está sendo armazenado.
+                // Além disso, estou usando `set` com um UID fixo ('defaultConfig' ou `currentUser.uid`)
+                // para garantir que haja apenas um conjunto de configurações ou que sejam por usuário.
+                // Se você quer várias configs, use `.add()` sem o doc().
+                
+                // Opção 1: Salvar uma única configuração global (mais comum para admins)
+                // Você pode usar um ID de documento fixo, como 'global' ou 'mainConfig'
+                await firestore.collection('firebaseConfigs').doc('mainConfig').set({
+                    apiKey: apiKey,
+                    authDomain: authDomain,
+                    projectId: projectId,
+                    storageBucket: storageBucket,
+                    messagingSenderId: messagingSenderId,
+                    appId: appId,
+                    measurementId: measurementId,
+                    lastUpdatedBy: currentUser.email, // Quem atualizou por último
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // Opção 2: Salvar uma configuração por usuário (se cada admin puder ter a sua)
+                // await firestore.collection('firebaseConfigs').doc(currentUser.uid).set({
+                //     apiKey: apiKey,
+                //     authDomain: authDomain,
+                //     projectId: projectId,
+                //     storageBucket: storageBucket,
+                //     messagingSenderId: messagingSenderId,
+                //     appId: appId,
+                //     measurementId: measurementId,
+                //     lastUpdatedBy: currentUser.email,
+                //     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                // });
+
+
+                showMessage('Configurações Firebase registradas com sucesso!', 'success');
+                firebaseConfigForm.reset(); // Limpa o formulário
+                // Se estiver usando MDL, pode precisar "resetar" os textfields para que as labels voltem ao lugar
+                apiKeyInput.parentElement.MaterialTextfield.change();
+                authDomainInput.parentElement.MaterialTextfield.change();
+                projectIdInput.parentElement.MaterialTextfield.change();
+                storageBucketInput.parentElement.MaterialTextfield.change();
+                messagingSenderIdInput.parentElement.MaterialTextfield.change();
+                appIdInput.parentElement.MaterialTextfield.change();
+                measurementIdInput.parentElement.MaterialTextfield.change();
+
             } catch (error) {
-                console.error('Erro ao salvar configurações:', error);
-                // Exibe o erro específico de permissão
-                if (error.code === 'permission-denied') {
-                    showMessage('Erro de permissão: Você não tem autorização para salvar estas configurações. Verifique suas regras de segurança ou se seu e-mail foi verificado.', 'error');
-                } else {
-                    showMessage(`Erro ao salvar configurações: ${error.message}`, 'error');
-                }
+                console.error("Erro ao registrar configurações:", error);
+                showMessage(`Erro ao registrar configurações: ${error.message}`, 'error');
             }
         });
 
+        // Inicialização do MDL (importante para que os componentes se renderizem corretamente)
+        document.addEventListener('DOMContentLoaded', () => {
+            if (componentHandler) {
+                componentHandler.upgradeDom();
+            }
+        });
     </script>
 </body>
 </html>
