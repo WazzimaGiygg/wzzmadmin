@@ -190,7 +190,7 @@
             messageElement.textContent = ''; // Clear previous messages
 
             try {
-                const userDocRef = db.collection('users').doc(user.uid);
+                const userDocRef = db.collection('user').doc(user.uid);
                 const doc = await userDocRef.get();
 
                 if (doc.exists) {
@@ -244,7 +244,7 @@
                     lastLoginAt: firebase.firestore.FieldValue.serverTimestamp() // Atualiza o timestamp de login
                 };
 
-                await db.collection('users').doc(currentUser.uid).update(updatedData);
+                await db.collection('user').doc(currentUser.uid).update(updatedData);
 
                 showMessage('Perfil atualizado com sucesso!', 'success');
                 // Opcional: Atualizar o perfil do Firebase Authentication também
