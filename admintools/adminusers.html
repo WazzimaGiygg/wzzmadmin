@@ -185,44 +185,44 @@
 
         // Função para carregar os dados do perfil do Firestore
         async function loadUserProfile(user) {
-            loadingSpinner.style.display = 'block';
-            profileForm.style.display = 'none';
-            messageElement.textContent = ''; // Clear previous messages
+    loadingSpinner.style.display = 'block';
+    profileForm.style.display = 'none';
+    messageElement.textContent = ''; // Limpa mensagens anteriores
 
-            try {
-                const userDocRef = db.collection('user').doc(user.uid);
-                const doc = await userDocRef.get();
+    try {
+        // AQUI: Você está acessando a coleção 'users' e o documento com o UID do usuário
+        const userDocRef = db.collection('users').doc(user.uid);
+        const doc = await userDocRef.get(); // Obtém o documento
 
-                if (doc.exists) {
-                    const userData = doc.data();
-                    userNameInput.value = userData.name || '';
-                    profilePictureUrlInput.value = userData.profilePictureUrl || '';
-                    userEmailInput.value = user.email || ''; // Email vem do Auth, não do Firestore doc
-                    showMessage('Dados do perfil carregados!', 'success');
-                } else {
-                    // Se o documento do usuário não existir no Firestore,
-                    // podemos inicializá-lo com dados básicos do Auth.
-                    userNameInput.value = user.displayName || '';
-                    profilePictureUrlInput.value = user.photoURL || '';
-                    userEmailInput.value = user.email || '';
-                    await userDocRef.set({
-                        name: user.displayName || '',
-                        email: user.email,
-                        profilePictureUrl: user.photoURL || '',
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        lastLoginAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        // Adicione outros campos padrão se necessário
-                    }, { merge: true }); // Use merge: true para não sobrescrever outros campos se já existirem
-                    showMessage('Documento do perfil criado no Firestore!', 'success');
-                }
-            } catch (error) {
-                console.error("Erro ao carregar/criar perfil:", error);
-                showMessage(`Erro ao carregar perfil: ${error.message}`, 'error');
-            } finally {
-                loadingSpinner.style.display = 'none';
-                profileForm.style.display = 'block';
-            }
+        if (doc.exists) {
+            const userData = doc.data(); // Pega todos os dados do documento
+            userNameInput.value = userData.name || ''; // Preenche o campo 'name'
+            profilePictureUrlInput.value = userData.profilePictureUrl || ''; // Preenche o campo 'profilePictureUrl'
+            userEmailInput.value = user.email || ''; // Email vem do Auth, não do Firestore doc diretamente
+            showMessage('Dados do perfil carregados!', 'success');
+        } else {
+            // Se o documento do usuário não existir no Firestore,
+            // ele o inicializa com dados básicos do Auth.
+            userNameInput.value = user.displayName || '';
+            profilePictureUrlInput.value = user.photoURL || '';
+            userEmailInput.value = user.email || '';
+            await userDocRef.set({
+                name: user.displayName || '',
+                email: user.email,
+                profilePictureUrl: user.photoURL || '',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                lastLoginAt: firebase.firestore.FieldValue.serverTimestamp(),
+            }, { merge: true });
+            showMessage('Documento do perfil criado no Firestore!', 'success');
         }
+    } catch (error) {
+        console.error("Erro ao carregar/criar perfil:", error);
+        showMessage(`Erro ao carregar perfil: ${error.message}`, 'error');
+    } finally {
+        loadingSpinner.style.display = 'none';
+        profileForm.style.display = 'block';
+    }
+}
 
         // Função para salvar os dados do perfil no Firestore
         profileForm.addEventListener('submit', async (e) => {
@@ -263,14 +263,14 @@
         });
 
         // Listener para o status de autenticação
-        auth.onAuthStateChanged(async (user) => {
-            if (user) {
-                currentUser = user;
-                authStatusElement.textContent = `Logado como: ${user.email}`;
-                signInBtn.style.display = 'none';
-                signOutBtn.style.display = 'block';
-                await loadUserProfile(user); // Carrega os dados do Firestore
-            } else {
+auth.onAuthStateChanged(async (user) => {
+    if (user) {
+        currentUser = user;
+        authStatusElement.textContent = `Logado como: ${user.email}`;
+        signInBtn.style.display = 'none';
+        signOutBtn.style.display = 'block';
+        await loadUserProfile(user); // ESTA LINHA CHAMA A FUNÇÃO QUE IMPORTA OS DADOS
+    } else {
                 currentUser = null;
                 authStatusElement.textContent = 'Nenhum usuário logado.';
                 profileForm.style.display = 'none';
