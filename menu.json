@@ -35,7 +35,7 @@
         "requiresAuth": false
     },
     {
-        "label": "Configurações",
+        "label": "Configurações de Custos",
         "href": "administrarcustos/",
         "requiresAuth": false
     },
@@ -50,7 +50,7 @@
         "requiresAuth": false
     },
     {
-        "label": "Página Gerenciadora de Usuários",
+        "label": "Página Gerenciadora de Artigos",
         "href": "gerenciarartigos/",
         "requiresAuth": false
     },
