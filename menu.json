@@ -1,0 +1,62 @@
+[
+    {
+        "label": "Página inicial",
+        "href": "recepcao.html",
+        "requiresAuth": false
+    },
+    {
+        "label": "Adicionar Artigo",
+        "href": "admintools/editordeartigos.htmll",
+        "requiresAuth": false
+    },
+    {
+        "label": "Conheça WazzimaGiygg",
+        "href": "register-material.html",
+        "requiresAuth": false
+    },
+    {
+        "label": "Cadastrar Professor",
+        "href": "admintools/cadastrarprofessor.html",
+        "requiresAuth": false
+    },
+    {
+        "label": "Procurar informações sobre Cliente",
+        "href": "detalhes_cliente/",
+        "requiresAuth": false
+    },
+    {
+        "label": "Adicionar Notícia",
+        "href": "admintools/editordenoticias.html",
+        "requiresAuth": false
+    },
+    {
+        "label": "Administrar Custos",
+        "href": "administrarcustos/",
+        "requiresAuth": false
+    },
+    {
+        "label": "Configurações",
+        "href": "administrarcustos/",
+        "requiresAuth": false
+    },
+    {
+        "label": "Configurações",
+        "href": "admintools/pageadmin.html",
+        "requiresAuth": false
+    },
+    {
+        "label": "Página Gerenciadora de Usuários",
+        "href": "gerenciarusuarios/",
+        "requiresAuth": false
+    },
+    {
+        "label": "Página Gerenciadora de Usuários",
+        "href": "gerenciarartigos/",
+        "requiresAuth": false
+    },
+    {
+        "label": "Estatísticas",
+        "href": "admintools/estatisticas.html",
+        "requiresAuth": false
+    }
+]
