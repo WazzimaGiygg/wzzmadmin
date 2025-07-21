@@ -90,9 +90,27 @@
                 <button id="searchBtn" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect">
                     Pesquisar
                 </button>
+                <!-- ... (dentro do <div class="mdl-card__supporting-text">, logo após o botão Pesquisar) -->
+<button id="listAllBtn" class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent mdl-js-ripple-effect" style="margin-left:10px;">
+    Listar Todos
+</button>
             </div>
             <div id="searchMessage" style="margin-bottom: 15px; color: red; display: none;"></div>
-
+<div id="userList" style="margin-top:20px; display:none;">
+    <h5>Usuários cadastrados:</h5>
+    <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp" style="width:100%;">
+        <thead>
+            <tr>
+                <th class="mdl-data-table__cell--non-numeric">UID</th>
+                <th class="mdl-data-table__cell--non-numeric">Nome</th>
+                <th class="mdl-data-table__cell--non-numeric">Email</th>
+                <th class="mdl-data-table__cell--non-numeric">Admin</th>
+                <th class="mdl-data-table__cell--non-numeric">Banido</th>
+            </tr>
+        </thead>
+        <tbody id="userListBody"></tbody>
+    </table>
+</div>
             <form id="editUserForm" style="display: none;">
                 <span class="mdl-data-label">UID:</span> <span class="mdl-data-value" id="displayUid"></span>
                 <span class="mdl-data-label">Nome:</span> <span class="mdl-data-value" id="displayName"></span>
@@ -367,6 +385,57 @@
                 }
             });
         });
+        // Adicione após as outras variáveis de elementos DOM:
+const listAllBtn = document.getElementById('listAllBtn');
+const userListDiv = document.getElementById('userList');
+const userListBody = document.getElementById('userListBody');
+
+// Função para listar todos os usuários
+async function listAllUsers() {
+    hideMessages();
+    userListDiv.style.display = 'none';
+    userListBody.innerHTML = '';
+
+    // Verifica se quem está logado é admin
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+        showMessage('Você precisa estar logado para acessar esta função.', 'error');
+        return;
+    }
+    const adminUserDoc = await firestore.collection('users').doc(currentUser.uid).get();
+    if (!adminUserDoc.exists || adminUserDoc.data().isAdmin !== true) {
+        showMessage('Acesso negado: Você não tem permissão de administrador.', 'error');
+        return;
+    }
+
+    try {
+        const snapshot = await firestore.collection('users').get();
+        if (snapshot.empty) {
+            showMessage('Nenhum usuário encontrado.', 'error');
+            return;
+        }
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="mdl-data-table__cell--non-numeric">${doc.id}</td>
+                <td class="mdl-data-table__cell--non-numeric">${data.name || ''}</td>
+                <td class="mdl-data-table__cell--non-numeric">${data.email || ''}</td>
+                <td class="mdl-data-table__cell--non-numeric">${data.isAdmin ? 'Sim' : 'Não'}</td>
+                <td class="mdl-data-table__cell--non-numeric">${data.isBan ? 'Sim' : 'Não'}</td>
+            `;
+            userListBody.appendChild(row);
+        });
+        userListDiv.style.display = 'block';
+        componentHandler.upgradeDom(); // Atualiza o visual do MDL
+    } catch (error) {
+        console.error("Erro ao listar usuários:", error);
+        showMessage(`Erro ao listar usuários: ${error.message}`, 'error');
+    }
+}
+
+// Lidar com clique do botão "Listar Todos"
+listAllBtn.addEventListener('click', listAllUsers);
     </script>
 </body>
 </html>
