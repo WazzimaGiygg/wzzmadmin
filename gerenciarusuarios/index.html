@@ -105,8 +105,8 @@
                     <span class="mdl-checkbox__label">É Administrador</span>
                 </label>
 
-                <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="isBanned">
-                    <input type="checkbox" id="isBanned" class="mdl-checkbox__input">
+                <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="isBan">
+                    <input type="checkbox" id="isBan" class="mdl-checkbox__input">
                     <span class="mdl-checkbox__label">Está Banido</span>
                 </label>
 
@@ -161,7 +161,7 @@
 
         // Campos editáveis
         const isAdminCheckbox = document.getElementById('isAdmin');
-        const isBannedCheckbox = document.getElementById('isBanned');
+        const IsBanCheckbox = document.getElementById('isBan');
 
         let currentEditingUid = null; // UID do usuário que está sendo editado
 
@@ -195,13 +195,13 @@
             displayCreatedAt.textContent = '';
             displayLastLogin.textContent = '';
             isAdminCheckbox.checked = false;
-            isBannedCheckbox.checked = false;
+            IsBanCheckbox.checked = false;
             // Força o MDL a atualizar os estados dos checkboxes
             if (isAdminCheckbox.parentElement && isAdminCheckbox.parentElement.MaterialCheckbox) {
                 isAdminCheckbox.parentElement.MaterialCheckbox.uncheck();
             }
-            if (isBannedCheckbox.parentElement && isBannedCheckbox.parentElement.MaterialCheckbox) {
-                isBannedCheckbox.parentElement.MaterialCheckbox.uncheck();
+            if (IsBanCheckbox.parentElement && IsBanCheckbox.parentElement.MaterialCheckbox) {
+                IsBanCheckbox.parentElement.MaterialCheckbox.uncheck();
             }
             currentEditingUid = null;
         }
@@ -217,7 +217,7 @@
             displayLastLogin.textContent = data.lastLoginAt ? new Date(data.lastLoginAt.toDate()).toLocaleString('pt-BR') : 'N/A';
 
             isAdminCheckbox.checked = data.isAdmin === true;
-            isBannedCheckbox.checked = data.isBanned === true;
+            IsBanCheckbox.checked = data.isBan === true;
 
             // Força o MDL a atualizar os estados dos checkboxes
             if (isAdminCheckbox.parentElement && isAdminCheckbox.parentElement.MaterialCheckbox) {
@@ -227,11 +227,11 @@
                     isAdminCheckbox.parentElement.MaterialCheckbox.uncheck();
                 }
             }
-            if (isBannedCheckbox.parentElement && isBannedCheckbox.parentElement.MaterialCheckbox) {
-                if (isBannedCheckbox.checked) {
-                    isBannedCheckbox.parentElement.MaterialCheckbox.check();
+            if (IsBanCheckbox.parentElement && IsBanCheckbox.parentElement.MaterialCheckbox) {
+                if (IsBanCheckbox.checked) {
+                    IsBanCheckbox.parentElement.MaterialCheckbox.check();
                 } else {
-                    isBannedCheckbox.parentElement.MaterialCheckbox.uncheck();
+                    IsBanCheckbox.parentElement.MaterialCheckbox.uncheck();
                 }
             }
             editUserForm.style.display = 'block';
@@ -294,7 +294,7 @@
 
             const updatedUserData = {
                 isAdmin: isAdminCheckbox.checked,
-                isBanned: isBannedCheckbox.checked,
+                IsBan: IsBanCheckbox.checked,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp() // Opcional: timestamp de atualização
             };
 
