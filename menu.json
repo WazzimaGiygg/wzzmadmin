@@ -30,11 +30,6 @@
         "requiresAuth": false
     },
     {
-        "label": "Administrar Custos",
-        "href": "administrarcustos/",
-        "requiresAuth": false
-    },
-    {
         "label": "Configurações de Custos",
         "href": "administrarcustos/",
         "requiresAuth": false
