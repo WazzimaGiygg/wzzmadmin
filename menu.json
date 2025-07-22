@@ -6,7 +6,7 @@
     },
     {
         "label": "Adicionar Artigo",
-        "href": "admintools/editordeartigos.htmll",
+        "href": "admintools/editordeartigos.html",
         "requiresAuth": false
     },
     {
