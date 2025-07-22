@@ -4,99 +4,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relatório Diário de Custos - WZZM Admin</title>
-    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+    <title>Pesquisar Artigos - WZZM Admin</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
     <style>
         body {
-            font-family: 'Roboto', Arial, sans-serif;
+            font-family: 'Roboto', 'Helvetica', Arial, sans-serif;
             background-color: #f5f5f5;
             margin: 0;
             padding: 20px;
         }
         .container {
-            max-width: 1100px;
+            max-width: 900px;
             margin: 20px auto;
-            background: #fff;
+            background-color: #fff;
+            padding: 30px;
             border-radius: 8px;
-            padding: 30px 24px;
             box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12);
         }
         h1 {
             color: #3f51b5;
+            margin-bottom: 25px;
             text-align: center;
-            margin-bottom: 30px;
         }
-        .date-group {
-            margin-bottom: 40px;
-        }
-        .date-title {
-            font-size: 1.3em;
-            color: #333;
-            margin-bottom: 16px;
-            border-left: 4px solid #3f51b5;
-            padding-left: 10px;
-        }
-        table {
+        .mdl-textfield {
             width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
         }
-        th, td {
-            border-bottom: 1px solid #ddd;
-            padding: 7px 6px;
-            text-align: left;
-            font-size: 0.97em;
+        #article-results {
+            margin-top: 30px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
         }
-        th {
-            background: #e3e7fa;
-            color: #222;
+        .article-card {
+            background-color: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
         }
-        tr:last-child td {
-            border-bottom: none;
+        .article-card:hover {
+            background-color: #e8eaf6; /* Light indigo */
         }
-        .empty-state {
+        .article-card h3 {
+            color: #3f51b5;
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
+        .article-card p {
+            color: #555;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+        .article-card small {
+            color: #888;
+            font-size: 0.8em;
+        }
+        .no-results {
             text-align: center;
             color: #888;
-            font-size: 1.1em;
-            margin-top: 50px;
+            margin-top: 20px;
         }
-        .filter-bar {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            align-items: center;
-            margin-bottom: 20px;
-            justify-content: center;
-        }
-        .filter-bar input[type="date"], .filter-bar select {
-            padding: 6px 12px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-            font-size: 1em;
-        }
-        .mdl-button {
-            min-width: 44px;
+        .error-message {
+            text-align: center;
+            padding: 15px;
+            color: #d32f2f;
+            background-color: #ffebee;
+            border: 1px solid #d32f2f;
+            border-radius: 5px;
+            margin-top: 20px;
+            display: none;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Relatório Diário de Custos</h1>
-        <div class="filter-bar">
-            <label for="filter-date">Filtrar por dia:</label>
-            <input type="date" id="filter-date">
-            <button id="filter-clear" class="mdl-button mdl-js-button mdl-button--raised">Limpar Filtro</button>
-        </div>
-        <div id="report-content">
-            <div class="empty-state">Carregando relatório...</div>
-        </div>
-    </div>
-
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
     <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+
+    <div class="container">
+        <h1>Pesquisar Artigos para Edição</h1>
+
+        <div id="error-display" class="error-message"></div>
+
+        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+            <input class="mdl-textfield__input" type="text" id="search-input">
+            <label class="mdl-textfield__label" for="search-input">Pesquisar por Título ou UID...</label>
+        </div>
+        <div class="actions">
+            <button id="search-button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                <i class="material-icons">search</i> Pesquisar
+            </button>
+            <button id="show-all-button" class="mdl-button mdl-js-button mdl-button--raised">
+                Mostrar Todos
+            </button>
+        </div>
+
+        <div id="article-results">
+            </div>
+    </div>
+
     <script>
+        // --- Configuração do Firebase (Use as mesmas configurações do seu código original) ---
         const firebaseConfig = {
             apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0",
             authDomain: "wzzm-ce3fc.firebaseapp.com",
@@ -106,112 +118,155 @@
             appId: "1:249427877153:web:0e4297294794a5aadeb260",
             measurementId: "G-PLKNZNFCQ8"
         };
+
         let app;
-        try { app = firebase.app(); } catch { app = firebase.initializeApp(firebaseConfig);}
+        try {
+            app = firebase.app();
+        } catch (e) {
+            app = firebase.initializeApp(firebaseConfig);
+        }
         const firestore = firebase.firestore();
+        const auth = firebase.auth();
 
-        const reportDiv = document.getElementById('report-content');
-        const filterDateInput = document.getElementById('filter-date');
-        const filterClearBtn = document.getElementById('filter-clear');
+        const searchInput = document.getElementById('search-input');
+        const searchButton = document.getElementById('search-button');
+        const showAllButton = document.getElementById('show-all-button');
+        const articleResultsDiv = document.getElementById('article-results');
+        const errorDisplay = document.getElementById('error-display');
 
-        // Utilitário para agrupar Custos por dia (YYYY-MM-DD)
-        function groupByDate(articles) {
-            const groups = {};
-            articles.forEach(article => {
-                const date = article.timestamp ? article.timestamp.toDate() : null;
-                if (!date) return;
-                // Agrupa por data local (ano-mês-dia)
-                const dayStr = date.toLocaleDateString('sv-SE'); // yyyy-mm-dd
-                if (!groups[dayStr]) groups[dayStr] = [];
-                groups[dayStr].push(article);
-            });
-            return groups;
+        let currentUser = null;
+
+        function displayError(message) {
+            errorDisplay.textContent = `Erro: ${message}`;
+            errorDisplay.style.display = 'block';
         }
 
-        // Função para carregar todos Custos (ou por filtro de data)
-        async function loadReport(filterDay = null) {
-            reportDiv.innerHTML = '<div class="empty-state">Carregando relatório...</div>';
+        // Listener para o estado de autenticação
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                console.log("Usuário logado:", currentUser.uid);
+                // Opcional: Carregar todos os artigos automaticamente ao carregar a página
+                // searchArticles();
+            } else {
+                currentUser = null;
+                console.warn("Nenhum usuário logado. Redirecionando para login?");
+                alert("Você precisa estar logado para pesquisar artigos.");
+                if (window.parent !== window && window.parent.postMessage) {
+                    window.parent.postMessage({ type: 'navigateIframe', url: './login.html' }, window.location.origin);
+                } else {
+                    window.location.href = './login.html';
+                }
+            }
+        });
+
+        // Função para exibir os resultados da pesquisa
+        function displayArticles(articles) {
+            articleResultsDiv.innerHTML = ''; // Limpa resultados anteriores
+
+            if (articles.length === 0) {
+                articleResultsDiv.innerHTML = '<p class="no-results">Nenhum artigo encontrado.</p>';
+                return;
+            }
+
+            articles.forEach(article => {
+                const articleCard = document.createElement('div');
+                articleCard.className = 'article-card';
+                articleCard.setAttribute('data-id', article.id);
+                articleCard.innerHTML = `
+                    <h3>${article.title || 'Título não disponível'}</h3>
+                    <p>${article.description || 'Nenhuma descrição.'}</p>
+                    <small>UID: ${article.id}</small><br>
+                    <small>Tipo: ${article.articleType || 'N/A'} | Idioma: ${article.language || 'N/A'}</small><br>
+                    <small>Última Modificação: ${article.lastModified ? new Date(article.lastModified.toDate()).toLocaleString() : 'N/A'}</small>
+                `;
+                articleCard.addEventListener('click', () => {
+                    // Redireciona para a página de edição, passando o ID do artigo
+                    // Certifique-se de que 'add-edit-article.html' é o nome correto do seu arquivo
+                    const editPageUrl = `add-edit-article.html?id=${article.id}`;
+                    if (window.parent !== window && window.parent.postMessage) {
+                        window.parent.postMessage({ type: 'navigateIframe', url: editPageUrl }, window.location.origin);
+                    } else {
+                        window.location.href = editPageUrl;
+                    }
+                });
+                articleResultsDiv.appendChild(articleCard);
+            });
+        }
+
+        // Função de pesquisa principal
+        async function searchArticles(searchTerm = '') {
+            errorDisplay.style.display = 'none';
+            articleResultsDiv.innerHTML = '<p class="no-results">Carregando...</p>';
+
             try {
-                let query = firestore.collection('financialData').orderBy('timestamp', 'desc');
-                if (filterDay) {
-                    // Filtra apenas para aquele dia
-                    const start = new Date(filterDay + "T00:00:00");
-                    const end = new Date(filterDay + "T23:59:59.999");
-                    query = query.where('timestamp', '>=', start).where('timestamp', '<=', end);
+                let query = firestore.collection('financialData');
+
+                if (searchTerm.trim()) {
+                    const termLower = searchTerm.trim().toLowerCase();
+                    // Firestore não suporta pesquisa "contém" ou "like" diretamente.
+                    // Para pesquisa de texto completo, você precisaria de uma solução como Algolia, ElasticSearch, etc.
+                    // Abaixo, faremos uma pesquisa por prefixo no título ou uma correspondência exata para o UID.
+                    // Para pesquisa de "contém" no título, você teria que baixar todos os títulos e filtrar no cliente,
+                    // o que não é recomendado para grandes volumes de dados.
+
+                    // Tentativa de pesquisa por prefixo no título ou UID exato
+                    // Se o termo parecer um UID (ex: comprimento específico, caracteres alfanuméricos),
+                    // tentamos a pesquisa por ID. Caso contrário, por título.
+                    if (searchTerm.length === 20 && /^[a-zA-Z0-9]+$/.test(searchTerm)) { // UID Firebase são geralmente 20 caracteres alfanuméricos
+                        const docRef = await query.doc(searchTerm).get();
+                        if (docRef.exists) {
+                            displayArticles([{ id: docRef.id, ...docRef.data() }]);
+                            return;
+                        } else {
+                            displayArticles([]); // Não encontrou por UID
+                            return;
+                        }
+                    } else {
+                        // Pesquisa por título (usando startAt/endAt para simular "começa com")
+                        // Não é uma pesquisa "contém" completa, mas pode ser útil.
+                        query = query.orderBy('title').startAt(searchTerm).endAt(searchTerm + '\uf8ff');
+                    }
                 }
+
                 const snapshot = await query.get();
-                if (snapshot.empty) {
-                    reportDiv.innerHTML = '<div class="empty-state">Nenhum artigo encontrado para o critério.</div>';
-                    return;
-                }
                 const articles = [];
                 snapshot.forEach(doc => {
-                    const data = doc.data();
-                    data.id = doc.id;
-                    articles.push(data);
+                    // Para uma pesquisa "contém" mais robusta no título, se o searchTerm não for um UID
+                    if (searchTerm.trim() && !searchTerm.length === 20 && !doc.data().title.toLowerCase().includes(termLower)) {
+                        return; // Pula se não contiver o termo (apenas para títulos)
+                    }
+                    articles.push({ id: doc.id, ...doc.data() });
                 });
 
-                let grouped = groupByDate(articles);
+                displayArticles(articles);
 
-                // Se filtrado por apenas um dia, deixa só esse grupo
-                if (filterDay) grouped = { [filterDay]: grouped[filterDay] || [] };
-
-                let html = '';
-                for (const [date, articlesOfDay] of Object.entries(grouped)) {
-                    if (!articlesOfDay || articlesOfDay.length === 0) continue;
-                    html += `<div class="date-group">
-                        <div class="date-title">${new Date(date).toLocaleDateString('pt-BR')}</div>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Título</th>
-                                    <th>ID Artigo</th>
-                                    <th>Autor (userId)</th>
-                                    <th>Idioma</th>
-                                    <th>Tipo</th>
-                                    <th>Informação</th>
-                                    <th>Hora de Criação</th>
-                                </tr>
-                            </thead>
-                            <tbody>`;
-                    for (const art of articlesOfDay) {
-                        const data = art;
-                        const title = data.title || '';
-                        const id = data.id || '';
-                        const userId = data.userId || '';
-                        const language = data.language || '';
-                        const articleType = data.articleType || '';
-                        const summary = data.summary || data.description || '';
-                        const createdAt = data.timestamp ? data.timestamp.toDate().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
-                        html += `<tr>
-                            <td>${title}</td>
-                            <td>${id}</td>
-                            <td>${userId}</td>
-                            <td>${language}</td>
-                            <td>${articleType}</td>
-                            <td>${summary}</td>
-                            <td>${createdAt}</td>
-                        </tr>`;
-                    }
-                    html += `</tbody></table></div>`;
-                }
-                reportDiv.innerHTML = html || '<div class="empty-state">Nenhum artigo encontrado para o critério.</div>';
-            } catch (e) {
-                reportDiv.innerHTML = `<div class="empty-state" style="color:#d32f2f">Erro ao carregar relatório: ${e.message}</div>`;
+            } catch (error) {
+                displayError("Erro ao pesquisar artigos: " + error.message);
+                console.error("Erro ao pesquisar artigos:", error);
             }
         }
 
-        filterDateInput.addEventListener('change', () => {
-            const dateVal = filterDateInput.value;
-            loadReport(dateVal);
-        });
-        filterClearBtn.addEventListener('click', () => {
-            filterDateInput.value = '';
-            loadReport();
-        });
-
+        // --- Event Listeners ---
         document.addEventListener('DOMContentLoaded', () => {
-            loadReport();
+            searchButton.addEventListener('click', () => {
+                searchArticles(searchInput.value);
+            });
+
+            showAllButton.addEventListener('click', () => {
+                searchInput.value = ''; // Limpa o campo de pesquisa
+                searchArticles(''); // Pesquisa sem termo, ou seja, todos
+            });
+
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    searchArticles(searchInput.value);
+                }
+            });
+
+            if (window.componentHandler) {
+                window.componentHandler.upgradeDom();
+            }
         });
     </script>
 </body>
