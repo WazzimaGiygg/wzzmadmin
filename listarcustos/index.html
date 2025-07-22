@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pesquisar Artigos - WZZM Admin</title>
+    <title>Pesquisar custos - WZZM Admin</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
     <style>
@@ -86,7 +86,7 @@
     <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
 
     <div class="container">
-        <h1>Pesquisar Artigos para Edição</h1>
+        <h1>Pesquisar custos para Edição</h1>
 
         <div id="error-display" class="error-message"></div>
 
@@ -146,12 +146,12 @@
             if (user) {
                 currentUser = user;
                 console.log("Usuário logado:", currentUser.uid);
-                // Opcional: Carregar todos os artigos automaticamente ao carregar a página
+                // Opcional: Carregar todos os custos automaticamente ao carregar a página
                 // searchArticles();
             } else {
                 currentUser = null;
                 console.warn("Nenhum usuário logado. Redirecionando para login?");
-                alert("Você precisa estar logado para pesquisar artigos.");
+                alert("Você precisa estar logado para pesquisar custos.");
                 if (window.parent !== window && window.parent.postMessage) {
                     window.parent.postMessage({ type: 'navigateIframe', url: './login.html' }, window.location.origin);
                 } else {
@@ -165,7 +165,7 @@
             articleResultsDiv.innerHTML = ''; // Limpa resultados anteriores
 
             if (articles.length === 0) {
-                articleResultsDiv.innerHTML = '<p class="no-results">Nenhum artigo encontrado.</p>';
+                articleResultsDiv.innerHTML = '<p class="no-results">Nenhum custo encontrado.</p>';
                 return;
             }
 
@@ -181,7 +181,7 @@
                     <small>Última Modificação: ${article.lastModified ? new Date(article.lastModified.toDate()).toLocaleString() : 'N/A'}</small>
                 `;
                 articleCard.addEventListener('click', () => {
-                    // Redireciona para a página de edição, passando o ID do artigo
+                    // Redireciona para a página de edição, passando o ID do custo
                     // Certifique-se de que 'add-edit-article.html' é o nome correto do seu arquivo
                     const editPageUrl = `add-edit-article.html?id=${article.id}`;
                     if (window.parent !== window && window.parent.postMessage) {
@@ -242,8 +242,8 @@
                 displayArticles(articles);
 
             } catch (error) {
-                displayError("Erro ao pesquisar artigos: " + error.message);
-                console.error("Erro ao pesquisar artigos:", error);
+                displayError("Erro ao pesquisar custos: " + error.message);
+                console.error("Erro ao pesquisar custos:", error);
             }
         }
 
