@@ -77,16 +77,25 @@
             margin-top: 20px;
             display: none;
         }
-        /* Estilos para o trecho do conteúdo */
-        .content-snippet {
-            max-height: 5em; /* Limita a altura para mostrar um trecho */
-            overflow: hidden; /* Esconde o que exceder a altura */
+        /* Estilos para o conteúdo formatado */
+        .formatted-content-display {
+            max-height: 8em; /* Limita a altura para evitar cards muito longos */
+            overflow: hidden; /* Esconde o conteúdo que excede a altura */
             text-overflow: ellipsis; /* Adiciona '...' se o texto for cortado */
             white-space: normal; /* Permite quebras de linha */
-            font-size: 0.9em;
-            color: #666;
-            margin-top: 5px;
+            margin-top: 10px;
             margin-bottom: 10px;
+            border-left: 3px solid #3f51b5; /* Linha decorativa para o conteúdo */
+            padding-left: 10px;
+            background-color: #eef; /* Fundo leve para destacar */
+        }
+        /* Estilos para o link no formattedContent, se houver */
+        .formatted-content-display a {
+            color: #3f51b5;
+            text-decoration: none;
+        }
+        .formatted-content-display a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -181,18 +190,18 @@
             }
 
             articles.forEach(article => {
-                // Remove tags HTML para criar um snippet de texto puro do formattedContent
-                const contentTextSnippet = article.formattedContent
-                    ? article.formattedContent.replace(/<[^>]*>/g, '').substring(0, 150) + (article.formattedContent.length > 150 ? '...' : '')
-                    : 'Conteúdo não disponível.';
-
                 const articleCard = document.createElement('div');
                 articleCard.className = 'article-card';
                 articleCard.setAttribute('data-id', article.id);
+
+                // Elemento para o formattedContent com HTML renderizado
+                const formattedContentDiv = document.createElement('div');
+                formattedContentDiv.className = 'formatted-content-display';
+                formattedContentDiv.innerHTML = article.formattedContent || 'Conteúdo não disponível.'; // Renderiza o HTML
+
                 articleCard.innerHTML = `
                     <h3>${article.title || 'Título não disponível'}</h3>
                     <p>${article.description || 'Nenhuma descrição.'}</p>
-                    <div class="content-snippet">${contentTextSnippet}</div>
                     <small>UID do Criador: ${article.userId || 'N/A'}</small>
                     <small>ID do Documento: ${article.id}</small>
                     <small>Tipo: ${article.articleType || 'N/A'}</small>
@@ -203,6 +212,11 @@
                     <small>Criado em: ${article.timestamp ? new Date(article.timestamp.toDate()).toLocaleString() : 'N/A'}</small>
                     <small>Última Modificação: ${article.lastModified ? new Date(article.lastModified.toDate()).toLocaleString() : 'N/A'}</small>
                 `;
+                // Insere o div do formattedContent após a descrição ou onde desejar no card
+                // A ordem de inserção aqui importa. Inserindo após a descrição.
+                articleCard.insertBefore(formattedContentDiv, articleCard.querySelector('small'));
+
+
                 articleCard.addEventListener('click', () => {
                     // Redireciona para a página de edição, passando o ID do custo
                     const editPageUrl = `add-edit-article.html?id=${article.id}`;
@@ -254,10 +268,6 @@
                 const snapshot = await query.get();
                 const articles = [];
                 snapshot.forEach(doc => {
-                    // Para uma pesquisa "contém" mais robusta no título, se o searchTerm não for um UID
-                    // A pesquisa por prefixo já é feita pelo orderBy. Se você realmente precisa de "contém",
-                    // precisaria de uma solução de busca externa ou baixar tudo e filtrar no cliente (não recomendado para muitos dados).
-                    // Por enquanto, vamos apenas adicionar todos os resultados do snapshot
                     articles.push({ id: doc.id, ...doc.data() });
                 });
 
