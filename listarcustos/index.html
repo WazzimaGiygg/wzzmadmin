@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relatório Diário de Artigos - WZZM Admin</title>
+    <title>Relatório Diário de Custos - WZZM Admin</title>
     <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <style>
@@ -82,7 +82,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Relatório Diário de Artigos</h1>
+        <h1>Relatório Diário de Custos</h1>
         <div class="filter-bar">
             <label for="filter-date">Filtrar por dia:</label>
             <input type="date" id="filter-date">
@@ -114,7 +114,7 @@
         const filterDateInput = document.getElementById('filter-date');
         const filterClearBtn = document.getElementById('filter-clear');
 
-        // Utilitário para agrupar artigos por dia (YYYY-MM-DD)
+        // Utilitário para agrupar Custos por dia (YYYY-MM-DD)
         function groupByDate(articles) {
             const groups = {};
             articles.forEach(article => {
@@ -128,11 +128,11 @@
             return groups;
         }
 
-        // Função para carregar todos artigos (ou por filtro de data)
+        // Função para carregar todos Custos (ou por filtro de data)
         async function loadReport(filterDay = null) {
             reportDiv.innerHTML = '<div class="empty-state">Carregando relatório...</div>';
             try {
-                let query = firestore.collection('articlesdoc').orderBy('timestamp', 'desc');
+                let query = firestore.collection('financialData').orderBy('timestamp', 'desc');
                 if (filterDay) {
                     // Filtra apenas para aquele dia
                     const start = new Date(filterDay + "T00:00:00");
