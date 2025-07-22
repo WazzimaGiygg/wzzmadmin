@@ -40,8 +40,8 @@
         "requiresAuth": false
     },
     {
-        "label": "Configurações",
-        "href": "admintools/pageadmin.html",
+        "label": "Procura de Custos avançado",
+        "href": "listadecustosavancada/",
         "requiresAuth": false
     },
     {
