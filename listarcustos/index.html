@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -61,6 +60,7 @@
         .article-card small {
             color: #888;
             font-size: 0.8em;
+            display: block; /* Para que cada small fique em sua própria linha */
         }
         .no-results {
             text-align: center;
@@ -76,6 +76,17 @@
             border-radius: 5px;
             margin-top: 20px;
             display: none;
+        }
+        /* Estilos para o trecho do conteúdo */
+        .content-snippet {
+            max-height: 5em; /* Limita a altura para mostrar um trecho */
+            overflow: hidden; /* Esconde o que exceder a altura */
+            text-overflow: ellipsis; /* Adiciona '...' se o texto for cortado */
+            white-space: normal; /* Permite quebras de linha */
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -104,7 +115,7 @@
         </div>
 
         <div id="article-results">
-            </div>
+        </div>
     </div>
 
     <script>
@@ -147,7 +158,7 @@
                 currentUser = user;
                 console.log("Usuário logado:", currentUser.uid);
                 // Opcional: Carregar todos os custos automaticamente ao carregar a página
-                // searchArticles();
+                // searchArticles(''); // Chame com string vazia para mostrar todos ao carregar
             } else {
                 currentUser = null;
                 console.warn("Nenhum usuário logado. Redirecionando para login?");
@@ -170,19 +181,30 @@
             }
 
             articles.forEach(article => {
+                // Remove tags HTML para criar um snippet de texto puro do formattedContent
+                const contentTextSnippet = article.formattedContent
+                    ? article.formattedContent.replace(/<[^>]*>/g, '').substring(0, 150) + (article.formattedContent.length > 150 ? '...' : '')
+                    : 'Conteúdo não disponível.';
+
                 const articleCard = document.createElement('div');
                 articleCard.className = 'article-card';
                 articleCard.setAttribute('data-id', article.id);
                 articleCard.innerHTML = `
                     <h3>${article.title || 'Título não disponível'}</h3>
                     <p>${article.description || 'Nenhuma descrição.'}</p>
-                    <small>UID: ${article.id}</small><br>
-                    <small>Tipo: ${article.articleType || 'N/A'} | Idioma: ${article.language || 'N/A'}</small><br>
+                    <div class="content-snippet">${contentTextSnippet}</div>
+                    <small>UID do Criador: ${article.userId || 'N/A'}</small>
+                    <small>ID do Documento: ${article.id}</small>
+                    <small>Tipo: ${article.articleType || 'N/A'}</small>
+                    <small>Idioma: ${article.language || 'N/A'}</small>
+                    <small>Fontes: ${(article.sources && Array.isArray(article.sources)) ? article.sources.join(', ') : 'N/A'}</small>
+                    <small>URL Original: ${article.originalUrl ? `<a href="${article.originalUrl}" target="_blank">${article.originalUrl}</a>` : 'N/A'}</small>
+                    <small>Status de Verificação: ${article.verificationStatus || 'N/A'}</small>
+                    <small>Criado em: ${article.timestamp ? new Date(article.timestamp.toDate()).toLocaleString() : 'N/A'}</small>
                     <small>Última Modificação: ${article.lastModified ? new Date(article.lastModified.toDate()).toLocaleString() : 'N/A'}</small>
                 `;
                 articleCard.addEventListener('click', () => {
                     // Redireciona para a página de edição, passando o ID do custo
-                    // Certifique-se de que 'add-edit-article.html' é o nome correto do seu arquivo
                     const editPageUrl = `add-edit-article.html?id=${article.id}`;
                     if (window.parent !== window && window.parent.postMessage) {
                         window.parent.postMessage({ type: 'navigateIframe', url: editPageUrl }, window.location.origin);
@@ -233,9 +255,9 @@
                 const articles = [];
                 snapshot.forEach(doc => {
                     // Para uma pesquisa "contém" mais robusta no título, se o searchTerm não for um UID
-                    if (searchTerm.trim() && !searchTerm.length === 20 && !doc.data().title.toLowerCase().includes(termLower)) {
-                        return; // Pula se não contiver o termo (apenas para títulos)
-                    }
+                    // A pesquisa por prefixo já é feita pelo orderBy. Se você realmente precisa de "contém",
+                    // precisaria de uma solução de busca externa ou baixar tudo e filtrar no cliente (não recomendado para muitos dados).
+                    // Por enquanto, vamos apenas adicionar todos os resultados do snapshot
                     articles.push({ id: doc.id, ...doc.data() });
                 });
 
@@ -263,6 +285,9 @@
                     searchArticles(searchInput.value);
                 }
             });
+
+            // Adiciona o carregamento inicial de todos os artigos ao carregar a página
+            searchArticles(''); // Chama a função para exibir todos os artigos ao carregar a página
 
             if (window.componentHandler) {
                 window.componentHandler.upgradeDom();
