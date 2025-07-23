@@ -51,7 +51,12 @@
     },
     {
         "label": "Listagem rápida de custos",
-        "href": "listarcustos/",
+        "href": "listarcustos/", 
+        "requiresAuth": false
+    },
+    {
+        "label": "Registrar Material",
+        "href": "register-material.html", 
         "requiresAuth": false
     },
     {
