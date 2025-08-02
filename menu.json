@@ -2,71 +2,71 @@
     {
         "label": "Página inicial",
         "href": "recepcao.html",
-        "requiresAuth": false
+        "requiresAuth": true
     },
     {
         "label": "Adicionar Artigo",
         "href": "admintools/editordeartigos.html",
-        "requiresAuth": false
+        "requiresAuth": true
     },
     {
         "label": "Conheça WazzimaGiygg",
         "href": "conhecawazzimagiygg.html",
-        "requiresAuth": false
+        "requiresAuth": true
     },
     {
         "label": "Cadastrar Professor",
         "href": "admintools/cadastrarprofessor.html",
-        "requiresAuth": false
+        "requiresAuth": true
     },
     {
         "label": "Procurar informações sobre Cliente",
         "href": "detalhes_cliente/",
-        "requiresAuth": false
+        "requiresAuth": true
     },
     {
         "label": "Adicionar Notícia",
         "href": "admintools/editordenoticias.html",
-        "requiresAuth": false
+        "requiresAuth": true
     },
     {
         "label": "Configurações de Custos",
         "href": "administrarcustos/",
-        "requiresAuth": false
+        "requiresAuth": true
     },
     {
         "label": "Procura de Custos avançado",
         "href": "listadecustosavancada/",
-        "requiresAuth": false
+        "requiresAuth": true
     },
     {
         "label": "Página Gerenciadora de Usuários",
         "href": "gerenciarusuarios/",
-        "requiresAuth": false
+        "requiresAuth": true
     },
     {
         "label": "Página Gerenciadora de Artigos",
         "href": "gerenciarartigos/",
-        "requiresAuth": false
+        "requiresAuth": true
     },
     {
         "label": "Listagem rápida de custos",
         "href": "listarcustos/", 
-        "requiresAuth": false
+        "requiresAuth": true
     },
     {
         "label": "Registrar Material",
         "href": "register-material.html", 
-        "requiresAuth": false
+        "requiresAuth": true
     },
     {
         "label": "Alterar Design de Página",
         "href": "alterardesign.html", 
-        "requiresAuth": false
+        "requiresAuth": true
     },
     {
         "label": "Estatísticas",
         "href": "admintools/estatisticas.html",
-        "requiresAuth": false
+        "requiresAuth": true
     }
 ]
