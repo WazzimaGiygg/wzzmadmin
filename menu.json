@@ -64,6 +64,13 @@
         "href": "alterardesign.html", 
         "requiresAuth": true
     },
+
+    {
+        "label": "Wikinotpedia - Cadastro de Artigos",
+        "href": "artigowikinotpedia/", 
+        "requiresAuth": true
+    },
+    
     {
         "label": "Estatísticas",
         "href": "admintools/estatisticas.html",
