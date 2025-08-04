@@ -15,65 +15,8 @@
         "requiresAuth": true
     },
     {
-        "label": "Cadastrar Professor",
-        "href": "admintools/cadastrarprofessor.html",
-        "requiresAuth": true
-    },
-    {
-        "label": "Procurar informações sobre Cliente",
-        "href": "detalhes_cliente/",
-        "requiresAuth": true
-    },
-    {
-        "label": "Adicionar Notícia",
-        "href": "admintools/editordenoticias.html",
-        "requiresAuth": true
-    },
-    {
-        "label": "Configurações de Custos",
-        "href": "administrarcustos/",
-        "requiresAuth": true
-    },
-    {
-        "label": "Procura de Custos avançado",
-        "href": "listadecustosavancada/",
-        "requiresAuth": true
-    },
-    {
-        "label": "Página Gerenciadora de Usuários",
-        "href": "gerenciarusuarios/",
-        "requiresAuth": true
-    },
-    {
-        "label": "Página Gerenciadora de Artigos",
-        "href": "gerenciarartigos/",
-        "requiresAuth": true
-    },
-    {
-        "label": "Listagem rápida de custos",
-        "href": "listarcustos/", 
-        "requiresAuth": true
-    },
-    {
-        "label": "Registrar Material",
-        "href": "register-material.html", 
-        "requiresAuth": true
-    },
-    {
-        "label": "Alterar Design de Página",
-        "href": "alterardesign.html", 
-        "requiresAuth": true
-    },
-
-    {
-        "label": "Wikinotpedia - Cadastro de Artigos",
-        "href": "artigowikinotpedia/", 
-        "requiresAuth": true
-    },
-    
-    {
-        "label": "Estatísticas",
-        "href": "admintools/estatisticas.html",
+        "label": "Ferramentas Administrativas",
+        "href": "ferramentasadministrativas.html",
         "requiresAuth": true
     }
 ]
