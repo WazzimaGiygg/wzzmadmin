@@ -84,10 +84,6 @@
             text-align: center;
             margin-bottom: 20px;
         }
-        #login-section input {
-            width: 80%;
-            margin-bottom: 10px;
-        }
         #main-content {
             display: none; /* Oculta o conteúdo principal até o login */
         }
@@ -100,13 +96,9 @@
 
         <div id="login-section">
             <h2>Login de Administrador</h2>
-            <p>Faça login para gerenciar os artigos.</p>
-            <form id="form-login">
-                <input type="email" id="login-email" placeholder="E-mail" required>
-                <input type="password" id="login-password" placeholder="Senha" required>
-                <button type="submit">Entrar</button>
-                <div id="login-status" class="info-message"></div>
-            </form>
+            <p>Faça login com sua conta Google para gerenciar os artigos.</p>
+            <button id="btn-login-google">Entrar com Google</button>
+            <div id="login-status" class="info-message"></div>
             <div id="user-info" style="display:none;">
                 <p>Logado como: <span id="user-email"></span></p>
                 <button id="btn-logout">Sair</button>
@@ -209,7 +201,7 @@
         const quillEdit = new Quill('#edit-editor-container', { theme: 'snow', modules: { toolbar: quillToolbarOptions } });
 
         // --- Lógica de Login ---
-        const formLogin = document.getElementById('form-login');
+        const btnLoginGoogle = document.getElementById('btn-login-google');
         const loginStatus = document.getElementById('login-status');
         const mainContent = document.getElementById('main-content');
         const loginSection = document.getElementById('login-section');
@@ -237,24 +229,23 @@
             }
         });
 
-        formLogin.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
+        // Evento de login com Google
+        btnLoginGoogle.addEventListener('click', async () => {
+            const provider = new firebase.auth.GoogleAuthProvider();
             loginStatus.textContent = 'Autenticando...';
             loginStatus.className = 'info-message';
 
             try {
-                await auth.signInWithEmailAndPassword(email, password);
-                loginStatus.textContent = 'Login bem-sucedido!';
-                loginStatus.className = 'info-message success';
+                await auth.signInWithPopup(provider);
+                // A verificação de admin será feita em `onAuthStateChanged`
             } catch (error) {
-                console.error("Erro no login: ", error);
+                console.error("Erro no login com Google: ", error);
                 loginStatus.textContent = `Erro no login: ${error.message}`;
                 loginStatus.className = 'info-message error';
             }
         });
 
+        // Evento de logout
         btnLogout.addEventListener('click', () => {
             auth.signOut();
             loginStatus.textContent = '';
