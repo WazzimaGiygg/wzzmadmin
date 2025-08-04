@@ -37,7 +37,6 @@
             border: 1px solid #ccc;
             border-radius: 4px;
         }
-        /* Estiliza o container do Quill */
         #editor-container, #edit-editor-container {
             height: 250px;
             background-color: #fff;
@@ -81,6 +80,17 @@
             margin-top: 20px;
             padding-top: 20px;
         }
+        #login-section {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        #login-section input {
+            width: 80%;
+            margin-bottom: 10px;
+        }
+        #main-content {
+            display: none; /* Oculta o conteúdo principal até o login */
+        }
     </style>
 </head>
 <body>
@@ -88,74 +98,89 @@
     <div class="container">
         <h1>Gerenciamento de Artigos da Wiki Not Pédia</h1>
 
-        <h2>Adicionar Novo Artigo</h2>
-        <form id="form-add-article">
-            <label for="titulo">Título:</label>
-            <input type="text" id="titulo" name="titulo" required>
-
-            <label for="descricao-principal">Descrição (Principal):</label>
-            <textarea id="descricao-principal" name="descricao-principal" rows="4" required></textarea>
-
-            <label>Descrição com formatação:</label>
-            <div id="editor-container"></div>
-
-            <button type="submit">Adicionar Artigo</button>
-            <div id="add-status" class="info-message"></div>
-        </form>
+        <div id="login-section">
+            <h2>Login de Administrador</h2>
+            <p>Faça login para gerenciar os artigos.</p>
+            <form id="form-login">
+                <input type="email" id="login-email" placeholder="E-mail" required>
+                <input type="password" id="login-password" placeholder="Senha" required>
+                <button type="submit">Entrar</button>
+                <div id="login-status" class="info-message"></div>
+            </form>
+            <div id="user-info" style="display:none;">
+                <p>Logado como: <span id="user-email"></span></p>
+                <button id="btn-logout">Sair</button>
+            </div>
+        </div>
 
         <hr>
 
-        <h2>Procurar, Alterar e Remover Artigo</h2>
-        <form id="form-search-article">
-            <label for="search-uid">Buscar por UID:</label>
-            <input type="text" id="search-uid" name="search-uid" placeholder="Digite o UID do artigo" required>
-            <button type="submit">Procurar</button>
-        </form>
-        
-        <div id="article-display" class="article-details" style="display:none;">
-            <h3>Detalhes do Artigo</h3>
-            <p><strong>UID:</strong> <span id="article-uid"></span></p>
-            <p><strong>Data:</strong> <span id="article-data"></span></p>
-            <p><strong>Horário:</strong> <span id="article-horario"></span></p>
-            <p><strong>Título:</strong> <input type="text" id="edit-titulo"></p>
-            <p><strong>Descrição Principal:</strong> <textarea id="edit-descricao-principal" rows="4"></textarea></p>
+        <div id="main-content">
+            <h2>Adicionar Novo Artigo</h2>
+            <form id="form-add-article">
+                <label for="titulo">Título:</label>
+                <input type="text" id="titulo" name="titulo" required>
+    
+                <label for="descricao-principal">Descrição (Principal):</label>
+                <textarea id="descricao-principal" name="descricao-principal" rows="4" required></textarea>
+    
+                <label>Descrição com formatação:</label>
+                <div id="editor-container"></div>
+    
+                <button type="submit">Adicionar Artigo</button>
+                <div id="add-status" class="info-message"></div>
+            </form>
+    
+            <hr>
+    
+            <h2>Procurar, Alterar e Remover Artigo</h2>
+            <form id="form-search-article">
+                <label for="search-uid">Buscar por UID:</label>
+                <input type="text" id="search-uid" name="search-uid" placeholder="Digite o UID do artigo" required>
+                <button type="submit">Procurar</button>
+            </form>
             
-            <label>Descrição com formatação (Edição):</label>
-            <div id="edit-editor-container"></div>
-            
-            <div class="additional-data-container" id="additional-data-section">
-                <h4>Informações Adicionais da Página</h4>
-                <div id="additional-data-list">
+            <div id="article-display" class="article-details" style="display:none;">
+                <h3>Detalhes do Artigo</h3>
+                <p><strong>UID:</strong> <span id="article-uid"></span></p>
+                <p><strong>Data:</strong> <span id="article-data"></span></p>
+                <p><strong>Horário:</strong> <span id="article-horario"></span></p>
+                <p><strong>Título:</strong> <input type="text" id="edit-titulo"></p>
+                <p><strong>Descrição Principal:</strong> <textarea id="edit-descricao-principal" rows="4"></textarea></p>
+                
+                <label>Descrição com formatação (Edição):</label>
+                <div id="edit-editor-container"></div>
+                
+                <div class="additional-data-container" id="additional-data-section">
+                    <h4>Informações Adicionais da Página</h4>
+                    <div id="additional-data-list">
                     </div>
-                <hr>
-                <form id="form-add-additional-data">
-                    <label for="numero-linha">Número da Linha:</label>
-                    <input type="number" id="numero-linha" required>
-                    
-                    <label for="tipo-dados">Tipo de Dados:</label>
-                    <select id="tipo-dados" required>
-                        <option value="Imagem">Imagem</option>
-                        <option value="Texto formatado">Texto formatado</option>
-                        <option value="Referências">Referências</option>
-                        <option value="Lista">Lista</option>
-                    </select>
-
-                    <label for="ocupacao-espaco">Ocupação de Espaço:</label>
-                    <input type="text" id="ocupacao-espaco" placeholder="Ex: [0 X X 0]">
-
-                    <button type="submit">Adicionar Informação</button>
-                </form>
+                    <hr>
+                    <form id="form-add-additional-data">
+                        <label for="numero-linha">Número da Linha:</label>
+                        <input type="number" id="numero-linha" required>
+                        <label for="tipo-dados">Tipo de Dados:</label>
+                        <select id="tipo-dados" required>
+                            <option value="Imagem">Imagem</option>
+                            <option value="Texto formatado">Texto formatado</option>
+                            <option value="Referências">Referências</option>
+                            <option value="Lista">Lista</option>
+                        </select>
+                        <label for="ocupacao-espaco">Ocupação de Espaço:</label>
+                        <input type="text" id="ocupacao-espaco" placeholder="Ex: [0 X X 0]">
+                        <button type="submit">Adicionar Informação</button>
+                    </form>
+                </div>
+                <button id="btn-update-article">Atualizar Artigo</button>
+                <button id="btn-delete-article">Remover Artigo</button>
+                <div id="edit-status" class="info-message"></div>
             </div>
-            
-            <button id="btn-update-article">Atualizar Artigo</button>
-            <button id="btn-delete-article">Remover Artigo</button>
-            <div id="edit-status" class="info-message"></div>
         </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script> <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script>
         // Use as suas credenciais do Firebase aqui
         const firebaseConfig = {
@@ -169,26 +194,70 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        const auth = firebase.auth();
         const wikiRef = db.collection('wikinotpedia');
 
-        // --- Inicializa os editores Quill ---
         const quillToolbarOptions = [
-            ['bold', 'italic', 'underline', 'strike'],        // botões de texto
+            ['bold', 'italic', 'underline', 'strike'],
             ['blockquote', 'code-block'],
             [{ 'list': 'ordered'}, { 'list': 'bullet' }],
             [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-            [{ 'color': [] }, { 'background': [] }],          // botões de cor
-            ['clean']                                         // remove a formatação
+            [{ 'color': [] }, { 'background': [] }],
+            ['clean']
         ];
+        const quillNew = new Quill('#editor-container', { theme: 'snow', modules: { toolbar: quillToolbarOptions } });
+        const quillEdit = new Quill('#edit-editor-container', { theme: 'snow', modules: { toolbar: quillToolbarOptions } });
 
-        const quillNew = new Quill('#editor-container', {
-            theme: 'snow',
-            modules: { toolbar: quillToolbarOptions }
+        // --- Lógica de Login ---
+        const formLogin = document.getElementById('form-login');
+        const loginStatus = document.getElementById('login-status');
+        const mainContent = document.getElementById('main-content');
+        const loginSection = document.getElementById('login-section');
+        const userInfo = document.getElementById('user-info');
+        const userEmailSpan = document.getElementById('user-email');
+        const btnLogout = document.getElementById('btn-logout');
+
+        auth.onAuthStateChanged(async user => {
+            if (user) {
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                if (userDoc.exists && userDoc.data().isAdmin) {
+                    userEmailSpan.textContent = user.email;
+                    loginSection.style.display = 'none';
+                    mainContent.style.display = 'block';
+                    userInfo.style.display = 'block';
+                } else {
+                    loginStatus.textContent = 'Acesso negado. Você não é um administrador.';
+                    loginStatus.className = 'info-message error';
+                    auth.signOut();
+                }
+            } else {
+                loginSection.style.display = 'block';
+                mainContent.style.display = 'none';
+                userInfo.style.display = 'none';
+            }
         });
 
-        const quillEdit = new Quill('#edit-editor-container', {
-            theme: 'snow',
-            modules: { toolbar: quillToolbarOptions }
+        formLogin.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            loginStatus.textContent = 'Autenticando...';
+            loginStatus.className = 'info-message';
+
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+                loginStatus.textContent = 'Login bem-sucedido!';
+                loginStatus.className = 'info-message success';
+            } catch (error) {
+                console.error("Erro no login: ", error);
+                loginStatus.textContent = `Erro no login: ${error.message}`;
+                loginStatus.className = 'info-message error';
+            }
+        });
+
+        btnLogout.addEventListener('click', () => {
+            auth.signOut();
+            loginStatus.textContent = '';
         });
 
         // --- Funções para Cadastro de Novo Artigo ---
@@ -200,7 +269,7 @@
 
             const titulo = document.getElementById('titulo').value;
             const descricaoPrincipal = document.getElementById('descricao-principal').value;
-            const descricaoFormatada = quillNew.root.innerHTML; // Pega o HTML do Quill
+            const descricaoFormatada = quillNew.root.innerHTML;
 
             try {
                 const now = new Date();
@@ -219,7 +288,7 @@
                 statusDiv.textContent = 'Artigo adicionado com sucesso!';
                 statusDiv.className = 'info-message success';
                 document.getElementById('form-add-article').reset();
-                quillNew.root.innerHTML = ''; // Limpa o editor
+                quillNew.root.innerHTML = '';
             } catch (error) {
                 console.error("Erro ao adicionar documento: ", error);
                 statusDiv.textContent = `Erro ao adicionar artigo: ${error.message}`;
@@ -254,7 +323,7 @@
                 document.getElementById('article-horario').textContent = data.Horário;
                 document.getElementById('edit-titulo').value = data.Título;
                 document.getElementById('edit-descricao-principal').value = data.Descrição;
-                quillEdit.root.innerHTML = data['Descrição com formatação']; // Carrega o HTML no editor de edição
+                quillEdit.root.innerHTML = data['Descrição com formatação'];
 
                 loadAdditionalData(data['Informações adicionais']);
                 
@@ -276,7 +345,7 @@
                 additionalDataArray.forEach((item, index) => {
                     const itemDiv = document.createElement('div');
                     const content = item['Tipo de dados'] === 'Texto formatado' 
-                        ? item.conteudo // Agora o conteúdo é HTML, então basta inseri-lo
+                        ? item.conteudo
                         : `<p><strong>Linha ${item.numerodalinha}:</strong> ${item['Tipo de dados']} - Ocupação: ${item['Oculpação de espaço']}</p>`;
                     itemDiv.innerHTML = content;
                     listDiv.appendChild(itemDiv);
@@ -286,14 +355,13 @@
             }
         };
 
-        // --- Funções de Atualização e Remoção ---
         document.getElementById('btn-update-article').addEventListener('click', async () => {
             if (!currentArticleId) return;
 
             const updatedData = {
                 Título: document.getElementById('edit-titulo').value,
                 Descrição: document.getElementById('edit-descricao-principal').value,
-                'Descrição com formatação': quillEdit.root.innerHTML, // Pega o HTML do Quill de edição
+                'Descrição com formatação': quillEdit.root.innerHTML,
             };
 
             try {
@@ -325,7 +393,6 @@
             }
         });
         
-        // --- Função para Adicionar Informações Adicionais (Artigo relacionado) ---
         document.getElementById('form-add-additional-data').addEventListener('submit', async (e) => {
             e.preventDefault();
             if (!currentArticleId) {
@@ -340,7 +407,7 @@
             let conteudo = '';
             if (tipoDados === 'Texto formatado') {
                 const text = prompt("Digite o texto com formatação (HTML será renderizado):");
-                conteudo = text; // Salva o texto puro que poderá ser formatado com HTML mais tarde
+                conteudo = text;
             }
 
             const newAdditionalData = {
