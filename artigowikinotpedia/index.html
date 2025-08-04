@@ -87,8 +87,9 @@
             <label for="descricao-principal">Descrição (Principal):</label>
             <textarea id="descricao-principal" name="descricao-principal" rows="4" required></textarea>
 
-            <label for="descricao-formatada">Descrição com formatação:</label>
-            <textarea id="descricao-formatada" name="descricao-formatada" rows="8"></textarea>
+            <label for="descricao-formatada">Descrição com formatação (Markdown):</label>
+            <textarea id="descricao-formatada" name="descricao-formatada" rows="8"
+                      placeholder="Use **negrito**, *itálico*, ## Títulos e - para listas."></textarea>
 
             <button type="submit">Adicionar Artigo</button>
             <div id="add-status" class="info-message"></div>
@@ -110,7 +111,7 @@
             <p><strong>Horário:</strong> <span id="article-horario"></span></p>
             <p><strong>Título:</strong> <input type="text" id="edit-titulo"></p>
             <p><strong>Descrição Principal:</strong> <textarea id="edit-descricao-principal" rows="4"></textarea></p>
-            <p><strong>Descrição Formatada:</strong> <textarea id="edit-descricao-formatada" rows="8"></textarea></p>
+            <p><strong>Descrição Formatada (Markdown):</strong> <textarea id="edit-descricao-formatada" rows="8"></textarea></p>
             
             <div class="additional-data-container" id="additional-data-section">
                 <h4>Informações Adicionais da Página</h4>
@@ -182,7 +183,6 @@
                     'Descrição com formatação': descricaoFormatada,
                     Data: data,
                     Horário: horario,
-                    // Adicione aqui a estrutura para informações adicionais se necessário
                     'Informações adicionais': []
                 });
 
@@ -226,7 +226,6 @@
                 document.getElementById('edit-descricao-principal').value = data.Descrição;
                 document.getElementById('edit-descricao-formatada').value = data['Descrição com formatação'];
 
-                // Carregar e exibir informações adicionais
                 loadAdditionalData(data['Informações adicionais']);
                 
                 articleDisplay.style.display = 'block';
@@ -240,21 +239,40 @@
             }
         });
 
-        // Função para carregar as informações adicionais
         const loadAdditionalData = (additionalDataArray) => {
             const listDiv = document.getElementById('additional-data-list');
-            listDiv.innerHTML = ''; // Limpa a lista
+            listDiv.innerHTML = '';
             if (additionalDataArray && additionalDataArray.length > 0) {
                 additionalDataArray.forEach((item, index) => {
                     const itemDiv = document.createElement('div');
-                    itemDiv.innerHTML = `
-                        <p><strong>Linha ${item.numerodalinha}:</strong> ${item['Tipo de dados']} - Ocupação: ${item['Oculpação de espaço']}</p>
-                    `;
+                    // Renderiza o texto formatado se o tipo for 'Texto formatado'
+                    const content = item['Tipo de dados'] === 'Texto formatado' 
+                        ? renderMarkdown(item.conteudo) // Supondo que 'conteudo' é o campo para o texto formatado
+                        : `<p><strong>Linha ${item.numerodalinha}:</strong> ${item['Tipo de dados']} - Ocupação: ${item['Oculpação de espaço']}</p>`;
+                    itemDiv.innerHTML = content;
                     listDiv.appendChild(itemDiv);
                 });
             } else {
                 listDiv.innerHTML = '<p>Nenhuma informação adicional.</p>';
             }
+        };
+
+        // Função para converter Markdown em HTML
+        const renderMarkdown = (text) => {
+            if (!text) return '';
+            // Converte títulos ##
+            let html = text.replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                           .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+                           .replace(/^# (.*$)/gim, '<h1>$1</h1>');
+            // Converte negrito e itálico
+            html = html.replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>');
+            html = html.replace(/\*(.*?)\*/gim, '<em>$1</em>');
+            // Converte listas
+            html = html.replace(/^\- (.*$)/gim, '<li>$1</li>');
+            html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+            // Converte quebras de linha para <br>
+            html = html.replace(/\n/g, '<br>');
+            return html;
         };
 
         // --- Funções de Atualização e Remoção ---
@@ -307,17 +325,19 @@
             const numeroLinha = parseInt(document.getElementById('numero-linha').value);
             const tipoDados = document.getElementById('tipo-dados').value;
             const ocupacaoEspaco = document.getElementById('ocupacao-espaco').value;
+            
+            // Adicionar campo para o conteúdo formatado
+            const conteudo = tipoDados === 'Texto formatado' ? prompt("Digite o texto com formatação (Markdown):") : '';
 
-            // Criar o objeto de informação adicional
             const newAdditionalData = {
                 'numerodalinha': numeroLinha,
                 'Tipo de dados': tipoDados,
                 'Oculpação de espaço': ocupacaoEspaco,
-                'UID do artigo vinculdo': currentArticleId // Conforme sua especificação
+                'UID do artigo vinculdo': currentArticleId,
+                'conteudo': conteudo // Novo campo
             };
 
             try {
-                // Obter o documento atual e adicionar a nova informação
                 const docRef = wikiRef.doc(currentArticleId);
                 const doc = await docRef.get();
                 const existingData = doc.data()['Informações adicionais'] || [];
@@ -329,7 +349,6 @@
                 editStatus.textContent = 'Informação adicional adicionada com sucesso!';
                 editStatus.className = 'info-message success';
                 
-                // Recarregar os dados para exibir a nova informação
                 const updatedDoc = await docRef.get();
                 loadAdditionalData(updatedDoc.data()['Informações adicionais']);
 
