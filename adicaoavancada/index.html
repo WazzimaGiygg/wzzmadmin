@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar Matéria</title>
+</head>
+<body>
+
+    <h1>Criar Nova Matéria</h1>
+
+    <form id="materiaForm">
+        <label for="titulo">Título:</label><br>
+        <input type="text" id="titulo" name="titulo" required><br><br>
+
+        <label for="descricao">Descrição:</label><br>
+        <textarea id="descricao" name="descricao" rows="5" required></textarea><br><br>
+        
+        <label>Fontes:</label><br>
+        <div id="fontesContainer">
+            <input type="text" class="fonteInput" name="fontes[]"><br>
+        </div>
+        <button type="button" id="addFonte">Adicionar Mais Fontes</button><br><br>
+        
+        <button type="submit">Salvar Matéria</button>
+    </form>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+
+    <script>
+// --- Configuração do Firebase (use suas próprias chaves) ---
+// --- Configuração do Firebase ---
+const firebaseConfig = {
+apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0", // Use sua própria chave!
+authDomain: "wzzm-ce3fc.firebaseapp.com",
+projectId: "wzzm-ce3fc",
+storageBucket: "wzzm-ce3fc.appspot.com",
+messagingSenderId: "249427877153",
+appId: "1:249427877153:web:0e4297294794a5aadeb260",
+measurementId: "G-PLKNZNFCQ8"
+};
+
+// Inicialize o Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// --- Lógica para adicionar campos de fonte ---
+document.getElementById('addFonte').addEventListener('click', () => {
+    const fontesContainer = document.getElementById('fontesContainer');
+    const novoInput = document.createElement('input');
+    novoInput.type = 'text';
+    novoInput.className = 'fonteInput';
+    novoInput.name = 'fontes[]';
+    
+    // Adicione a nova entrada e uma quebra de linha
+    fontesContainer.appendChild(novoInput);
+    fontesContainer.appendChild(document.createElement('br'));
+});
+
+// --- Lógica para salvar os dados no Firestore ---
+document.getElementById('materiaForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    // Obtenha os valores dos campos
+    const titulo = document.getElementById('titulo').value;
+    const descricao = document.getElementById('descricao').value;
+    
+    // Obtenha todos os valores das fontes e filtre os campos vazios
+    const fontes = Array.from(document.getElementsByClassName('fonteInput'))
+                      .map(input => input.value.trim())
+                      .filter(fonte => fonte !== '');
+
+    // Verifique se os campos principais estão preenchidos
+    if (!titulo || !descricao) {
+        alert('Por favor, preencha o título e a descrição.');
+        return;
+    }
+
+    try {
+        // Adicione um novo documento na coleção 'materias'
+        await db.collection('materias').add({
+            titulo: titulo,
+            descricao: descricao,
+            fontes: fontes, // As fontes são salvas como um array
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        alert('Matéria criada com sucesso!');
+        // Limpe o formulário
+        document.getElementById('materiaForm').reset();
+        
+        // Remova os campos de fonte adicionais, deixando apenas o primeiro
+        const fontesContainer = document.getElementById('fontesContainer');
+        while (fontesContainer.childElementCount > 2) { // 2 filhos = 1 input e 1 <br>
+            fontesContainer.removeChild(fontesContainer.lastChild);
+        }
+        
+    } catch (error) {
+        console.error('Erro ao adicionar a matéria: ', error);
+        alert('Erro ao criar a matéria. Tente novamente.');
+    }
+});
+      
+      
+    </script>
+
+</body>
+</html>
