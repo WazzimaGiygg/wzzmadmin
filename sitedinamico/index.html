@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Nova Página</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Noto+Sans">
+    <style>
+        body {
+            font-family: 'Noto Sans', sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 900px;
+        }
+        h1 {
+            color: #343a40;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #54595d;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 16px;
+            font-family: 'Noto Sans', sans-serif;
+            resize: vertical;
+        }
+        textarea {
+            height: 200px;
+        }
+        .code-area {
+            font-family: monospace;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+        button[type="submit"] {
+            display: block;
+            width: 100%;
+            background-color: #007bff;
+            color: white;
+            padding: 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+        button[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Registrar Nova Página (HTML2W)</h1>
+
+        <form id="registroForm">
+            <label for="nome">Nome da Página:</label>
+            <input type="text" id="nome" name="nome" placeholder="Ex: WazzimaGiygg Site" required>
+
+            <label for="html">Conteúdo HTML:</label>
+            <textarea id="html" name="html" class="code-area" placeholder="" required></textarea>
+
+            <label for="css">Estilos CSS:</label>
+            <textarea id="css" name="css" class="code-area" placeholder="/* Insira o código CSS aqui */"></textarea>
+
+            <label for="js">Scripts JS:</label>
+            <textarea id="js" name="js" class="code-area" placeholder="// Insira o código JavaScript aqui"></textarea>
+
+            <button type="submit">Salvar Página</button>
+        </form>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+    <script>
+        // --- Configuração do Firebase ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0", 
+            authDomain: "wzzm-ce3fc.firebaseapp.com",
+            projectId: "wzzm-ce3fc",
+            storageBucket: "wzzm-ce3fc.appspot.com",
+            messagingSenderId: "249427877153",
+            appId: "1:249427877153:web:0e4297294794a5aadeb260",
+            measurementId: "G-PLKNZNFCQ8"
+        };
+
+        // Inicialize o Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // --- Lógica para salvar os dados no Firestore ---
+        document.getElementById('registroForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Obter os valores dos campos
+            const nome = document.getElementById('nome').value.trim();
+            const html = document.getElementById('html').value.trim();
+            const css = document.getElementById('css').value.trim();
+            const js = document.getElementById('js').value.trim();
+
+            if (!nome || !html) {
+                alert('Os campos "Nome da Página" e "Conteúdo HTML" são obrigatórios.');
+                return;
+            }
+
+            try {
+                await db.collection('HTML2W').add({
+                    nome: nome,
+                    HTML: html,
+                    CSS: css,
+                    JS: js,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                alert('Página registrada com sucesso!');
+                // Limpa o formulário após o envio
+                document.getElementById('registroForm').reset();
+            } catch (error) {
+                console.error('Erro ao adicionar a página: ', error);
+                alert('Erro ao registrar a página. Tente novamente.');
+            }
+        });
+    </script>
+</body>
+</html>
