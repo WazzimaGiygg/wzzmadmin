@@ -104,6 +104,14 @@
         <label for="titulo">Título:</label>
         <input type="text" id="titulo" name="titulo" required>
 
+        <label for="setor">Setor:</label>
+        <input type="text" id="setor" name="setor" required>
+        
+        <label for="arquivo">Arquivo:</label>
+        <input type="text" id="arquivo" name="arquivo" required>
+        
+        <label for="armario">Armário:</label>
+        <input type="text" id="armario" name="armario" required>
         <label for="descricao">Descrição:</label>
         <div id="descricaoEditor" class="quill-editor-container"></div>
         
@@ -144,19 +152,19 @@ const quill = new Quill('#descricaoEditor', {
     placeholder: 'Escreva a descrição da matéria aqui...',
     modules: {
         toolbar: [
-            ['bold', 'italic', 'underline', 'strike'],        // Estilos de texto
+            ['bold', 'italic', 'underline', 'strike'],
             ['blockquote', 'code-block'],
             [{ 'header': 1 }, { 'header': 2 }],
             [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-            [{ 'script': 'sub'}, { 'script': 'super' }],      // Subscrito/superscrito
-            [{ 'indent': '-1'}, { 'indent': '+1' }],          // Recuo
-            [{ 'direction': 'rtl' }],                         // Direção do texto
-            [{ 'size': ['small', false, 'large', 'huge'] }],  // Tamanhos de fonte
+            [{ 'script': 'sub'}, { 'script': 'super' }],
+            [{ 'indent': '-1'}, { 'indent': '+1' }],
+            [{ 'direction': 'rtl' }],
+            [{ 'size': ['small', false, 'large', 'huge'] }],
             [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-            [{ 'color': [] }, { 'background': [] }],          // Cores de texto e fundo
+            [{ 'color': [] }, { 'background': [] }],
             [{ 'font': [] }],
             [{ 'align': [] }],
-            ['clean']                                         // Remover formatação
+            ['clean']
         ]
     }
 });
@@ -179,16 +187,17 @@ document.getElementById('materiaForm').addEventListener('submit', async (e) => {
 
     // Obtenha os valores dos campos
     const titulo = document.getElementById('titulo').value;
-    // O Quill armazena o conteúdo formatado como HTML
-    const descricao = quill.root.innerHTML; 
+    const setor = document.getElementById('setor').value;
+    const arquivo = document.getElementById('arquivo').value;
+    const armario = document.getElementById('armario').value;
+    const descricao = quill.root.innerHTML;
     
-    // Obtenha todos os valores das fontes
     const fontes = Array.from(document.getElementsByClassName('fonteInput'))
                       .map(input => input.value.trim())
                       .filter(fonte => fonte !== '');
 
-    if (!titulo || !descricao) {
-        alert('Por favor, preencha o título e a descrição.');
+    if (!titulo || !descricao || !setor || !arquivo || !armario) {
+        alert('Por favor, preencha todos os campos obrigatórios: Título, Descrição, Setor, Arquivo e Armário.');
         return;
     }
 
@@ -196,6 +205,9 @@ document.getElementById('materiaForm').addEventListener('submit', async (e) => {
         await db.collection('materias').add({
             titulo: titulo,
             descricao: descricao,
+            setor: setor,
+            arquivo: arquivo,
+            armario: armario,
             fontes: fontes,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
