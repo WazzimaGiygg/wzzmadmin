@@ -100,12 +100,12 @@
         <p id="auth-message" style="display: none;">Você precisa estar autenticado como administrador para acessar esta página.</p>
 
         <ul id="reports-list">
-            </ul>
+        </ul>
     </div>
 
     <div id="snackbar" class="mdl-js-snackbar mdl-snackbar">
-      <div class="mdl-snackbar__text"></div>
-      <button class="mdl-snackbar__action" type="button"></button>
+        <div class="mdl-snackbar__text"></div>
+        <button class="mdl-snackbar__action" type="button"></button>
     </div>
 
     <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
@@ -115,21 +115,21 @@
 
     <script>
         // Substitua as chaves abaixo pela sua configuração do Firebase
-const firebaseConfig = {
-    apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0",
-    authDomain: "wzzm-ce3fc.firebaseapp.com",
-    projectId: "wzzm-ce3fc",
-    storageBucket: "wzzm-ce3fc.appspot.com",
-    messagingSenderId: "249427877153",
-    appId: "1:249427877153:web:0e4297294794a5aadeb260",
-    measurementId: "G-PLKNZNFCQ8"
-};
+        const firebaseConfig = {
+            apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0",
+            authDomain: "wzzm-ce3fc.firebaseapp.com",
+            projectId: "wzzm-ce3fc",
+            storageBucket: "wzzm-ce3fc.appspot.com",
+            messagingSenderId: "249427877153",
+            appId: "1:249427877153:web:0e4297294794a5aadeb260",
+            measurementId: "G-PLKNZNFCQ8"
+        };
 
-// E inicialize o aplicativo uma única vez
-const app = firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const firestore = firebase.firestore();
-firebase.analytics();
+        // E inicialize o aplicativo uma única vez
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const firestore = firebase.firestore();
+        firebase.analytics();
 
         // Elementos DOM
         const loadingSpinner = document.getElementById('loading-spinner');
@@ -157,7 +157,7 @@ firebase.analytics();
 
             try {
                 // Busca todas as denúncias (pendentes ou não)
-                const reportsSnapshot = await db.collection('reports').orderBy('timestamp', 'desc').get();
+                const reportsSnapshot = await firestore.collection('reports').orderBy('timestamp', 'desc').get();
 
                 if (reportsSnapshot.empty) {
                     noReportsMessage.style.display = 'block';
@@ -172,7 +172,7 @@ firebase.analytics();
                     // Busca o título do artigo
                     let articleTitle = 'Artigo não encontrado';
                     if (reportData.articleUid) {
-                        const articleDoc = await db.collection('articles').doc(reportData.articleUid).get();
+                        const articleDoc = await firestore.collection('articles').doc(reportData.articleUid).get();
                         if (articleDoc.exists) {
                             articleTitle = articleDoc.data().title || 'Sem título';
                         }
@@ -181,7 +181,7 @@ firebase.analytics();
                     // Busca o nome do usuário que fez a denúncia
                     let reporterName = 'Usuário desconhecido';
                     if (reportData.reporterUid) {
-                        const reporterDoc = await db.collection('users').doc(reportData.reporterUid).get();
+                        const reporterDoc = await firestore.collection('users').doc(reportData.reporterUid).get();
                         if (reporterDoc.exists) {
                             reporterName = reporterDoc.data().displayName || 'Usuário sem nome';
                         }
@@ -234,7 +234,7 @@ firebase.analytics();
         // Função para resolver uma denúncia
         async function resolveReport(reportId) {
             try {
-                await db.collection('reports').doc(reportId).update({
+                await firestore.collection('reports').doc(reportId).update({
                     status: 'resolvido'
                 });
                 showSnackbar('Denúncia resolvida com sucesso!');
@@ -253,13 +253,13 @@ firebase.analytics();
         async function deleteReport(reportId) {
             if (confirm('Tem certeza que deseja excluir esta denúncia? Esta ação não pode ser desfeita.')) {
                 try {
-                    await db.collection('reports').doc(reportId).delete();
+                    await firestore.collection('reports').doc(reportId).delete();
                     showSnackbar('Denúncia excluída com sucesso!');
                     // Remove o item da lista
                     const item = document.querySelector(`.report-item[data-id="${reportId}"]`);
                     if (item) item.remove();
                     if(reportsList.children.length === 0) {
-                      noReportsMessage.style.display = 'block';
+                        noReportsMessage.style.display = 'block';
                     }
                 } catch (error) {
                     console.error("Erro ao excluir denúncia:", error);
@@ -272,7 +272,7 @@ firebase.analytics();
         auth.onAuthStateChanged(async user => {
             if (user) {
                 try {
-                    const userDoc = await db.collection('users').doc(user.uid).get();
+                    const userDoc = await firestore.collection('users').doc(user.uid).get();
                     // Implementação básica: verifica se a propriedade isAdmin é true no perfil do usuário
                     // Em um sistema real, essa verificação deve ser mais robusta
                     if (userDoc.exists && userDoc.data().isAdmin) {
