@@ -98,9 +98,7 @@
         <div id="loading-spinner" class="mdl-spinner mdl-spinner--single-color mdl-js-spinner is-active"></div>
         <p id="no-reports-message" style="text-align: center; display: none;">Nenhuma denúncia pendente encontrada.</p>
         <p id="auth-message" style="display: none;">Você precisa estar autenticado como administrador para acessar esta página.</p>
-
-        <ul id="reports-list">
-        </ul>
+        <ul id="reports-list"></ul>
     </div>
 
     <div id="snackbar" class="mdl-js-snackbar mdl-snackbar">
@@ -112,9 +110,9 @@
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-analytics-compat.js"></script>
 
     <script>
-        // Substitua as chaves abaixo pela sua configuração do Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0",
             authDomain: "wzzm-ce3fc.firebaseapp.com",
@@ -125,19 +123,17 @@
             measurementId: "G-PLKNZNFCQ8"
         };
 
-        // E inicialize o aplicativo uma única vez
         const app = firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const firestore = firebase.firestore();
+        // A função firebase.analytics() agora funcionará
         firebase.analytics();
 
-        // Elementos DOM
         const loadingSpinner = document.getElementById('loading-spinner');
         const reportsList = document.getElementById('reports-list');
         const noReportsMessage = document.getElementById('no-reports-message');
         const authMessage = document.getElementById('auth-message');
 
-        // Função para mostrar notificações na tela
         function showSnackbar(message) {
             var snackbarContainer = document.querySelector('#snackbar');
             var data = {
@@ -149,14 +145,12 @@
             }
         }
 
-        // Função para carregar e exibir as denúncias
         async function loadReports() {
             loadingSpinner.style.display = 'block';
             reportsList.innerHTML = '';
             noReportsMessage.style.display = 'none';
 
             try {
-                // Busca todas as denúncias (pendentes ou não)
                 const reportsSnapshot = await firestore.collection('reports').orderBy('timestamp', 'desc').get();
 
                 if (reportsSnapshot.empty) {
@@ -169,7 +163,6 @@
                     const reportData = reportDoc.data();
                     const reportId = reportDoc.id;
 
-                    // Busca o título do artigo
                     let articleTitle = 'Artigo não encontrado';
                     if (reportData.articleUid) {
                         const articleDoc = await firestore.collection('articles').doc(reportData.articleUid).get();
@@ -178,7 +171,6 @@
                         }
                     }
 
-                    // Busca o nome do usuário que fez a denúncia
                     let reporterName = 'Usuário desconhecido';
                     if (reportData.reporterUid) {
                         const reporterDoc = await firestore.collection('users').doc(reportData.reporterUid).get();
@@ -187,7 +179,6 @@
                         }
                     }
 
-                    // Cria o item da lista HTML
                     const reportItem = document.createElement('li');
                     reportItem.classList.add('report-item');
                     if (reportData.status === 'resolvido') {
@@ -222,7 +213,6 @@
                     `;
                     reportsList.appendChild(reportItem);
                 }
-
                 loadingSpinner.style.display = 'none';
             } catch (error) {
                 console.error("Erro ao carregar denúncias:", error);
@@ -231,14 +221,12 @@
             }
         }
 
-        // Função para resolver uma denúncia
         async function resolveReport(reportId) {
             try {
                 await firestore.collection('reports').doc(reportId).update({
                     status: 'resolvido'
                 });
                 showSnackbar('Denúncia resolvida com sucesso!');
-                // Atualiza a UI sem recarregar a página
                 const item = document.querySelector(`.report-item button[onclick="resolveReport('${reportId}')"]`).closest('.report-item');
                 item.classList.add('resolved');
                 item.querySelector(`#status-${reportId}`).textContent = 'Resolvido';
@@ -249,13 +237,11 @@
             }
         }
 
-        // Função para excluir uma denúncia
         async function deleteReport(reportId) {
             if (confirm('Tem certeza que deseja excluir esta denúncia? Esta ação não pode ser desfeita.')) {
                 try {
                     await firestore.collection('reports').doc(reportId).delete();
                     showSnackbar('Denúncia excluída com sucesso!');
-                    // Remove o item da lista
                     const item = document.querySelector(`.report-item[data-id="${reportId}"]`);
                     if (item) item.remove();
                     if(reportsList.children.length === 0) {
@@ -268,17 +254,14 @@
             }
         }
         
-        // Listener de autenticação para verificar o papel do usuário
         auth.onAuthStateChanged(async user => {
             if (user) {
                 try {
                     const userDoc = await firestore.collection('users').doc(user.uid).get();
-                    // Implementação básica: verifica se a propriedade isAdmin é true no perfil do usuário
-                    // Em um sistema real, essa verificação deve ser mais robusta
                     if (userDoc.exists && userDoc.data().isAdmin) {
                         authMessage.style.display = 'none';
                         document.querySelector('.container').style.display = 'block';
-                        loadReports(); // Carrega as denúncias apenas para administradores
+                        loadReports();
                     } else {
                         document.querySelector('.container').style.display = 'none';
                         authMessage.textContent = 'Acesso negado. Você não tem permissão de administrador.';
@@ -293,7 +276,6 @@
                     loadingSpinner.style.display = 'none';
                 }
             } else {
-                // Usuário não logado
                 document.querySelector('.container').style.display = 'none';
                 authMessage.textContent = 'Você precisa fazer login para acessar este painel.';
                 authMessage.style.display = 'block';
