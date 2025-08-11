@@ -8,13 +8,12 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-storage-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-    <script src="https://cdn.tiny.cloud/1/ip8552a7qwi5j8cb401d4n4mgscpygog8fw9j0z8b74g92yl/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
     <style>
         body { font-family: Arial, sans-serif; margin: 2em; }
         .container { max-width: 800px; margin: auto; }
         label { display: block; margin-top: 1em; font-weight: bold; }
         input[type="text"], select, textarea { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; }
-        #content-editor { height: 300px; }
+        #content { height: 300px; }
         #consent { margin-top: 1em; }
         button { padding: 10px 15px; margin-top: 1em; cursor: pointer; }
         #auth-status { margin-bottom: 1em; }
@@ -48,8 +47,8 @@
                 <option value="Entretenimento">Entretenimento</option>
             </select>
 
-            <label for="content">Conteúdo:</label>
-            <textarea id="content-editor"></textarea>
+            <label for="content">Conteúdo (insira o código HTML aqui):</label>
+            <textarea id="content" required></textarea>
 
             <label for="image-upload">Upload de Imagem:</label>
             <input type="file" id="image-upload" accept="image/*">
@@ -67,7 +66,7 @@
     </div>
 
     <script>
-        // Configuração do Firebase
+        // --- Configuração do Firebase ---
         const firebaseConfig = {
             apiKey: "AIzaSyB9GkSqTIZ0kbVsba_WOdQeVAETrF9qna0",
             authDomain: "wzzm-ce3fc.firebaseapp.com",
@@ -83,13 +82,6 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
         const storage = firebase.storage();
-
-        // Inicializa o editor TinyMCE
-        tinymce.init({
-            selector: '#content-editor',
-            plugins: 'autolink lists link image charmap print preview hr anchor pagebreak',
-            toolbar: 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help'
-        });
 
         const authStatus = document.getElementById('auth-status');
         const contentForm = document.getElementById('content-form');
@@ -151,7 +143,7 @@
 
             const title = document.getElementById('title').value;
             const sector = document.getElementById('sector').value;
-            const content = tinymce.get('content-editor').getContent();
+            const content = document.getElementById('content').value;
             const termsConsent = document.getElementById('terms-consent').checked;
             const imageFile = document.getElementById('image-upload').files[0];
 
@@ -184,7 +176,6 @@
 
                 resultDiv.innerHTML += `<p>Documento publicado com sucesso na coleção "wazzimagiyggfemboyverse69".</p>`;
                 contentForm.reset();
-                tinymce.get('content-editor').setContent('');
             } catch (error) {
                 console.error("Erro ao publicar: ", error);
                 resultDiv.innerHTML = `<p style="color:red;">Ocorreu um erro ao publicar o conteúdo. Tente novamente.</p>`;
