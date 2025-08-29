@@ -90,27 +90,27 @@
                 <button id="searchBtn" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect">
                     Pesquisar
                 </button>
-                <!-- ... (dentro do <div class="mdl-card__supporting-text">, logo após o botão Pesquisar) -->
-<button id="listAllBtn" class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent mdl-js-ripple-effect" style="margin-left:10px;">
-    Listar Todos
-</button>
+                <button id="listAllBtn" class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent mdl-js-ripple-effect" style="margin-left:10px;">
+                    Listar Todos
+                </button>
             </div>
             <div id="searchMessage" style="margin-bottom: 15px; color: red; display: none;"></div>
-<div id="userList" style="margin-top:20px; display:none;">
-    <h5>Usuários cadastrados:</h5>
-    <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp" style="width:100%;">
-        <thead>
-            <tr>
-                <th class="mdl-data-table__cell--non-numeric">UID</th>
-                <th class="mdl-data-table__cell--non-numeric">Nome</th>
-                <th class="mdl-data-table__cell--non-numeric">Email</th>
-                <th class="mdl-data-table__cell--non-numeric">Admin</th>
-                <th class="mdl-data-table__cell--non-numeric">Banido</th>
-            </tr>
-        </thead>
-        <tbody id="userListBody"></tbody>
-    </table>
-</div>
+            <div id="userList" style="margin-top:20px; display:none;">
+                <h5>Usuários cadastrados:</h5>
+                <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp" style="width:100%;">
+                    <thead>
+                        <tr>
+                            <th class="mdl-data-table__cell--non-numeric">UID</th>
+                            <th class="mdl-data-table__cell--non-numeric">Nome</th>
+                            <th class="mdl-data-table__cell--non-numeric">Email</th>
+                            <th class="mdl-data-table__cell--non-numeric">Admin</th>
+                            <th class="mdl-data-table__cell--non-numeric">Banido</th>
+                            <th class="mdl-data-table__cell--non-numeric">Professor</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userListBody"></tbody>
+                </table>
+            </div>
             <form id="editUserForm" style="display: none;">
                 <span class="mdl-data-label">UID:</span> <span class="mdl-data-value" id="displayUid"></span>
                 <span class="mdl-data-label">Nome:</span> <span class="mdl-data-value" id="displayName"></span>
@@ -123,6 +123,11 @@
                     <span class="mdl-checkbox__label">É Administrador</span>
                 </label>
 
+                <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="isTeatcher">
+                    <input type="checkbox" id="isTeatcher" class="mdl-checkbox__input">
+                    <span class="mdl-checkbox__label">É Professor</span>
+                </label>
+                
                 <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="isBan">
                     <input type="checkbox" id="isBan" class="mdl-checkbox__input">
                     <span class="mdl-checkbox__label">Está Banido</span>
@@ -179,6 +184,8 @@
 
         // Campos editáveis
         const isAdminCheckbox = document.getElementById('isAdmin');
+        // NOVO: Variável para o checkbox de professor
+        const isTeatcherCheckbox = document.getElementById('isTeatcher');
         const IsBanCheckbox = document.getElementById('isBan');
 
         let currentEditingUid = null; // UID do usuário que está sendo editado
@@ -213,10 +220,17 @@
             displayCreatedAt.textContent = '';
             displayLastLogin.textContent = '';
             isAdminCheckbox.checked = false;
+            // NOVO: Limpa o checkbox de professor
+            isTeatcherCheckbox.checked = false;
             IsBanCheckbox.checked = false;
+
             // Força o MDL a atualizar os estados dos checkboxes
             if (isAdminCheckbox.parentElement && isAdminCheckbox.parentElement.MaterialCheckbox) {
                 isAdminCheckbox.parentElement.MaterialCheckbox.uncheck();
+            }
+            // NOVO: Atualiza o MDL para o checkbox de professor
+            if (isTeatcherCheckbox.parentElement && isTeatcherCheckbox.parentElement.MaterialCheckbox) {
+                isTeatcherCheckbox.parentElement.MaterialCheckbox.uncheck();
             }
             if (IsBanCheckbox.parentElement && IsBanCheckbox.parentElement.MaterialCheckbox) {
                 IsBanCheckbox.parentElement.MaterialCheckbox.uncheck();
@@ -235,6 +249,8 @@
             displayLastLogin.textContent = data.lastLoginAt ? new Date(data.lastLoginAt.toDate()).toLocaleString('pt-BR') : 'N/A';
 
             isAdminCheckbox.checked = data.isAdmin === true;
+            // NOVO: Define o estado do checkbox de professor
+            isTeatcherCheckbox.checked = data.isTeatcher === true;
             IsBanCheckbox.checked = data.isBan === true;
 
             // Força o MDL a atualizar os estados dos checkboxes
@@ -243,6 +259,14 @@
                     isAdminCheckbox.parentElement.MaterialCheckbox.check();
                 } else {
                     isAdminCheckbox.parentElement.MaterialCheckbox.uncheck();
+                }
+            }
+            // NOVO: Atualiza o MDL para o checkbox de professor
+            if (isTeatcherCheckbox.parentElement && isTeatcherCheckbox.parentElement.MaterialCheckbox) {
+                if (isTeatcherCheckbox.checked) {
+                    isTeatcherCheckbox.parentElement.MaterialCheckbox.check();
+                } else {
+                    isTeatcherCheckbox.parentElement.MaterialCheckbox.uncheck();
                 }
             }
             if (IsBanCheckbox.parentElement && IsBanCheckbox.parentElement.MaterialCheckbox) {
@@ -312,7 +336,9 @@
 
             const updatedUserData = {
                 isAdmin: isAdminCheckbox.checked,
-                IsBan: IsBanCheckbox.checked,
+                // NOVO: Adiciona o estado de isTeatcher aos dados
+                isTeatcher: isTeatcherCheckbox.checked,
+                isBan: IsBanCheckbox.checked,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp() // Opcional: timestamp de atualização
             };
 
@@ -354,23 +380,14 @@
         document.addEventListener('DOMContentLoaded', () => {
             auth.onAuthStateChanged(async (user) => {
                 if (user) {
-                    // Tenta carregar os dados do usuário logado (presumindo que ele possa ser o admin)
-                    // Para o caso de um admin que acessa diretamente a página de edição de usuários
                     try {
                         const adminUserDoc = await firestore.collection('users').doc(user.uid).get();
                         if (!adminUserDoc.exists || adminUserDoc.data().isAdmin !== true) {
                             showMessage('Você não tem permissão de administrador para acessar esta página.', 'error');
                             clearFormAndHide();
-                            searchBtn.disabled = true; // Desabilita a busca se não for admin
+                            searchBtn.disabled = true;
                         } else {
-                            // Admin logado, pode prosseguir
                             searchBtn.disabled = false;
-                            // Opcional: Se quiser carregar o próprio perfil do admin por padrão, descomente
-                            // loadUserData(user.uid);
-                            // searchUidInput.value = user.uid;
-                            // if (searchUidInput.parentElement && searchUidInput.parentElement.MaterialTextfield) {
-                            //     searchUidInput.parentElement.MaterialTextfield.checkDirty();
-                            // }
                         }
                     } catch (error) {
                         console.error("Erro ao verificar status do admin:", error);
@@ -378,64 +395,63 @@
                         searchBtn.disabled = true;
                     }
                 } else {
-                    // Usuário não logado
                     showMessage('Por favor, faça login para acessar esta página.', 'error');
                     clearFormAndHide();
                     searchBtn.disabled = true;
                 }
             });
         });
-        // Adicione após as outras variáveis de elementos DOM:
-const listAllBtn = document.getElementById('listAllBtn');
-const userListDiv = document.getElementById('userList');
-const userListBody = document.getElementById('userListBody');
 
-// Função para listar todos os usuários
-async function listAllUsers() {
-    hideMessages();
-    userListDiv.style.display = 'none';
-    userListBody.innerHTML = '';
+        const listAllBtn = document.getElementById('listAllBtn');
+        const userListDiv = document.getElementById('userList');
+        const userListBody = document.getElementById('userListBody');
 
-    // Verifica se quem está logado é admin
-    const currentUser = auth.currentUser;
-    if (!currentUser) {
-        showMessage('Você precisa estar logado para acessar esta função.', 'error');
-        return;
-    }
-    const adminUserDoc = await firestore.collection('users').doc(currentUser.uid).get();
-    if (!adminUserDoc.exists || adminUserDoc.data().isAdmin !== true) {
-        showMessage('Acesso negado: Você não tem permissão de administrador.', 'error');
-        return;
-    }
+        // Função para listar todos os usuários
+        async function listAllUsers() {
+            hideMessages();
+            userListDiv.style.display = 'none';
+            userListBody.innerHTML = '';
 
-    try {
-        const snapshot = await firestore.collection('users').get();
-        if (snapshot.empty) {
-            showMessage('Nenhum usuário encontrado.', 'error');
-            return;
+            const currentUser = auth.currentUser;
+            if (!currentUser) {
+                showMessage('Você precisa estar logado para acessar esta função.', 'error');
+                return;
+            }
+            const adminUserDoc = await firestore.collection('users').doc(currentUser.uid).get();
+            if (!adminUserDoc.exists || adminUserDoc.data().isAdmin !== true) {
+                showMessage('Acesso negado: Você não tem permissão de administrador.', 'error');
+                return;
+            }
+
+            try {
+                const snapshot = await firestore.collection('users').get();
+                if (snapshot.empty) {
+                    showMessage('Nenhum usuário encontrado.', 'error');
+                    return;
+                }
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="mdl-data-table__cell--non-numeric">${doc.id}</td>
+                        <td class="mdl-data-table__cell--non-numeric">${data.name || ''}</td>
+                        <td class="mdl-data-table__cell--non-numeric">${data.email || ''}</td>
+                        <td class="mdl-data-table__cell--non-numeric">${data.isAdmin ? 'Sim' : 'Não'}</td>
+                        <td class="mdl-data-table__cell--non-numeric">${data.isBan ? 'Sim' : 'Não'}</td>
+                        <td class="mdl-data-table__cell--non-numeric">${data.isTeatcher ? 'Sim' : 'Não'}</td>
+                    `;
+                    userListBody.appendChild(row);
+                });
+                userListDiv.style.display = 'block';
+                componentHandler.upgradeDom(); // Atualiza o visual do MDL
+            } catch (error) {
+                console.error("Erro ao listar usuários:", error);
+                showMessage(`Erro ao listar usuários: ${error.message}`, 'error');
+            }
         }
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td class="mdl-data-table__cell--non-numeric">${doc.id}</td>
-                <td class="mdl-data-table__cell--non-numeric">${data.name || ''}</td>
-                <td class="mdl-data-table__cell--non-numeric">${data.email || ''}</td>
-                <td class="mdl-data-table__cell--non-numeric">${data.isAdmin ? 'Sim' : 'Não'}</td>
-                <td class="mdl-data-table__cell--non-numeric">${data.isBan ? 'Sim' : 'Não'}</td>
-            `;
-            userListBody.appendChild(row);
-        });
-        userListDiv.style.display = 'block';
-        componentHandler.upgradeDom(); // Atualiza o visual do MDL
-    } catch (error) {
-        console.error("Erro ao listar usuários:", error);
-        showMessage(`Erro ao listar usuários: ${error.message}`, 'error');
-    }
-}
 
-// Lidar com clique do botão "Listar Todos"
-listAllBtn.addEventListener('click', listAllUsers);
+        // Lidar com clique do botão "Listar Todos"
+        listAllBtn.addEventListener('click', listAllUsers);
     </script>
 </body>
 </html>
